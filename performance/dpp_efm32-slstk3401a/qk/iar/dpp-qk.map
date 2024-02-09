@@ -1,0 +1,499 @@
+###############################################################################
+#
+# IAR ELF Linker V8.50.6.265/W32 for ARM                  18/Oct/2020  20:18:10
+# Copyright 2007-2020 IAR Systems AB.
+#
+#    Output file  =
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\dpp-qk.out
+#    Map file     =
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\dpp-qk.map
+#    Command line =
+#        -f C:\Users\miro\AppData\Local\Temp\EW1D20.tmp
+#        (C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\bsp.o
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\em_cmu.o
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\em_emu.o
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\em_gpio.o
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\em_usart.o
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\main.o
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\philo.o
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\qep_hsm.o
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\qep_msm.o
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\qf_act.o
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\qf_actq.o
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\qf_defer.o
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\qf_dyn.o
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\qf_mem.o
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\qf_ps.o
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\qf_qact.o
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\qf_qeq.o
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\qf_qmact.o
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\qf_time.o
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\qk.o
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\qk_port.o
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\qstamp.o
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\startup_efm32pg1b.o
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\system_efm32pg1b.o
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\table.o
+#        --redirect _Printf=_PrintfTiny --redirect _Scanf=_ScanfSmallNoMb
+#        --no_out_extension -o
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\dpp-qk.out
+#        --map
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg\dpp-qk.map
+#        --config
+#        C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dpp-qk.icf
+#        --entry __iar_program_start --vfe --text_out locale)
+#
+###############################################################################
+
+*******************************************************************************
+*** RUNTIME MODEL ATTRIBUTES
+***
+
+CppFlavor                     = *
+__CPP_Exceptions              = Disabled
+__CPP_Language                = C++14
+__Heap_Handler                = Basic
+__SystemLibrary               = DLib
+__dlib_dynamic_initialization = normal
+__dlib_version                = 6
+
+
+*******************************************************************************
+*** HEAP SELECTION
+***
+
+The basic heap was selected because some modules are built with
+size limitations (and not runtime checking), and --advanced_heap
+was not specified.
+
+
+*******************************************************************************
+*** PLACEMENT SUMMARY
+***
+
+"A0":  place at address 0x0 { ro section .intvec };
+"P1":  place in [from 0x0 to 0x3'ffff] { ro };
+define block CSTACK with size = 1K, alignment = 8 { };
+"A1":  place at start of [from 0x2000'0000 to 0x2000'7fff] { block CSTACK };
+define block HEAP with size = 0, alignment = 8 { };
+"P2":  place in [from 0x2000'0000 to 0x2000'7fff] { rw, block HEAP };
+initialize by copy { rw };
+
+  Section                Kind         Address    Size  Object
+  -------                ----         -------    ----  ------
+"A0":                                            0xc8
+  .intvec                ro code          0x0    0xc8  startup_efm32pg1b.o [1]
+                                       - 0xc8    0xc8
+
+"P1":                                          0x1b2c
+  .text                  ro code         0xc8   0x40c  table.o [1]
+  .text                  ro code        0x4d4    0x38  qf_qact.o [1]
+  .text                  ro code        0x50c   0x104  qf_ps.o [1]
+  .text                  ro code        0x610   0x258  bsp.o [1]
+  .text                  ro code        0x868   0x10c  qf_dyn.o [1]
+  .text                  ro code        0x974   0x27c  qep_hsm.o [1]
+  .text                  ro code        0xbf0    0x2c  qf_qeq.o [1]
+  .text                  ro code        0xc1c    0x50  qf_act.o [1]
+  .text                  ro code        0xc6c   0x21c  qk.o [1]
+  .text                  ro code        0xe88   0x1a0  qf_time.o [1]
+  .text                  ro code       0x1028    0x54  system_efm32pg1b.o [1]
+  .text                  ro code       0x107c    0x90  em_cmu.o [1]
+  .text                  ro code       0x110c    0xac  em_gpio.o [1]
+  .text                  ro code       0x11b8    0x28  cxxabi.o [3]
+  .text                  ro code       0x11e0   0x134  qf_mem.o [1]
+  .text                  ro code       0x1314     0x6  ABImemclr.o [4]
+  .text                  ro code       0x131a    0x3a  zero_init3.o [4]
+  .text                  ro code       0x1354    0xa8  qk_port.o [1]
+  .text                  ro code       0x13fc   0x118  qf_actq.o [1]
+  .text                  ro code       0x1514    0x14  memset.o [4]
+  .text                  ro code       0x1528    0x66  ABImemset.o [4]
+  .text                  ro code       0x158e    0x2e  copy_init3.o [4]
+  .text                  ro code       0x15bc   0x232  philo.o [1]
+  .text                  ro code       0x17ee    0x1a  table.o [1]
+  .text                  ro code       0x1808    0xf0  startup_efm32pg1b.o [1]
+  .text                  ro code       0x18f8     0xc  cstartup_M.o [4]
+  .text                  ro code       0x1904    0x1e  cmain.o [4]
+  .text                  ro code       0x1922     0x4  low_level_init.o [2]
+  .text                  ro code       0x1928    0x28  data_init.o [4]
+  .text                  ro code       0x1950    0xc0  main.o [1]
+  .text                  ro code       0x1a10     0x4  exit.o [2]
+  .text                  ro code       0x1a14     0xa  cexit.o [4]
+  .text                  ro code       0x1a20     0xc  XXexit.o [4]
+  .rodata                const         0x1a2c    0x44  philo.o [1]
+  .rodata                const         0x1a70    0x44  table.o [1]
+  .rodata                const         0x1ab4    0x2c  philo.o [1]
+  .rodata                const         0x1ae0    0x2c  qk.o [1]
+  .rodata                const         0x1b0c    0x2c  table.o [1]
+  .iar.init_table        const         0x1b38    0x28  - Linker created -
+  .text                  ro code       0x1b60    0x20  cmain_call_ctors.o [4]
+  .text                  ro code       0x1b80    0x18  cppinit.o [2]
+  .rodata                const         0x1b98    0x1c  qep_hsm.o [1]
+  Initializer bytes      const         0x1bb4    0x18  <for P2-1>
+  .rodata                const         0x1bcc    0x14  philo.o [1]
+  SHT$$PREINIT_ARRAY                   0x1be0     0x0  <Block>
+  SHT$$INIT_ARRAY                      0x1be0    0x10  <Block>
+    .init_array          const         0x1be0     0x4  philo.o [1]
+    .init_array          const         0x1be4     0x4  qf_dyn.o [1]
+    .init_array          const         0x1be8     0x4  qf_time.o [1]
+    .init_array          const         0x1bec     0x4  table.o [1]
+  __iar_tls$$INIT_ARRAY                0x1bf0     0x0  <Block>
+  .rodata                const         0x1bf0     0x4  table.o [1]
+  .rodata                const         0x1bf4     0x0  zero_init3.o [4]
+  .rodata                const         0x1bf4     0x0  copy_init3.o [4]
+                                     - 0x1bf4  0x1b2c
+
+"A1":                                           0x400
+  CSTACK                          0x2000'0000   0x400  <Block>
+    CSTACK               uninit   0x2000'0000   0x400  <Block tail>
+                                - 0x2000'0400   0x400
+
+"P2", part 1 of 2:                               0x18
+  P2-1                            0x2000'0400    0x18  <Init block>
+    .data                inited   0x2000'0400     0x8  bsp.o [1]
+    .data                inited   0x2000'0408    0x10  system_efm32pg1b.o [1]
+                                - 0x2000'0418    0x18
+
+"P2", part 2 of 2:                              0x31c
+  .bss                   zero     0x2000'0418   0x104  philo.o [1]
+  .bss                   zero     0x2000'051c    0xec  main.o [1]
+  .bss                   zero     0x2000'0608    0x84  qf_act.o [1]
+  .bss                   zero     0x2000'068c    0x40  qf_dyn.o [1]
+  .bss                   zero     0x2000'06cc    0x2c  table.o [1]
+  .bss                   zero     0x2000'06f8    0x20  qf_time.o [1]
+  .bss                   zero     0x2000'0718     0xc  qk.o [1]
+  .bss                   zero     0x2000'0724     0x8  qf_ps.o [1]
+  .bss                   zero     0x2000'072c     0x4  bsp.o [1]
+  .bss                   zero     0x2000'0730     0x1  philo.o [1]
+                                - 0x2000'0731   0x319
+
+Unused ranges:
+
+         From           To      Size
+         ----           --      ----
+       0x1bf4     0x3'ffff  0x3'e40c
+  0x2000'0734  0x2000'7fff    0x78cc
+
+
+*******************************************************************************
+*** INIT TABLE
+***
+
+          Address      Size
+          -------      ----
+Zero (__iar_zero_init3)
+    1 destination range, total size 0x319:
+          0x2000'0418  0x319
+
+Copy (__iar_copy_init3)
+    1 source range, total size 0x18:
+               0x1bb4   0x18
+    1 destination range, total size 0x18:
+          0x2000'0400   0x18
+
+Extra (__iar_cstart_call_ctors)
+
+
+
+*******************************************************************************
+*** MODULE SUMMARY
+***
+
+    Module               ro code  ro data  rw data
+    ------               -------  -------  -------
+command line/config:
+    ----------------------------------------------
+    Total:
+
+C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg: [1]
+    bsp.o                    600        8       12
+    em_cmu.o                 144
+    em_gpio.o                172
+    main.o                   192               236
+    philo.o                  562      136      261
+    qep_hsm.o                636       28
+    qf_act.o                  80               132
+    qf_actq.o                280
+    qf_dyn.o                 268        4       64
+    qf_mem.o                 308
+    qf_ps.o                  260                 8
+    qf_qact.o                 56
+    qf_qeq.o                  44
+    qf_time.o                416        4       32
+    qk.o                     540       44       12
+    qk_port.o                168
+    startup_efm32pg1b.o      440
+    system_efm32pg1b.o        84       16       16
+    table.o                1'062      120       44
+    ----------------------------------------------
+    Total:                 6'312      360      817
+
+dl7M_tln.a: [2]
+    cppinit.o                 24
+    exit.o                     4
+    low_level_init.o           4
+    ----------------------------------------------
+    Total:                    32
+
+dlpp7M_tl_nc.a: [3]
+    cxxabi.o                  40
+    ----------------------------------------------
+    Total:                    40
+
+rt7M_tl.a: [4]
+    ABImemclr.o                6
+    ABImemset.o              102
+    XXexit.o                  12
+    cexit.o                   10
+    cmain.o                   30
+    cmain_call_ctors.o        32
+    copy_init3.o              46
+    cstartup_M.o              12
+    data_init.o               40
+    memset.o                  20
+    zero_init3.o              58
+    ----------------------------------------------
+    Total:                   368
+
+    Gaps                       4
+    Linker created                     40    1'024
+--------------------------------------------------
+    Grand Total:           6'756      400    1'841
+
+
+*******************************************************************************
+*** ENTRY LIST
+***
+
+Entry                       Address   Size  Type      Object
+-----                       -------   ----  ----      ------
+.iar.init_table$$Base        0x1b38          --   Gb  - Linker created -
+.iar.init_table$$Limit       0x1b60          --   Gb  - Linker created -
+?main                        0x1905         Code  Gb  cmain.o [4]
+CMU_ClockEnable              0x107d   0x74  Code  Gb  em_cmu.o [1]
+CSTACK$$Base            0x2000'0000          --   Gb  - Linker created -
+CSTACK$$Limit           0x2000'0400          --   Gb  - Linker created -
+DPP::AO_Philo                0x1bcc   0x14  Data  Gb  philo.o [1]
+DPP::AO_Table                0x1bf0    0x4  Data  Gb  table.o [1]
+DPP::BSP::displayPaused(unsigned char)
+                              0x745   0x18  Code  Gb  bsp.o [1]
+DPP::BSP::displayPhilStat(unsigned char, char const *)
+                              0x729   0x1c  Code  Gb  bsp.o [1]
+DPP::BSP::init()              0x6b3   0x76  Code  Gb  bsp.o [1]
+DPP::BSP::random()            0x75d   0x1a  Code  Gb  bsp.o [1]
+DPP::Philo::Philo()          0x15cd    0x4  Code  Gb  philo.o [1]
+DPP::Philo::eating(void *, QP::QEvt const *)
+                             0x17ed    0x2  Code  Gb  philo.o [1]
+DPP::Philo::eating_h(QP::QEvt const *)
+                             0x1737   0x90  Code  Gb  philo.o [1]
+DPP::Philo::hungry(void *, QP::QEvt const *)
+                             0x1735    0x2  Code  Gb  philo.o [1]
+DPP::Philo::hungry_h(QP::QEvt const *)
+                             0x1693   0x8a  Code  Gb  philo.o [1]
+DPP::Philo::initial(void *, QP::QEvt const *)
+                             0x15f1    0x4  Code  Gb  philo.o [1]
+DPP::Philo::initial_h(QP::QEvt const *)::registered
+                        0x2000'0730    0x1  Data  Lc  philo.o [1]
+DPP::Philo::thinking(void *, QP::QEvt const *)
+                             0x1691    0x2  Code  Gb  philo.o [1]
+DPP::Philo::thinking_h(QP::QEvt const *)
+                             0x161b   0x74  Code  Gb  philo.o [1]
+DPP::Table::active(void *, QP::QEvt const *)
+                              0x177   0x16  Code  Gb  table.o [1]
+DPP::Table::initial(void *, QP::QEvt const *)
+                              0x175    0x2  Code  Gb  table.o [1]
+DPP::Table::initial_h(QP::QEvt const *)
+                               0xfb   0x7a  Code  Gb  table.o [1]
+DPP::Table::paused(void *, QP::QEvt const *)
+                              0x4ad    0x2  Code  Gb  table.o [1]
+DPP::Table::paused_h(QP::QEvt const *)
+                              0x3d5   0xbe  Code  Gb  table.o [1]
+DPP::Table::serving(void *, QP::QEvt const *)
+                              0x3d1    0x2  Code  Gb  table.o [1]
+DPP::Table::serving_h(QP::QEvt const *)
+                              0x1a1  0x230  Code  Gb  table.o [1]
+GPIO_EVEN_IRQHandler          0x66f   0x42  Code  Gb  bsp.o [1]
+GPIO_PinModeSet              0x112b   0x8a  Code  Gb  em_gpio.o [1]
+GPIO_PinOutSet               0x110d   0x1e  Code  Lc  em_gpio.o [1]
+NMI_Handler                  0x13f1    0xc  Code  Gb  qk_port.o [1]
+PendSV_Handler               0x13a1   0x2c  Code  Gb  qk_port.o [1]
+QK_activate_                  0xdd5   0x90  Code  Gb  qk.o [1]
+QK_attr_                0x2000'0718    0xc  Data  Gb  qk.o [1]
+QK_init                      0x1355   0x4c  Code  Gb  qk_port.o [1]
+QK_sched_                     0xda9   0x2c  Code  Gb  qk.o [1]
+QK_thread_ret                0x13cd    0xc  Code  Gb  qk_port.o [1]
+QP::QActive::QActive(unsigned int (*)(void *, QP::QEvt const *)) [subobject]
+                              0x4d5    0x4  Code  Gb  qf_qact.o [1]
+QP::QActive::get_()          0x14a9   0x58  Code  Gb  qf_actq.o [1]
+QP::QActive::post_(QP::QEvt const *, unsigned int)
+                             0x13fd   0xac  Code  Gb  qf_actq.o [1]
+QP::QActive::start(unsigned int, QP::QEvt const **, unsigned int, void *, unsigned int)
+                             0x17ef   0x1a  Code  Gb  table.o [1]
+QP::QActive::start(unsigned int, QP::QEvt const **, unsigned int, void *, unsigned int, void const *)
+                              0xcd3   0x5e  Code  Gb  qk.o [1]
+QP::QActive::subscribe(int) const
+                              0x5b1   0x44  Code  Gb  qf_ps.o [1]
+QP::QEQueue::QEQueue()        0xbf1    0x2  Code  Gb  qf_qeq.o [1]
+QP::QEQueue::init(QP::QEvt const **, unsigned int)
+                              0xc05   0x18  Code  Gb  qf_qeq.o [1]
+QP::QF::active_         0x2000'0608   0x84  Data  Gb  qf_act.o [1]
+QP::QF::add_(QP::QActive *)
+                              0xc1d   0x2e  Code  Gb  qf_act.o [1]
+QP::QF::bzero(void *, unsigned int)
+                              0xc59    0xa  Code  Gb  qf_act.o [1]
+QP::QF::gc(QP::QEvt const *)
+                              0x911   0x52  Code  Gb  qf_dyn.o [1]
+QP::QF::init()                0xc6d   0x3a  Code  Gb  qk.o [1]
+QP::QF::newX_(unsigned int, unsigned int, int)
+                              0x8ad   0x5c  Code  Gb  qf_dyn.o [1]
+QP::QF::onStartup()           0x779   0x4c  Code  Gb  bsp.o [1]
+QP::QF::poolInit(void *, unsigned int, unsigned int)
+                              0x875   0x38  Code  Gb  qf_dyn.o [1]
+QP::QF::psInit(QP::QPSet *, int)
+                              0x50d    0xc  Code  Gb  qf_ps.o [1]
+QP::QF::publish_(QP::QEvt const *)
+                              0x519   0x90  Code  Gb  qf_ps.o [1]
+QP::QF::run()                 0xca7   0x2c  Code  Gb  qk.o [1]
+QP::QF::tickX_(unsigned int)
+                              0xe97   0x9e  Code  Gb  qf_time.o [1]
+QP::QF::timeEvtHead_    0x2000'06f8   0x20  Data  Gb  qf_time.o [1]
+QP::QF_maxPool_         0x2000'06c8    0x4  Data  Gb  qf_dyn.o [1]
+QP::QF_maxPubSignal_    0x2000'0728    0x4  Data  Gb  qf_ps.o [1]
+QP::QF_pool_            0x2000'068c   0x3c  Data  Gb  qf_dyn.o [1]
+QP::QF_subscrList_      0x2000'0724    0x4  Data  Gb  qf_ps.o [1]
+QP::QHsm::QHsm(unsigned int (*)(void *, QP::QEvt const *)) [subobject]
+                              0x975    0x2  Code  Gb  qep_hsm.o [1]
+QP::QHsm::dispatch(QP::QEvt const *, unsigned int)
+                              0xa15   0xea  Code  Gb  qep_hsm.o [1]
+QP::QHsm::hsm_tran(unsigned int (*(&)[6])(void *, QP::QEvt const *), unsigned int)
+                              0xb09   0xd0  Code  Gb  qep_hsm.o [1]
+QP::QHsm::init(void const *, unsigned int)
+                              0x98d   0x84  Code  Gb  qep_hsm.o [1]
+QP::QHsm::top(void *, QP::QEvt const *)
+                              0xa11    0x4  Code  Gb  qep_hsm.o [1]
+QP::QK::onIdle()              0x7c5   0x24  Code  Gb  bsp.o [1]
+QP::QK::schedLock(unsigned int)
+                              0xd31   0x3a  Code  Gb  qk.o [1]
+QP::QK::schedUnlock(unsigned int)
+                              0xd6b   0x3e  Code  Gb  qk.o [1]
+QP::QMPool::QMPool()         0x11e1    0x2  Code  Gb  qf_mem.o [1]
+QP::QMPool::get(unsigned int, unsigned int)
+                             0x1299   0x72  Code  Gb  qf_mem.o [1]
+QP::QMPool::init(void *, unsigned int, unsigned int)
+                             0x11f5   0x62  Code  Gb  qf_mem.o [1]
+QP::QMPool::put(void *, unsigned int)
+                             0x1257   0x38  Code  Gb  qf_mem.o [1]
+QP::QTimeEvt::QTimeEvt()
+                              0xf71    0x4  Code  Gb  qf_time.o [1]
+QP::QTimeEvt::QTimeEvt(QP::QActive *, int, unsigned int)
+                              0xf35   0x34  Code  Gb  qf_time.o [1]
+QP::QTimeEvt::armX(unsigned short, unsigned short)
+                              0xf93   0x58  Code  Gb  qf_time.o [1]
+QP::QTimeEvt::disarm()        0xfeb   0x2a  Code  Gb  qf_time.o [1]
+Q_onAssert                    0x7e9   0x2a  Code  Gb  bsp.o [1]
+Q_this_module_               0x1a2c   0x44  Data  Lc  philo.o [1]
+Q_this_module_                0xe84    0x4  Data  Lc  qk.o [1]
+Q_this_module_               0x1a70   0x44  Data  Lc  table.o [1]
+Region$$Table$$Base          0x1b38          --   Gb  - Linker created -
+Region$$Table$$Limit         0x1b60          --   Gb  - Linker created -
+SHT$$INIT_ARRAY$$Base        0x1be0          --   Gb  - Linker created -
+SHT$$INIT_ARRAY$$Limit       0x1bf0          --   Gb  - Linker created -
+SHT$$PREINIT_ARRAY$$Base
+                             0x1be0          --   Gb  - Linker created -
+SHT$$PREINIT_ARRAY$$Limit
+                             0x1be0          --   Gb  - Linker created -
+SysTick_Handler               0x611   0x5e  Code  Gb  bsp.o [1]
+SysTick_Handler::buttons
+                        0x2000'0400    0x8  Data  Lc  bsp.o [1]
+SysTick_Handler{1}{2}::pauseEvt
+                              0x860    0x4  Data  Lc  bsp.o [1]
+SysTick_Handler{1}{3}::serveEvt
+                              0x864    0x4  Data  Lc  bsp.o [1]
+SystemCoreClock         0x2000'0410    0x4  Data  Gb  system_efm32pg1b.o [1]
+SystemCoreClockGet           0x1029   0x4a  Code  Gb  system_efm32pg1b.o [1]
+SystemHFXOClock         0x2000'0408    0x4  Data  Lc  system_efm32pg1b.o [1]
+SystemHfrcoFreq         0x2000'0414    0x4  Data  Gb  system_efm32pg1b.o [1]
+SystemInit                   0x1073    0x2  Code  Gb  system_efm32pg1b.o [1]
+SystemLFXOClock         0x2000'040c    0x4  Data  Lc  system_efm32pg1b.o [1]
+USART0_RX_IRQHandler          0x6b1    0x2  Code  Gb  bsp.o [1]
+Virtual function table for DPP::Philo
+                             0x1ab4   0x2c  Data  Gb  philo.o [1]
+Virtual function table for DPP::Table
+                             0x1b0c   0x2c  Data  Gb  table.o [1]
+Virtual function table for QP::QActive
+                             0x1ae0   0x2c  Data  Gb  qk.o [1]
+Virtual function table for QP::QHsm
+                             0x1b98   0x1c  Data  Gb  qep_hsm.o [1]
+[local to bsp_cpp]::DPP::l_rnd
+                        0x2000'072c    0x4  Data  Lc  bsp.o [1]
+[local to philo_cpp]::DPP::l_philo
+                        0x2000'0418  0x104  Data  Lc  philo.o [1]
+[local to qep_hsm_cpp]::QP::QEP_reservedEvt_
+                              0xbe0   0x10  Data  Lc  qep_hsm.o [1]
+[local to qep_hsm_cpp]::QP::Q_this_module_
+                              0xbd8    0x8  Data  Lc  qep_hsm.o [1]
+[local to qf_act_cpp]::QP::Q_this_module_
+                              0xc64    0x8  Data  Lc  qf_act.o [1]
+[local to qf_actq_cpp]::QP::Q_this_module_
+                             0x150c    0x8  Data  Lc  qf_actq.o [1]
+[local to qf_dyn_cpp]::QP::Q_this_module_
+                              0x96c    0x8  Data  Lc  qf_dyn.o [1]
+[local to qf_mem_cpp]::QP::Q_this_module_
+                             0x130c    0x8  Data  Lc  qf_mem.o [1]
+[local to qf_ps_cpp]::QP::Q_this_module_
+                              0x608    0x8  Data  Lc  qf_ps.o [1]
+[local to qf_time_cpp]::QP::Q_this_module_
+                             0x1020    0x8  Data  Lc  qf_time.o [1]
+[local to table_cpp]::DPP::l_table
+                        0x2000'06cc   0x2c  Data  Lc  table.o [1]
+__Vectors                       0x0          --   Gb  startup_efm32pg1b.o [1]
+__Vectors_End                  0xc8         Data  Gb  startup_efm32pg1b.o [1]
+__Vectors_Size {Abs}           0xc8          --   Gb  startup_efm32pg1b.o [1]
+__aeabi_memclr               0x1315         Code  Gb  ABImemclr.o [4]
+__aeabi_memset               0x1529         Code  Gb  ABImemset.o [4]
+__aeabi_vec_ctor_nocookie_nodtor
+                             0x11b9   0x28  Code  Gb  cxxabi.o [3]
+__call_ctors                 0x1b81   0x18  Code  Gb  cppinit.o [2]
+__cmain                      0x1905         Code  Gb  cmain.o [4]
+__exit                       0x1a21         Code  Gb  XXexit.o [4]
+__iar_Memset                 0x1529         Code  Gb  ABImemset.o [4]
+__iar_Memset_word            0x1531         Code  Gb  ABImemset.o [4]
+__iar_copy_init3             0x158f   0x2e  Code  Gb  copy_init3.o [4]
+__iar_cstart_call_ctors
+                             0x1b61   0x20  Code  Gb  cmain_call_ctors.o [4]
+__iar_data_init3             0x1929   0x28  Code  Gb  data_init.o [4]
+__iar_program_start          0x18f9         Code  Gb  cstartup_M.o [4]
+__iar_tls$$INIT_ARRAY$$Base
+                             0x1bf0          --   Gb  - Linker created -
+__iar_tls$$INIT_ARRAY$$Limit
+                             0x1bf0          --   Gb  - Linker created -
+__iar_zero_init3             0x131b   0x3a  Code  Gb  zero_init3.o [4]
+__low_level_init             0x1923    0x4  Code  Gb  low_level_init.o [2]
+__sti__routine               0x15bd    0xe  Code  Lc  philo.o [1]
+__sti__routine                0x869    0xc  Code  Lc  qf_dyn.o [1]
+__sti__routine                0xe89    0xe  Code  Lc  qf_time.o [1]
+__sti__routine                 0xc9   0x32  Code  Lc  table.o [1]
+__vector_table                  0x0         Data  Gb  startup_efm32pg1b.o [1]
+_call_main                   0x1911         Code  Gb  cmain.o [4]
+_exit                        0x1a15         Code  Gb  cexit.o [4]
+_main                        0x191f         Code  Gb  cmain.o [4]
+assert_failed                0x18b9         Code  Gb  startup_efm32pg1b.o [1]
+exit                         0x1a11    0x4  Code  Gb  exit.o [2]
+main                         0x1951   0xc0  Code  Gb  main.o [1]
+main::philoQueueSto     0x2000'0530   0x64  Data  Lc  main.o [1]
+main::smlPoolSto        0x2000'05b8   0x50  Data  Lc  main.o [1]
+main::subscrSto         0x2000'0594   0x24  Data  Lc  main.o [1]
+main::tableQueueSto     0x2000'051c   0x14  Data  Lc  main.o [1]
+memset                       0x1515   0x14  Code  Gb  memset.o [4]
+
+
+[1] = C:\qp_lab\qpcpp\examples\performance\dpp_efm32-slstk3401a\qk\iar\dbg
+[2] = dl7M_tln.a
+[3] = dlpp7M_tl_nc.a
+[4] = rt7M_tl.a
+
+  6'756 bytes of readonly  code memory
+    400 bytes of readonly  data memory
+  1'841 bytes of readwrite data memory
+
+Errors: none
+Warnings: none

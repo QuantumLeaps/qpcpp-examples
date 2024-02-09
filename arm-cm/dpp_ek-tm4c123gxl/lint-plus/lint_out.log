@@ -1,0 +1,288 @@
+
+--- Module:   C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp (C++)
+<built-in>  1  warning 586: preprocessor directive '' is deprecated. [AUTOSAR Rule A16-0-1]
+<built-in>  7  warning 586: preprocessor directive '' is deprecated. [AUTOSAR Rule A16-0-1]
+<command line>  1  warning 586: preprocessor directive '' is deprecated. [AUTOSAR Rule A16-0-1]
+C:\qp_lab\qpcpp\include\qep.hpp  151  info 886: preprocessor directive 'error' encountered in conditionally excluded 
+    region is deprecated. [AUTOSAR Rule A16-0-1], [AUTOSAR Rule A16-6-1]
+C:\qp_lab\qpcpp\include\qequeue.hpp  78  info 886: preprocessor directive 'error' encountered in conditionally excluded 
+    region is deprecated. [AUTOSAR Rule A16-0-1], [AUTOSAR Rule A16-6-1]
+C:\qp_lab\qpcpp\include\qmpool.hpp  67  info 886: preprocessor directive 'error' encountered in conditionally excluded 
+    region is deprecated. [AUTOSAR Rule A16-0-1], [AUTOSAR Rule A16-6-1]
+C:\qp_lab\qpcpp\include\qmpool.hpp  82  info 886: preprocessor directive 'error' encountered in conditionally excluded 
+    region is deprecated. [AUTOSAR Rule A16-0-1], [AUTOSAR Rule A16-6-1]
+C:\qp_lab\qpcpp\include\qpset.hpp  50  info 886: preprocessor directive 'error' encountered in conditionally excluded 
+    region is deprecated. [AUTOSAR Rule A16-0-1], [AUTOSAR Rule A16-6-1]
+C:\qp_lab\qpcpp\include\qf.hpp  69  info 886: preprocessor directive 'error' encountered in conditionally excluded 
+    region is deprecated. [AUTOSAR Rule A16-0-1], [AUTOSAR Rule A16-6-1]
+C:\qp_lab\qpcpp\include\qf.hpp  94  info 886: preprocessor directive 'error' encountered in conditionally excluded 
+    region is deprecated. [AUTOSAR Rule A16-0-1], [AUTOSAR Rule A16-6-1]
+C:\qp_lab\qpcpp\include\qf.hpp  113  info 886: preprocessor directive 'error' encountered in conditionally excluded 
+    region is deprecated. [AUTOSAR Rule A16-0-1], [AUTOSAR Rule A16-6-1]
+C:\qp_lab\qpcpp\include\qs_dummy.hpp  44  info 886: preprocessor directive 'error' encountered in conditionally excluded 
+    region is deprecated. [AUTOSAR Rule A16-0-1], [AUTOSAR Rule A16-6-1]
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\dpp.hpp  44  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\dpp.hpp  56  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\dpp.hpp  51  supplemental 893: expanded from macro 'N_PHILO'
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\bsp.hpp  44  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\bsp.hpp  45  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\bsp.hpp  46  error 1038: type 'int16_t' not found, 'std::int16_t' 
+    assumed
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  15  supplemental 891: 'std::int16_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\bsp.hpp  48  error 1038: type 'uint32_t' not found, 'std::uint32_t' 
+    assumed
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  21  supplemental 891: 'std::uint32_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\bsp.hpp  49  error 1038: type 'uint32_t' not found, 'std::uint32_t' 
+    assumed
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  21  supplemental 891: 'std::uint32_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  30  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  30  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\dpp.hpp  51  supplemental 893: expanded from macro 'N_PHILO'
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  31  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\dpp.hpp  51  supplemental 893: expanded from macro 'N_PHILO'
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  51  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  51  error 40: undeclared identifier 'uint8_t'
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  51  error 4933: expected ';' after top level declarator
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  61  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  61  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  79  info 886: preprocessor directive 'error' encountered in 
+    conditionally excluded region is deprecated. [AUTOSAR Rule A16-0-1], [AUTOSAR Rule A16-6-1]
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  88  warning 586: keyword 'reinterpret_cast' is deprecated.  
+    [AUTOSAR Rule A5-2-4]
+C:\qp_lab\qpcpp\include\qep.hpp  624  supplemental 893: expanded from macro 'Q_STATE_CAST'
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  90  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  90  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\dpp.hpp  51  supplemental 893: expanded from macro 'N_PHILO'
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  91  error 40: undeclared identifier 'FREE'
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  106  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  106  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\dpp.hpp  51  supplemental 893: expanded from macro 'N_PHILO'
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  107  error 40: undeclared identifier 'FREE'
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  156  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  156  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\dpp.hpp  51  supplemental 893: expanded from macro 'N_PHILO'
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  158  error 40: undeclared identifier 'LEFT'
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  158  error 40: undeclared identifier 'FREE'
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  159  error 40: undeclared identifier 'FREE'
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  161  error 40: undeclared identifier 'LEFT'
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  175  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  177  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\dpp.hpp  51  supplemental 893: expanded from macro 'N_PHILO'
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  180  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  180  error 40: undeclared identifier 'LEFT'
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  182  error 40: undeclared identifier 'FREE'
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  182  error 40: undeclared identifier 'FREE'
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  200  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  202  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\dpp.hpp  51  supplemental 893: expanded from macro 'N_PHILO'
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  205  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  205  error 40: undeclared identifier 'LEFT'
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  209  error 40: undeclared identifier 'FREE'
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  210  error 40: undeclared identifier 'FREE'
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  211  error 5759: called object type 'std::uint8_t' 
+    (aka 'unsigned char') is not a function or function pointer
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  213  error 40: undeclared identifier 'FREE'
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  222  error 40: undeclared identifier 'LEFT'
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  223  error 40: undeclared identifier 'LEFT'
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  224  error 40: undeclared identifier 'FREE'
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  277  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  279  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\dpp.hpp  51  supplemental 893: expanded from macro 'N_PHILO'
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  287  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  289  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\dpp.hpp  51  supplemental 893: expanded from macro 'N_PHILO'
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  292  error 1038: type 'uint8_t' not found, 'std::uint8_t' 
+    assumed
+C:\qp_lab\qpcpp\ports\lint-plus\32bit\cstdint  19  supplemental 891: 'std::uint8_t' declared here
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  292  error 40: undeclared identifier 'LEFT'
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  293  note 1904: old-style c comment [AUTOSAR Rule A2-8-4]
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  296  error 40: undeclared identifier 'FREE'
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  297  error 40: undeclared identifier 'FREE'
+C:\qp_lab\qpcpp\include\qep.hpp  368  note 9419: enum 'QP::QHsm::ReservedHsmSignals' is not a scoped enumeration 
+    [AUTOSAR Rule A7-2-3]
+C:\qp_lab\qpcpp\include\qep.hpp  460  note 9436: symbol 'path' has array type 'QP::QStateHandler (&)[6]' 
+    [AUTOSAR Rule A18-1-1]
+C:\qp_lab\qpcpp\include\qep.hpp  462  note 9435: type 'class QMsm' declared as friend in class 'QP::QHsm' 
+    [AUTOSAR Rule A11-3-1]
+C:\qp_lab\qpcpp\include\qep.hpp  463  note 9435: type 'class QActive' declared as friend in class 'QP::QHsm' 
+    [AUTOSAR Rule A11-3-1]
+C:\qp_lab\qpcpp\include\qep.hpp  464  note 9435: type 'class QMActive' declared as friend in class 'QP::QHsm' 
+    [AUTOSAR Rule A11-3-1]
+C:\qp_lab\qpcpp\include\qep.hpp  465  note 9435: type 'class QF' declared as friend in class 'QP::QHsm' 
+    [AUTOSAR Rule A11-3-1]
+C:\qp_lab\qpcpp\include\qep.hpp  466  note 9435: type 'class QS' declared as friend in class 'QP::QHsm' 
+    [AUTOSAR Rule A11-3-1]
+C:\qp_lab\qpcpp\include\qep.hpp  467  note 9435: type 'class QXK' declared as friend in class 'QP::QHsm' 
+    [AUTOSAR Rule A11-3-1]
+C:\qp_lab\qpcpp\include\qep.hpp  468  note 9435: type 'class QXThread' declared as friend in class 'QP::QHsm' 
+    [AUTOSAR Rule A11-3-1]
+C:\qp_lab\qpcpp\include\qep.hpp  469  note 9435: type 'class QXMutex' declared as friend in class 'QP::QHsm' 
+    [AUTOSAR Rule A11-3-1]
+C:\qp_lab\qpcpp\include\qep.hpp  470  note 9435: type 'class QXSemaphore' declared as friend in class 'QP::QHsm' 
+    [AUTOSAR Rule A11-3-1]
+C:\qp_lab\qpcpp\include\qep.hpp  552  note 9435: type 'class QMActive' declared as friend in class 'QP::QMsm' 
+    [AUTOSAR Rule A11-3-1]
+C:\qp_lab\qpcpp\include\qep.hpp  576  note 9436: symbol 'QP::QMTranActTable::act' has array type 
+    'const QP::QActionHandler [1]' [AUTOSAR Rule A18-1-1]
+C:\qp_lab\qpcpp\include\qequeue.hpp  263  note 9435: type 'class QF' declared as friend in class 'QP::QEQueue' 
+    [AUTOSAR Rule A11-3-1]
+C:\qp_lab\qpcpp\include\qequeue.hpp  264  note 9435: type 'class QActive' declared as friend in class 'QP::QEQueue' 
+    [AUTOSAR Rule A11-3-1]
+C:\qp_lab\qpcpp\include\qequeue.hpp  265  note 9435: type 'class QXThread' declared as friend in class 'QP::QEQueue' 
+    [AUTOSAR Rule A11-3-1]
+C:\qp_lab\qpcpp\include\qequeue.hpp  266  note 9435: type 'class QTicker' declared as friend in class 'QP::QEQueue' 
+    [AUTOSAR Rule A11-3-1]
+C:\qp_lab\qpcpp\include\qmpool.hpp  166  note 9435: type 'class QF' declared as friend in class 'QP::QMPool' 
+    [AUTOSAR Rule A11-3-1]
+C:\qp_lab\qpcpp\include\qf.hpp  287  note 9435: type 'class QF' declared as friend in class 'QP::QActive' 
+    [AUTOSAR Rule A11-3-1]
+C:\qp_lab\qpcpp\include\qf.hpp  288  note 9435: type 'class QTimeEvt' declared as friend in class 'QP::QActive' 
+    [AUTOSAR Rule A11-3-1]
+C:\qp_lab\qpcpp\include\qf.hpp  289  note 9435: type 'class QTicker' declared as friend in class 'QP::QActive' 
+    [AUTOSAR Rule A11-3-1]
+C:\qp_lab\qpcpp\include\qf.hpp  291  note 9435: type 'class QMutex' declared as friend in class 'QP::QActive' 
+    [AUTOSAR Rule A11-3-1]
+C:\qp_lab\qpcpp\include\qf.hpp  461  note 9435: type 'class QF' declared as friend in class 'QP::QTimeEvt' 
+    [AUTOSAR Rule A11-3-1]
+C:\qp_lab\qpcpp\include\qf.hpp  462  note 9435: type 'class QS' declared as friend in class 'QP::QTimeEvt' 
+    [AUTOSAR Rule A11-3-1]
+C:\qp_lab\qpcpp\include\qf.hpp  567  note 9436: symbol 'QP::QF::active_' has array type 'QP::QActive *[33]' 
+    [AUTOSAR Rule A18-1-1]
+C:\qp_lab\qpcpp\include\qf.hpp  602  note 9436: symbol 'QP::QF::timeEvtHead_' has array type 'QP::QTimeEvt [1]' 
+    [AUTOSAR Rule A18-1-1]
+C:\qp_lab\qpcpp\include\qf.hpp  602  info 1756: variable 'QP::QF::timeEvtHead_' has 'static' storage duration and 
+    non-POD type 'QP::QTimeEvt [1]' [AUTOSAR Rule A3-3-2]
+C:\qp_lab\qpcpp\include\qf.hpp  604  note 9435: type 'class QActive' declared as friend in class 'QP::QF' 
+    [AUTOSAR Rule A11-3-1]
+C:\qp_lab\qpcpp\include\qf.hpp  605  note 9435: type 'class QTimeEvt' declared as friend in class 'QP::QF' 
+    [AUTOSAR Rule A11-3-1]
+C:\qp_lab\qpcpp\include\qf.hpp  606  note 9435: type 'class QS' declared as friend in class 'QP::QF' 
+    [AUTOSAR Rule A11-3-1]
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\dpp.hpp  24  note 9419: enum 'DPP::DPPSignals' is not a scoped 
+    enumeration [AUTOSAR Rule A7-2-3]
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\dpp.hpp  24  note 9418: enum 'DPP::DPPSignals' does not have an 
+    explicitly specified underlying type [AUTOSAR Rule A7-2-2]
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\dpp.hpp  44  note 9150: non-private data member 
+    'DPP::TableEvt::philoNum' within a non-POD structure [AUTOSAR Rule M11-0-1]
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\dpp.hpp  56  note 9436: symbol 'DPP::AO_Philo' has array type 
+    'QP::QActive *const [5]' [AUTOSAR Rule A18-1-1]
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\bsp.hpp  41  note 9419: enum 'DPP::BSP::(anonymous)' is not a scoped 
+    enumeration [AUTOSAR Rule A7-2-3]
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\bsp.hpp  41  note 9418: enum 'DPP::BSP::(anonymous)' does not have an 
+    explicitly specified underlying type [AUTOSAR Rule A7-2-2]
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  30  note 9436: symbol 'DPP::Table::m_fork' has array type 
+    'std::uint8_t [5]' [AUTOSAR Rule A18-1-1]
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  31  note 9436: symbol 'DPP::Table::m_isHungry' has array 
+    type 'bool [5]' [AUTOSAR Rule A18-1-1]
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  48  note 9436: symbol 'DPP::Q_this_module_' has array type 
+    'const char_t [13]' [AUTOSAR Rule A18-1-1]
+C:\qp_lab\qpcpp\include\qassert.h  105  supplemental 893: expanded from macro 'Q_DEFINE_THIS_FILE'
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  68  info 1756: variable 'DPP::l_table' has 'static' storage 
+    duration and non-POD type 'DPP::Table' [AUTOSAR Rule A3-3-2]
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  101  warning 641: implicit conversion of enum 
+    'DPP::DPPSignals' to integral type 'enum_t' (aka 'int')
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  102  warning 641: implicit conversion of enum 
+    'DPP::DPPSignals' to integral type 'enum_t' (aka 'int')
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  103  warning 641: implicit conversion of enum 
+    'DPP::DPPSignals' to integral type 'enum_t' (aka 'int')
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  104  warning 641: implicit conversion of enum 
+    'DPP::DPPSignals' to integral type 'enum_t' (aka 'int')
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  140  warning 527: statement is unreachable due to 
+    unconditional transfer of control by 'non-returning call expression' statement [AUTOSAR Rule M0-1-1]
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  239  warning 527: statement is unreachable due to 
+    unconditional transfer of control by 'non-returning call expression' statement [AUTOSAR Rule M0-1-1]
+--- Module Wrap-up
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  163  note 953: local variable 'te' could be const 
+    [AUTOSAR Rule M7-1-1]
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  175  note 953: local variable 'n' could be const 
+    [AUTOSAR Rule M7-1-1]
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  180  note 953: local variable 'm' could be const 
+    [AUTOSAR Rule M7-1-1]
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  185  note 953: local variable 'pe' could be const 
+    [AUTOSAR Rule M7-1-1]
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  200  note 953: local variable 'n' could be const 
+    [AUTOSAR Rule M7-1-1]
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  205  note 953: local variable 'm' could be const 
+    [AUTOSAR Rule M7-1-1]
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  217  note 953: local variable 'pe' could be const 
+    [AUTOSAR Rule M7-1-1]
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  228  note 953: local variable 'pe' could be const 
+    [AUTOSAR Rule M7-1-1]
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  277  note 953: local variable 'n' could be const 
+    [AUTOSAR Rule M7-1-1]
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  287  note 953: local variable 'n' could be const 
+    [AUTOSAR Rule M7-1-1]
+C:\qp_lab\qpcpp\examples\arm-cm\dpp_ek-tm4c123gxl\table.cpp  292  note 953: local variable 'm' could be const 
+    [AUTOSAR Rule M7-1-1]
+Count   Type    Number  Text
+
+20      error   40      undeclared identifier __detail__
+2       warning 527     statement is unreachable due to unconditional transfer of control by '__string__' statement
+4       warning 586     __string__ '__name__' is deprecated. __string__
+4       warning 641     implicit conversion of enum __symbol__ to integral type __type__
+10      info    886     preprocessor directive '__name__' encountered in conditionally excluded region is deprecated. __string__
+30      supplemental    891     __parameter__ declared here
+12      supplemental    893     expanded from macro
+11      note    953     local variable __symbol__ could be const
+30      error   1038    type __type__ not found, __type__ assumed
+2       info    1756    variable __symbol__ has '__static/thread__' storage duration and non-POD type __type__
+1       note    1904    old-style c comment
+1       error   4933    expected ';' after top level declarator
+1       error   5759    called object type __parameter__ is not a function or function pointer
+1       note    9150    non-private data member __symbol__ within a non-POD structure
+2       note    9418    enum __symbol__ does not have an explicitly specified underlying type
+3       note    9419    enum __symbol__ is not a scoped enumeration
+24      note    9435    __string__ __symbol__ declared as friend in class __symbol__
+8       note    9436    symbol __symbol__ has array type __type__
