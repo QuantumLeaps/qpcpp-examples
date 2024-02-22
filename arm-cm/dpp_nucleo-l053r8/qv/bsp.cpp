@@ -366,9 +366,8 @@ void QV::onIdle() { // CAUTION: called with interrupts DISABLED, see NOTE0
     //GPIOA->BSRR = (1U << (LD2_PIN + 16U)); // turn LED[n] off
 
 #ifdef Q_SPY
-    // interrupts still disabled
-    QS::rxParse();  // parse all the received bytes
     QF_INT_ENABLE();
+    QS::rxParse();  // parse all the received bytes
 
     if ((USART2->ISR & (1U << 7U)) != 0U) { // is TXE empty?
         QF_INT_DISABLE();

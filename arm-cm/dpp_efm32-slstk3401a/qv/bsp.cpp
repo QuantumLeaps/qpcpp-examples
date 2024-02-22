@@ -375,13 +375,12 @@ void QF::onCleanup() {
 //............................................................................
 void QV::onIdle() { // CAUTION: called with interrupts DISABLED, see NOTE0
     // toggle the User LED on and then off, see NOTE3
-//  GPIO->P[LED_PORT].DOUT |=  (1U << LED1_PIN);
-//  GPIO->P[LED_PORT].DOUT &= ~(1U << LED1_PIN);
+    //GPIO->P[LED_PORT].DOUT |=  (1U << LED1_PIN);
+    //GPIO->P[LED_PORT].DOUT &= ~(1U << LED1_PIN);
 
 #ifdef Q_SPY
-    // intgerrupts still disabled
-    QS::rxParse();  // parse all the received bytes
     QF_INT_ENABLE();
+    QS::rxParse();  // parse all the received bytes
 
     if ((l_USART0->STATUS & USART_STATUS_TXBL) != 0) {  // is TXE empty?
         QF_INT_DISABLE();

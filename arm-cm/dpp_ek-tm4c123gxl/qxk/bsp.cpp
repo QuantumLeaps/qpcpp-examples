@@ -401,9 +401,7 @@ void QXK::onIdle() {
     x = x * 1.73205F;
 
 #ifdef Q_SPY
-    QF_INT_DISABLE();
     QS::rxParse();  // parse all the received bytes
-    QF_INT_ENABLE();
 
     if ((UART0->FR & UART_FR_TXFE) != 0U) { // TX done?
         std::uint16_t fifo = UART_TXFIFO_DEPTH; // max bytes we can accept

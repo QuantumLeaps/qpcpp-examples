@@ -407,9 +407,7 @@ void QK::onIdle() {
     QF_INT_ENABLE();
 
 #ifdef Q_SPY
-    QF_INT_DISABLE();
     QS::rxParse();  // parse all the received bytes
-    QF_INT_ENABLE();
 
     if ((USART2->SR & USART_FLAG_TXE) != 0) { // TXE empty?
         QF_INT_DISABLE();

@@ -748,9 +748,8 @@ void QV::onIdle() { // CAUTION: called with interrupts disabled, see NOTE0
     GPIO->P[LED_PORT].DOUT &= ~(1U << LED1_PIN);
 
 #ifdef Q_SPY
-    // interrupts still DISABLED
-    QS::rxParse();  // parse all the received bytes
     QF_INT_ENABLE();
+    QS::rxParse();  // parse all the received bytes
 
     if ((l_USART0->STATUS & USART_STATUS_TXBL) != 0) {  // is TXE empty?
         QF_INT_DISABLE();
@@ -765,7 +764,6 @@ void QV::onIdle() { // CAUTION: called with interrupts disabled, see NOTE0
     // Put the CPU and peripherals to the low-power mode.
     // you might need to customize the clock management for your application,
     // see the datasheet for your particular Cortex-M MCU.
-    //
     QV_CPU_SLEEP();  // atomically go to sleep and enable interrupts
 #else
     QF_INT_ENABLE(); // just enable interrupts

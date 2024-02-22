@@ -40,7 +40,7 @@
 #define QF_MEM_ISOLATE
 
 // use event constructors for dynamic events
-//#define QEVT_DYN_CTOR
+#define QEVT_DYN_CTOR
 
 // for QK kernel:
 // use the QEI1_IRQHandler() with IRQ number 38

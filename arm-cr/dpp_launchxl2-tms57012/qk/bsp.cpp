@@ -374,7 +374,6 @@ void QK::onIdle() {
     // Put the CPU and peripherals to the low-power mode.
     // you might need to customize the clock management for your application,
     // see the datasheet for your particular Cortex-R MCU.
-    //
     _gotoCPUIdle_(); // wait for interrupt
 #endif
 }

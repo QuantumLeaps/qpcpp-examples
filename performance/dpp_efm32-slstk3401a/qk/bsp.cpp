@@ -329,7 +329,6 @@ void QK::onIdle(void) {
     // Put the CPU and peripherals to the low-power mode.
     // you might need to customize the clock management for your application,
     // see the datasheet for your particular Cortex-M3 MCU.
-    //
     __WFI(); // Wait-For-Interrupt
 #endif
 }

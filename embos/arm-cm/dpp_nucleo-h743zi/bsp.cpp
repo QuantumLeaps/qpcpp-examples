@@ -177,9 +177,7 @@ void OS_Idle(void) {
         QF_INT_ENABLE();
 
 #ifdef Q_SPY
-        QF_INT_DISABLE();
         QP::QS::rxParse();  // parse all the received bytes
-        QF_INT_ENABLE();
 
         if ((l_uartHandle.Instance->ISR & UART_FLAG_TXE) != 0U) { // TXE empty?
             QF_INT_DISABLE();
@@ -194,18 +192,7 @@ void OS_Idle(void) {
         // Put the CPU and peripherals to the low-power mode.
         // you might need to customize the clock management for your application,
         // see the datasheet for your particular Cortex-M MCU.
-        //
-        // !!!CAUTION!!!
-        // The WFI instruction stops the CPU clock, which unfortunately disables
-        // the JTAG port, so the ST-Link debugger can no longer connect to the
-        // board. For that reason, the call to __WFI() has to be used with CAUTION.
-        //
-        // NOTE: If you find your board "frozen" like this, strap BOOT0 to VDD and
-        // reset the board, then connect with ST-Link Utilities and erase the part.
-        // The trick with BOOT(0) is it gets the part to run the System Loader
-        // instead of your broken code. When done disconnect BOOT0, and start over.
-        //
-        //__WFI(); // Wait-For-Interrupt
+        __WFI(); // Wait-For-Interrupt
 #endif
     }
 }

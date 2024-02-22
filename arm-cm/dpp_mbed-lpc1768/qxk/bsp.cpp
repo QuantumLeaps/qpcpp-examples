@@ -407,9 +407,7 @@ void QXK::onIdle() {
     QF_INT_ENABLE();
 
 #ifdef Q_SPY
-    QF_INT_DISABLE();
     QS::rxParse();  // parse all the received bytes
-    QF_INT_ENABLE();
 
     if ((LPC_UART0->LSR & 0x20U) != 0U) {  // TX Holding Register empty?
         std::uint16_t fifo = UART_TXFIFO_DEPTH; // max bytes we can accept
@@ -427,7 +425,6 @@ void QXK::onIdle() {
     // Put the CPU and peripherals to the low-power mode.
     // you might need to customize the clock management for your application,
     // see the datasheet for your particular Cortex-M MCU.
-    //
     __WFI(); // Wait-For-Interrupt
 #endif
 }

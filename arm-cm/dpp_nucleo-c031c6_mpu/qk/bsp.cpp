@@ -1,7 +1,7 @@
 //============================================================================
 // Product: DPP example, NUCLEO-C031C6 board, QK kernel, MPU isolation
-// Last updated for version 7.3.2
-// Last updated on  2023-12-13
+// Last updated for version 7.3.3
+// Last updated on  2024-02-21
 //
 //                   Q u a n t u m  L e a P s
 //                   ------------------------
@@ -49,7 +49,6 @@ constexpr std::uint32_t B1_PIN      {13U};
 
 #ifdef Q_SPY
 
-    // QSpy source IDs
     QP::QSTimeCtr QS_tickTime_;
     QP::QSTimeCtr QS_tickPeriod_;
 
@@ -183,48 +182,6 @@ void USART2_IRQHandler(void) { // used in QS-RX (kernel UNAWARE interrutp)
 }
 #endif // Q_SPY
 
-#ifdef QF_MEM_ISOLATE
-//............................................................................
-__attribute__(( used ))
-void QF_onMemSys(void) {
-    MPU->CTRL = MPU_CTRL_ENABLE_Msk        // enable the MPU
-                | MPU_CTRL_PRIVDEFENA_Msk; // enable background region
-    __ISB();
-    __DSB();
-}
-//............................................................................
-__attribute__(( used ))
-void QF_onMemApp() {
-    MPU->CTRL = MPU_CTRL_ENABLE_Msk; // enable the MPU
-                // but do NOT enable background region
-    __ISB();
-    __DSB();
-}
-//............................................................................
-#ifdef QF_ON_CONTEXT_SW
-// NOTE: the context-switch callback is called with interrupts DISABLED
-void QF_onContextSw(QP::QActive *prev, QP::QActive *next) {
-    if (next != nullptr) {
-        MPU->CTRL = 0U; // disable the MPU
-
-        MPU_Region const * const region =
-            static_cast<MPU_Region const *>(next->getThread());
-        MPU->RBAR = region[0].RBAR;
-        MPU->RASR = region[0].RASR;
-        MPU->RBAR = region[1].RBAR;
-        MPU->RASR = region[1].RASR;
-        MPU->RBAR = region[2].RBAR;
-        MPU->RASR = region[2].RASR;
-
-        MPU->CTRL = MPU_CTRL_ENABLE_Msk        // enable the MPU
-                    | MPU_CTRL_PRIVDEFENA_Msk; // enable background region
-        __ISB();
-        __DSB();
-    }
-}
-#endif // QF_ON_CONTEXT_SW
-#endif // QF_MEM_ISOLATE
-
 } // extern "C"
 
 //============================================================================
@@ -238,7 +195,7 @@ constexpr std::uint32_t STACK_SIZE_POW2 {11U};
 
 // Table AO...................................................................
 // size of Table instance, as power-of-2
-constexpr std::uint32_t TABLE_SIZE_POW2 {6};
+constexpr std::uint32_t TABLE_SIZE_POW2 {7U};
 
 __attribute__((aligned((1U << TABLE_SIZE_POW2))))
 static std::uint8_t Table_sto[1U << TABLE_SIZE_POW2];
@@ -270,7 +227,7 @@ static MPU_Region const MPU_Table[3] = {
 
 // Philo AOs..................................................................
 // size of Philo instance, as power-of-2
-constexpr std::uint32_t PHILO_SIZE_POW2 {6};
+constexpr std::uint32_t PHILO_SIZE_POW2 {7U};
 
 __attribute__((aligned((1U << PHILO_SIZE_POW2))))
 static std::uint8_t Philo_sto[APP::N_PHILO][1U << PHILO_SIZE_POW2];
@@ -387,7 +344,79 @@ static MPU_Region const MPU_Philo[APP::N_PHILO][3] = {
 };
 #endif
 
+} // unnamed namespace
+
+// Idle thread ............................................................
+#ifdef QF_MEM_ISOLATE
+
+#ifdef Q_SPY
+// Idle thread owns QS-RX, so it needs access to its data...
+
+// size of QS_rxPriv_, as power-of-2
+#define QS_RX_PRIV_SIZE_POW2 ((uint32_t)7U)
+namespace QP {
+namespace QS {
+__attribute__((aligned((1U << QS_RX_PRIV_SIZE_POW2))))
+RxAttr rxPriv_;
+
+static_assert(sizeof(rxPriv_) <= (1U << QS_RX_PRIV_SIZE_POW2),
+              "Insufficient storage for QS-RX data");
+} // namespace QS
+} // namespace QP
+
+namespace { // unnamed namespace
+
+// size of QS-RX buffer, as power-of-2
+#define QS_RX_BUF_SIZE_POW2 ((uint32_t)7U)
+__attribute__((aligned((1U << QS_RX_BUF_SIZE_POW2))))
+std::uint8_t QS_rxBuf[1U << QS_RX_BUF_SIZE_POW2];
+
+static MPU_Region const MPU_Idle[3] = {
+    { reinterpret_cast<std::uint32_t>(&QP::QS::rxPriv_) + 0x10U, //---- region #0
+      ((QS_RX_PRIV_SIZE_POW2 - 1U) << MPU_RASR_SIZE_Pos)  // size
+       + (3U << MPU_RASR_AP_Pos)                      // PA:rw/UA:rw
+       + (1U << MPU_RASR_XN_Pos)                      // XN=1
+       + (1U << MPU_RASR_S_Pos)                       // S=1
+       + (1U << MPU_RASR_C_Pos)                       // C=1
+       + (0U << MPU_RASR_B_Pos)                       // B=0
+       + (0U << MPU_RASR_TEX_Pos)                     // TEX=0
+       + MPU_RASR_ENABLE_Msk },                       // region enable
+    { reinterpret_cast<std::uint32_t>(&QS_rxBuf) + 0x11U, //---- region #1
+      ((QS_RX_BUF_SIZE_POW2 - 1U) << MPU_RASR_SIZE_Pos)  // size
+       + (3U << MPU_RASR_AP_Pos)                      // PA:rw/UA:rw
+       + (1U << MPU_RASR_XN_Pos)                      // XN=1
+       + (1U << MPU_RASR_S_Pos)                       // S=1
+       + (1U << MPU_RASR_C_Pos)                       // C=1
+       + (0U << MPU_RASR_B_Pos)                       // B=0
+       + (0U << MPU_RASR_TEX_Pos)                     // TEX=0
+       + MPU_RASR_ENABLE_Msk },                       // region enable
+    { 0U + 0x12U,                              //---- region #2
+      0U },
+};
+
+} // unnamed namespace
+
+#else // Q_SPY not defined
+
+namespace { // unnamed namespace
+
+static MPU_Region const MPU_Idle[3] = {
+    { 0U + 0x10U,                              //---- region #0
+      0U },
+    { 0U + 0x11U,                              //---- region #1
+      0U },
+    { 0U + 0x12U,                              //---- region #2
+      0U },
+};
+
+} // unnamed namespace
+
+#endif // Q_SPY not defined
+#endif // QF_MEM_ISOLATE
+
 // Shared Event-pools.........................................................
+namespace { // unnamed namespace
+
 constexpr std::uint32_t EPOOLS_SIZE_POW2 {8U};
 
 __attribute__((aligned((1U << EPOOLS_SIZE_POW2))))
@@ -398,9 +427,58 @@ static struct EPools {
 static_assert(sizeof(EPools_sto) <= (1U << EPOOLS_SIZE_POW2),
               "Insufficient storage for Event Pools");
 
-//............................................................................
+} // unnamed namespace
+
+
+//============================================================================
 #ifdef QF_MEM_ISOLATE
-static void STM32C031C6_MPU_setup(void) {
+
+extern "C" {
+//............................................................................
+__attribute__(( used ))
+void QF_onMemSys(void) {
+    MPU->CTRL = MPU_CTRL_ENABLE_Msk        // enable the MPU
+                | MPU_CTRL_PRIVDEFENA_Msk; // enable background region
+    __ISB();
+    __DSB();
+}
+//............................................................................
+__attribute__(( used ))
+void QF_onMemApp() {
+    MPU->CTRL = MPU_CTRL_ENABLE_Msk; // enable the MPU
+                // but do NOT enable background region
+    __ISB();
+    __DSB();
+}
+//............................................................................
+// NOTE: the context-switch callback is called with interrupts DISABLED
+void QF_onContextSw(QP::QActive *prev, QP::QActive *next) {
+    MPU_Region const * const region =
+        (next != nullptr)
+        ? static_cast<MPU_Region const *>(next->getThread())
+        : MPU_Idle;
+
+    MPU->CTRL = 0U; // disable the MPU
+
+    MPU->RBAR = region[0].RBAR;
+    MPU->RASR = region[0].RASR;
+    MPU->RBAR = region[1].RBAR;
+    MPU->RASR = region[1].RASR;
+    MPU->RBAR = region[2].RBAR;
+    MPU->RASR = region[2].RASR;
+
+    MPU->CTRL = MPU_CTRL_ENABLE_Msk        // enable the MPU (Sys privilege)
+                | MPU_CTRL_PRIVDEFENA_Msk; // enable background region
+    __ISB();
+    __DSB();
+}
+
+} // extern "C"
+
+namespace { // unnamed namespace
+
+//............................................................................
+static void STM32C031C6_MPU_setup() {
 
     MPU->CTRL = 0U; // disable the MPU
 
@@ -477,9 +555,10 @@ static void STM32C031C6_MPU_setup(void) {
     __ISB();
     __DSB();
 }
-#endif
 
 } // unnamed namespace
+
+#endif // QF_MEM_ISOLATE
 
 //============================================================================
 namespace APP {
@@ -497,7 +576,7 @@ QP::QActive * const AO_Philo[APP::N_PHILO] = {
 
 } // namespace APP
 
-//============================================================================
+// BSP functions ===========================================================
 namespace BSP {
 
 void init() {
@@ -528,7 +607,7 @@ void init() {
     GPIOC->MODER &= ~(3U << 2U*B1_PIN);
     GPIOC->PUPDR &= ~(3U << 2U*B1_PIN);
 
-    BSP::randomSeed(1234U);
+    BSP::randomSeed(1234U); // seed the random number generator
 
     // initialize the QS software tracing...
     if (!QS_INIT(nullptr)) {
@@ -560,7 +639,6 @@ void start() {
     QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
 
     // instantiate and start AOs/threads...
-
     static QP::QEvt const *philoQueueSto[APP::N_PHILO][10];
     for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
 #ifdef QF_MEM_ISOLATE
@@ -696,12 +774,7 @@ void QK::onIdle() {
     //QF_INT_ENABLE();
 
 #ifdef Q_SPY
-    QF_INT_DISABLE();
-    QF_MEM_SYS();
     QS::rxParse();  // parse all the received bytes
-    QF_MEM_APP();
-    QF_INT_ENABLE();
-    QF_CRIT_EXIT_NOP();
 
     QF_INT_DISABLE();
     QF_MEM_SYS();
@@ -717,23 +790,12 @@ void QK::onIdle() {
     // Put the CPU and peripherals to the low-power mode.
     // you might need to customize the clock management for your application,
     // see the datasheet for your particular Cortex-M MCU.
-    //
-    // !!!CAUTION!!!
-    // The WFI instruction stops the CPU clock, which unfortunately disables
-    // the JTAG port, so the ST-Link debugger can no longer connect to the
-    // board. For that reason, the call to __WFI() has to be used with CAUTION.
-    //
-    // NOTE: If you find your board "frozen" like this, strap BOOT0 to VDD and
-    // reset the board, then connect with ST-Link Utilities and erase the part.
-    // The trick with BOOT(0) is it gets the part to run the System Loader
-    // instead of your broken code. When done disconnect BOOT0, and start over.
-    //
-    //__WFI(); // Wait-For-Interrupt
+    __WFI(); // Wait-For-Interrupt
 #endif
 }
 
 //============================================================================
-// QS facilities...
+// QS callbacks...
 #ifdef Q_SPY
 namespace QS {
 
@@ -762,11 +824,16 @@ static uint16_t const UARTPrescTable[12] = {
 bool onStartup(void const *arg) {
     Q_UNUSED_PAR(arg);
 
-    static std::uint8_t qsTxBuf[2*1024]; // buffer for QS transmit channel
+    static std::uint8_t qsTxBuf[2*1024]; // buffer for QS-TX channel
     initBuf(qsTxBuf, sizeof(qsTxBuf));
 
-    static std::uint8_t qsRxBuf[100];    // buffer for QS receive channel
+#ifdef QF_MEM_ISOLATE
+    // NOTE: the QS-RX buffer is allocated for the MPU
+    rxInitBuf(QS_rxBuf, sizeof(QS_rxBuf));
+#else
+    static std::uint8_t qsRxBuf[128]; // buffer for QS-RX channel
     rxInitBuf(qsRxBuf, sizeof(qsRxBuf));
+#endif
 
     // enable peripheral clock for USART2
     RCC->IOPENR  |= ( 1U <<  0U);  // Enable GPIOA clock for USART pins

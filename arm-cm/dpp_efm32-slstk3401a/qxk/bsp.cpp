@@ -399,15 +399,13 @@ void QF::onCleanup() {
 //............................................................................
 void QXK::onIdle() {
     // toggle the User LED on and then off, see NOTE3
-//  QF_INT_DISABLE();
-//  GPIO->P[LED_PORT].DOUT |=  (1U << LED1_PIN);
-//  GPIO->P[LED_PORT].DOUT &= ~(1U << LED1_PIN);
-//  QF_INT_ENABLE();
+    //QF_INT_DISABLE();
+    //GPIO->P[LED_PORT].DOUT |=  (1U << LED1_PIN);
+    //GPIO->P[LED_PORT].DOUT &= ~(1U << LED1_PIN);
+    //QF_INT_ENABLE();
 
 #ifdef Q_SPY
-    QF_INT_DISABLE();
     QS::rxParse();  // parse all the received bytes
-    QF_INT_ENABLE();
 
     if ((l_USART0->STATUS & USART_STATUS_TXBL) != 0) {  // is TXE empty?
         QF_INT_DISABLE();
@@ -422,7 +420,6 @@ void QXK::onIdle() {
     // Put the CPU and peripherals to the low-power mode.
     // you might need to customize the clock management for your application,
     // see the datasheet for your particular Cortex-M MCU.
-    //
     __WFI(); // Wait-For-Interrupt
 #endif
 }

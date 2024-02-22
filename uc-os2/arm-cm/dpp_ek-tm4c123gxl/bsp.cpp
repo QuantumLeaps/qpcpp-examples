@@ -153,9 +153,7 @@ void App_TaskIdleHook(void) {
     x = x * 1.73205F;
 
 #ifdef Q_SPY
-    QF_CRIT_ENTRY();
     QP::QS::rxParse();  // parse all the received bytes
-    QF_CRIT_EXIT();
 
     if ((UART0->FR & UART_FR_TXFE) != 0U) { // TX done?
         std::uint16_t fifo = UART_TXFIFO_DEPTH; // max bytes we can accept

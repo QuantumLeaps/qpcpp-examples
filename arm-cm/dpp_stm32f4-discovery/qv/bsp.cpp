@@ -402,9 +402,8 @@ void QV::onIdle() { // CAUTION: called with interrupts DISABLED, see NOTE0
     QF_INT_ENABLE();
 
 #ifdef Q_SPY
-    // interrupts still disabled
-    QS::rxParse();  // parse all the received bytes
     QF_INT_ENABLE();
+    QS::rxParse();  // parse all the received bytes
 
     if ((USART2->SR & USART_FLAG_TXE) != 0) { // TXE empty?
         QF_INT_DISABLE();

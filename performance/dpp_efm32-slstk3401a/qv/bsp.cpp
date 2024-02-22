@@ -318,7 +318,6 @@ void QV::onIdle(void) { // called with interrupts disabled, see NOTE01
     // Put the CPU and peripherals to the low-power mode.
     // you might need to customize the clock management for your application,
     // see the datasheet for your particular Cortex-M MCU.
-    //
     QV_CPU_SLEEP();  // atomically go to sleep and enable interrupts
 #else
     QF_INT_ENABLE(); // just enable interrupts

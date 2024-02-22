@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<model version="5.3.0" links="1">
+<model version="6.1.1" links="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm.xsd">
  <documentation>Dining Philosopher Problem example application</documentation>
  <!--${qpcpp}-->
  <framework name="qpcpp"/>
@@ -39,21 +39,13 @@ QS_SIG_DICTIONARY(HUNGRY_SIG,  nullptr);</code>
   <class name="TableEvt" superclass="qpcpp::QEvt">
    <!--${Shared::TableEvt::philoId}-->
    <attribute name="philoId" type="std::uint8_t" visibility="0x00" properties="0x00"/>
-   <!--${Shared::TableEvt::TableEvt}-->
-   <operation name="TableEvt" type="constexpr" visibility="0x00" properties="0x02">
-    <!--${Shared::TableEvt::TableEvt::sig}-->
-    <parameter name="sig" type="QP::QSignal"/>
-    <!--${Shared::TableEvt::TableEvt::id}-->
+   <!--${Shared::TableEvt::ctor}-->
+   <operation name="ctor?def QEVT_DYN_CTOR" type="TableEvt *" visibility="0x00" properties="0x02">
+    <!--${Shared::TableEvt::ctor::id}-->
     <parameter name="id" type="std::uint8_t"/>
-    <code> : QEvt(sig),
-   philoId(id)</code>
-   </operation>
-   <!--${Shared::TableEvt::TableEvt}-->
-   <operation name="TableEvt?def QEVT_DYN_CTOR" type="" visibility="0x00" properties="0x02">
-    <!--${Shared::TableEvt::TableEvt::id}-->
-    <parameter name="id" type="std::uint8_t"/>
-    <code>  : QEvt(QP::QEvt::DYNAMIC),
-    philoId(id)</code>
+    <code>philoId = id;
+
+return this;</code>
    </operation>
   </class>
   <!--${Shared::AO_Philo[N_PHILO]}-->

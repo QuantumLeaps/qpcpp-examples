@@ -305,9 +305,7 @@ void QV::onIdle() { // CAUTION: called with interrupts DISABLED, see NOTE1
     QF_INT_ENABLE();
 
 #ifdef Q_SPY
-    QF_INT_DISABLE();
     QS::rxParse();  // parse all the received bytes
-    QF_INT_ENABLE();
 
     if ((UCA1STAT & UCBUSY) == 0U) { // TX NOT busy?
         QF_INT_DISABLE();
@@ -322,7 +320,6 @@ void QV::onIdle() { // CAUTION: called with interrupts DISABLED, see NOTE1
     // Put the CPU and peripherals to the low-power mode.
     // you might need to customize the clock management for your application,
     // see the datasheet for your particular MSP430 MCU.
-    //
     __low_power_mode_1(); // enter LPM1; also ENABLES interrupts
 #else
     QF_INT_ENABLE(); // just enable interrupts

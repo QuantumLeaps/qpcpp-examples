@@ -333,9 +333,8 @@ void QV::onIdle() { // NOTE: called with interrupts DISABLED, see NOTE3
     LED3_PORT->DCLR = (1U << LED3_PIN);
 
 #ifdef Q_SPY
-    QS::rxParse();  // parse all the received bytes
     QF_INT_ENABLE();
-    QF_CRIT_EXIT_NOP();
+    QS::rxParse();  // parse all the received bytes
 
     //if (sciIsTxReady(scilinREG)) {
     if ((scilinREG->FLR & (uint32)SCI_TX_INT) != 0U) { // is TX empty?
@@ -352,7 +351,6 @@ void QV::onIdle() { // NOTE: called with interrupts DISABLED, see NOTE3
     // Put the CPU and peripherals to the low-power mode.
     // you might need to customize the clock management for your application,
     // see the datasheet for your particular Cortex-R MCU.
-    //
     QV_CPU_SLEEP();  // atomically go to sleep and enable interrupts
 #else
     QF_INT_ENABLE(); // just enable interrupts
