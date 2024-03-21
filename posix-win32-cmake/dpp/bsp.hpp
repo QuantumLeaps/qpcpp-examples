@@ -34,6 +34,11 @@
 #ifndef BSP_HPP_
 #define BSP_HPP_
 
+#if defined(QWIN_GUI) && !defined(main)
+#define main main_gui
+int main_gui();
+#endif
+
 namespace BSP {
 
 constexpr std::uint32_t TICKS_PER_SEC {100};

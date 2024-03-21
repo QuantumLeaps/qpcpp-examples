@@ -121,7 +121,7 @@ else()
     add_executable(dpp main.cpp philo.cpp table.cpp)
     if(QPCPP_CFG_GUI)
         if(USE_GTK OR CMAKE_SYSTEM_NAME STREQUAL Linux OR UNIX)
-            # use GTK3+
+            # use GTKMM3+
             target_sources(dpp PRIVATE bsp-gtk.cpp)
         elseif(CMAKE_SYSTEM_NAME STREQUAL Windows OR WIN32)
             # use Win32 GUI
@@ -145,26 +145,26 @@ endif()
 # add the qpcpp library to the project
 qpcpp_sdk_init()
 
-# add GTK+-3.0 support
+# add GTKMM-3.0 support
 if(QPCPP_CFG_GUI AND (USE_GTK OR UNIX OR (DEFINED QPCPP_CFG PORT AND QPCPP_CFG_PORT MATCHES posix) OR (CMAKE_SYSTEM_NAME STREQUAL Linux)))
     find_package(PkgConfig REQUIRED)
-    pkg_check_modules(GTK3 gtk+-3.0) # QUIET IMPORTED_TARGET)
+    pkg_check_modules(GTKMM3 REQUIRED IMPORTED_TARGET gtkmm-3.0) # QUIET IMPORTED_TARGET)
 
-    if (NOT GTK3_FOUND)
-        message(FATAL_ERROR "The package GTK3, required for this build, could not be found on the system!")
+    if (NOT GTKMM3_FOUND)
+        message(FATAL_ERROR "The package GTKMM3, required for this build, could not be found on the system!")
     endif()
 
     # Add other flags to the compiler
-    target_compile_options(dpp PRIVATE ${GTK3_CFLAGS_OTHER})
+    # target_compile_options(dpp PRIVATE ${GTKMM3_CFLAGS_OTHER})
 
     # Setup CMake to use GTK+, tell the compiler where to look for headers
     # and to the linker where to look for libraries
-    target_include_directories(dpp PRIVATE ${GTK3_INCLUDE_DIRS})
-    target_link_directories(dpp PRIVATE ${GTK3_LIBRARY_DIRS})
-    target_link_options(dpp PRIVATE ${GTK3_LDFLAGS_OTHER})
+    # target_include_directories(dpp PRIVATE ${GTKMM3_INCLUDE_DIRS})
+    # target_link_directories(dpp PRIVATE ${GTKMM3_LIBRARY_DIRS})
+    # target_link_options(dpp PRIVATE ${GTKMM3_LDFLAGS_OTHER})
 
     # Link the target to the GTK+ libraries
-    target_link_libraries(dpp PRIVATE ${GTK3_LIBRARIES}) # PkgConfig::GTK3)
+    target_link_libraries(dpp PRIVATE PkgConfig::GTKMM3) # ${GTKMM3_LIBRARIES})
 
     find_program(GLIB_COMPILE_RESOURCES
        NAMES glib-compile-resources glib-compile-resources.exe
