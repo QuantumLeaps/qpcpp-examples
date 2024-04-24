@@ -125,6 +125,7 @@ void start() {
     QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
 
     // start AOs/threads...
+
     static QP::QEvt const *philoQueueSto[APP::N_PHILO][10];
     for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
         APP::AO_Philo[n]->start(
@@ -144,7 +145,7 @@ void start() {
 //............................................................................
 void terminate(std::int16_t result) {
     Q_UNUSED_PAR(result);
-    QP::QF::stop(); // stop the main "ticker thread"
+    QP::QF::stop();
 }
 //............................................................................
 void displayPhilStat(std::uint8_t n, char const *stat) {
@@ -174,6 +175,7 @@ std::uint32_t random() { // a very cheap pseudo-random-number generator
 void randomSeed(std::uint32_t seed) {
     l_rnd = seed;
 }
+
 } // namespace BSP
 
 //============================================================================
@@ -184,7 +186,7 @@ void QF::onStartup() {
     consoleSetup();
 
     // disable the standard clock-tick service by setting tick-rate to 0
-    setTickRate(0U, 10U); // zero tick-rate / ticker thread prio.
+    setTickRate(0U, 10U); // tick-rate # 0 / ticker thread prio.
 }
 //............................................................................
 void QF::onCleanup() {

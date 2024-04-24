@@ -142,6 +142,11 @@ void start() {
         nullptr, 0U);            // no stack storage
 }
 //............................................................................
+void terminate(std::int16_t result) {
+    Q_UNUSED_PAR(result);
+    QP::QF::stop();
+}
+//............................................................................
 void displayPhilStat(std::uint8_t n, char const *stat) {
     PRINTF_S("Philosopher %2d is %s\n", (int)n, stat);
 
@@ -168,11 +173,6 @@ std::uint32_t random() { // a very cheap pseudo-random-number generator
 //............................................................................
 void randomSeed(std::uint32_t seed) {
     l_rnd = seed;
-}
-//............................................................................
-void terminate(std::int16_t result) {
-    Q_UNUSED_PAR(result);
-    QP::QF::stop();
 }
 
 } // namespace BSP
