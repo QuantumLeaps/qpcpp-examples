@@ -92,7 +92,7 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
     QS_ASSERTION(module, id, 10000U);
 
 #ifndef NDEBUG
-    // light up the user LED
+    // light up all LEDs
     GPIOF_AHB->DATA_Bits[LED_GREEN | LED_RED | LED_BLUE] = 0xFFU;
     // for debugging, hang on in an endless loop...
     for (;;) {
@@ -156,6 +156,7 @@ void SysTick_Handler(void) {
 void GPIOPortA_IRQHandler(void); // prototype
 void GPIOPortA_IRQHandler(void) {
 
+    // for testing..
     static QP::QEvt const testEvt(APP::TEST_SIG);
     APP::AO_Table->POST(&testEvt, &l_GPIOPortA_IRQHandler);
 
@@ -170,8 +171,12 @@ void GPIOPortA_IRQHandler(void) {
 // QK_ISR_ENTRY/QK_ISR_EXIT and they cannot post or publish events.
 
 void UART0_IRQHandler(void); // prototype
-void UART0_IRQHandler(void) { // prioritized as kernel UNAWARE interrupt
-    QF_MEM_SYS();
+void UART0_IRQHandler(void) { // used in QS-RX (kernel UNAWARE interrupt)
+    uint32_t mpu_ctrl = MPU->CTRL;  // save the previous MPU CTRL
+    MPU->CTRL = MPU_CTRL_ENABLE_Msk        // enable the MPU
+                | MPU_CTRL_PRIVDEFENA_Msk; // enable background region
+    __ISB();
+    __DSB();
 
     uint32_t status = UART0->RIS; // get the raw interrupt status
     UART0->ICR = status;          // clear the asserted interrupts
@@ -181,7 +186,11 @@ void UART0_IRQHandler(void) { // prioritized as kernel UNAWARE interrupt
         QP::QS::rxPut(b);
     }
 
-    QV_ARM_ERRATUM_838869();
+    MPU->CTRL = mpu_ctrl; // restore the previous MPU CTRL
+    __ISB();
+    __DSB();
+
+   QV_ARM_ERRATUM_838869();
 }
 #endif // Q_SPY
 
@@ -226,7 +235,7 @@ static MPU_Region const MPU_Table[3] = {
     { 0U + 0x12U,                              //---- region #2
       0U },
 };
-#endif
+#endif // QF_MEM_ISOLATE
 
 // Philo AOs..................................................................
 // size of Philo instance, as power-of-2
@@ -345,14 +354,30 @@ static MPU_Region const MPU_Philo[APP::N_PHILO][3] = {
     { 0U + 0x12U,                              //---- region #2
       0U }},
 };
-#endif
+#endif // QF_MEM_ISOLATE
+
+// Shared Event-pools.........................................................
+constexpr std::uint32_t EPOOLS_SIZE_POW2 {8U};
+
+__attribute__((aligned((1U << EPOOLS_SIZE_POW2))))
+static struct EPools {
+    QF_MPOOL_EL(APP::TableEvt) smlPool[2*APP::N_PHILO];
+    // ... other pools
+} EPools_sto;
+static_assert(sizeof(EPools_sto) <= (1U << EPOOLS_SIZE_POW2),
+              "Insufficient storage for Event Pools");
 
 } // unnamed namespace
 
 // Idle thread ............................................................
-#ifdef QF_MEM_ISOLATE
-
 #ifdef Q_SPY
+
+// size of QS-RX buffer, as power-of-2
+#define QS_RX_BUF_SIZE_POW2 ((uint32_t)7U)
+__attribute__((aligned((1U << QS_RX_BUF_SIZE_POW2))))
+std::uint8_t QS_rxBuf[1U << QS_RX_BUF_SIZE_POW2];
+
+#ifdef QF_MEM_ISOLATE
 // Idle thread owns QS-RX, so it needs access to its data...
 
 // size of QS_rxPriv_, as power-of-2
@@ -368,11 +393,6 @@ static_assert(sizeof(rxPriv_) <= (1U << QS_RX_PRIV_SIZE_POW2),
 } // namespace QP
 
 namespace { // unnamed namespace
-
-// size of QS-RX buffer, as power-of-2
-#define QS_RX_BUF_SIZE_POW2 ((uint32_t)7U)
-__attribute__((aligned((1U << QS_RX_BUF_SIZE_POW2))))
-std::uint8_t QS_rxBuf[1U << QS_RX_BUF_SIZE_POW2];
 
 static MPU_Region const MPU_Idle[3] = {
     { reinterpret_cast<std::uint32_t>(&QP::QS::rxPriv_) + 0x10U, //---- region #0
@@ -399,7 +419,11 @@ static MPU_Region const MPU_Idle[3] = {
 
 } // unnamed namespace
 
+#endif // QF_MEM_ISOLATE
+
 #else // Q_SPY not defined
+
+#ifdef QF_MEM_ISOLATE
 
 namespace { // unnamed namespace
 
@@ -414,24 +438,9 @@ static MPU_Region const MPU_Idle[3] = {
 
 } // unnamed namespace
 
-#endif // Q_SPY not defined
 #endif // QF_MEM_ISOLATE
 
-// Shared Event-pools.........................................................
-namespace { // unnamed namespace
-
-constexpr std::uint32_t EPOOLS_SIZE_POW2 {8U};
-
-__attribute__((aligned((1U << EPOOLS_SIZE_POW2))))
-static struct EPools {
-    QF_MPOOL_EL(APP::TableEvt) smlPool[2*APP::N_PHILO];
-    // ... other pools
-} EPools_sto;
-static_assert(sizeof(EPools_sto) <= (1U << EPOOLS_SIZE_POW2),
-              "Insufficient storage for Event Pools");
-
-} // unnamed namespace
-
+#endif // Q_SPY not defined
 
 //============================================================================
 #ifdef QF_MEM_ISOLATE
@@ -441,6 +450,10 @@ extern "C" {
 //............................................................................
 __attribute__(( used ))
 void QF_onMemSys(void) {
+    uint32_t const mpu_ctrl = MPU->CTRL;  // save the previous MPU CTRL
+    // no nesting of memory protection
+    Q_REQUIRE_INCRIT(400, (mpu_ctrl & MPU_CTRL_PRIVDEFENA_Msk) == 0U);
+
     MPU->CTRL = MPU_CTRL_ENABLE_Msk        // enable the MPU
                 | MPU_CTRL_PRIVDEFENA_Msk; // enable background region
     __ISB();
@@ -449,6 +462,10 @@ void QF_onMemSys(void) {
 //............................................................................
 __attribute__(( used ))
 void QF_onMemApp() {
+    uint32_t const mpu_ctrl = MPU->CTRL;  // save the previous MPU CTRL
+    // no nesting of memory protection
+    Q_REQUIRE_INCRIT(500, (mpu_ctrl & MPU_CTRL_PRIVDEFENA_Msk) != 0U);
+
     MPU->CTRL = MPU_CTRL_ENABLE_Msk; // enable the MPU
                 // but do NOT enable background region
     __ISB();

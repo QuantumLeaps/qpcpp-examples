@@ -1,42 +1,44 @@
 //============================================================================
 // Product: Console-based BSP, MinGW
-// Last Updated for Version: 5.4.2
-// Date of the Last Update:  2015-06-05
+// Last Updated for Version: 7.4.0
+// Date of the Last Update:  2024-06-05
 //
-//                    Q u a n t u m     L e a P s
-//                    ---------------------------
-//                    innovating embedded systems
+//                   Q u a n t u m  L e a P s
+//                   ------------------------
+//                   Modern Embedded Software
 //
-// Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
+// Copyright (C) 2005 Quantum Leaps, LLC <state-machine.com>.
 //
-// This program is open source software: you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as published
-// by the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 //
-// Alternatively, this program may be distributed and modified under the
-// terms of Quantum Leaps commercial licenses, which expressly supersede
-// the GNU General Public License and are specifically designed for
-// licensees interested in retaining the proprietary status of their code.
+// This software is dual-licensed under the terms of the open source GNU
+// General Public License version 3 (or any later version), or alternatively,
+// under the terms of one of the closed source Quantum Leaps commercial
+// licenses.
 //
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
+// The terms of the open source GNU General Public License version 3
+// can be found at: <www.gnu.org/licenses/gpl-3.0>
 //
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <www.gnu.org/licenses/>.
+// The terms of the closed source Quantum Leaps commercial licenses
+// can be found at: <www.state-machine.com/licensing>
+//
+// Redistributions in source code must retain this top-level comment block.
+// Plagiarizing this software to sidestep the license obligations is illegal.
 //
 // Contact information:
-// <www.state-machine.com/licensing>
+// <www.state-machine.com>
 // <info@state-machine.com>
 //============================================================================
-#ifndef BSP_HPP
-#define BSP_HPP
+#ifndef BSP_HPP_
+#define BSP_HPP_
 
-#define BSP_TICKS_PER_SEC    100U
+namespace BSP {
 
-void BSP_init(int argc, char *argv[]);
-void BSP_onKeyboardInput(uint8_t ch); // process the keyboard character
+constexpr std::uint32_t TICKS_PER_SEC {100U};
+void init(int argc, char **argv);
 
-#endif // BSP_HPP
+void onKeyboardInput(std::uint8_t ch); // process the keyboard character
+
+} // namespace BSP
+
+#endif // BSP_HPP_

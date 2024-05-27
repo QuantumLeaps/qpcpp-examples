@@ -1,7 +1,7 @@
 //============================================================================
 // Product: DPP example, EK-TM4C123GXL board, QV kernel
-// Last updated for version 7.3.2
-// Last updated on  2023-12-13
+// Last updated for version 7.4.0
+// Last updated on  2024-06-07
 //
 //                   Q u a n t u m  L e a P s
 //                   ------------------------
@@ -145,9 +145,8 @@ void SysTick_Handler(void) {
 // interrupt handler for testing preemptions
 void GPIOPortA_IRQHandler(void); // prototype
 void GPIOPortA_IRQHandler(void) {
-
-    APP::AO_Table->POST(Q_NEW(QP::QEvt, APP::MAX_PUB_SIG),
-                        &l_GPIOPortA_IRQHandler);
+    QP::QEvt const tstEvt { APP::MAX_PUB_SIG };
+    APP::AO_Table->POST(&tstEvt, &l_GPIOPortA_IRQHandler);
 
     QV_ARM_ERRATUM_838869();
 }

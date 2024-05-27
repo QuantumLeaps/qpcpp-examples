@@ -1,7 +1,7 @@
 //============================================================================
 // Product: lwIP-Manager Active Object
-// Last Updated for Version: 6.8.0
-// Date of the Last Update:  2020-01-24
+// Last Updated for QP Version: 7.4.0
+// Date of the Last Update:  2024-06-03
 //
 //                    Q u a n t u m  L e a P s
 //                    ------------------------
@@ -219,10 +219,10 @@ Q_STATE_DEF(LwIPMgr, running) {
                        // publish the text event to display the new IP address
                 TextEvt *te = Q_NEW(TextEvt, DISPLAY_IPADDR_SIG);
                 snprintf(te->text, Q_DIM(te->text), "%d.%d.%d.%d",
-                         ((ip_net) >> 24) & 0xFF,
-                         ((ip_net) >> 16) & 0xFF,
-                         ((ip_net) >> 8)  & 0xFF,
-                         ip_net           & 0xFF);
+                         static_cast<int>(((ip_net) >> 24U) & 0xFFU),
+                         static_cast<int>(((ip_net) >> 16U) & 0xFFU),
+                         static_cast<int>(((ip_net) >> 8U)  & 0xFFU),
+                         static_cast<int>(ip_net            & 0xFFU));
                 QF::PUBLISH(te, this);
             }
 
@@ -274,7 +274,7 @@ Q_STATE_DEF(LwIPMgr, running) {
 // Server-Side Include (SSI) handler .........................................
 static int ssi_handler(int iIndex, char *pcInsert, int iInsertLen) {
     struct stats_proto *stats = &lwip_stats.link;
-    STAT_COUNTER value;
+    STAT_COUNTER value = 0;
 
     switch (iIndex) {
         case 0:  // s_xmit

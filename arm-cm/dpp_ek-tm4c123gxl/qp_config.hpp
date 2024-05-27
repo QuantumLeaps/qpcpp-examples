@@ -1,7 +1,7 @@
 //============================================================================
 // QP configuration file (QXK on ARM Cortex-M)
-// Last updated for version: 7.3.0
-// Last updated on: 2023-10-30
+// Last updated for version: 7.4.0
+// Last updated on: 2024-06-06
 //
 //                   Q u a n t u m  L e a P s
 //                   ------------------------
@@ -55,7 +55,7 @@
 // <i>backwards compatibility. Conversely, QP_API_VERSION==9999 means
 // <i>that no backwards compatibility layer should be enabled.
 // <i>Default: 0 (All supported)
-#define QP_API_VERSION 0
+#define QP_API_VERSION 9999
 
 //..........................................................................
 // <h>QP Functional Safety (FuSa) Subsystem (Q_UNSAFE)
@@ -129,9 +129,13 @@
 // <i>Default: 1
 #define QF_MAX_TICK_RATE 1U
 
-// <c1>Dynamic Event Constructor (QEVT_DYN_CTOR)
-// <i>Dynamic Event Constructor (RAII)
-//#define QEVT_DYN_CTOR
+// <c1>Event parameter initialization (QEVT_PAR_INIT)
+// <i>Resource Acquisition Is Initialization (RAII) for dynamic events
+#define QEVT_PAR_INIT
+
+// <c1>Provide destructors for QP classes
+// <i>Destructors for classes
+//#define Q_XTOR
 // </c>
 
 // <c1>Active Object stop API (QACTIVE_CAN_STOP)
@@ -187,7 +191,7 @@
 // <i>(tracing instrumentation and command-input).
 
 // <n>NOTE: Requires command-line macro: Q_SPY
-// <i>The QS software tracing instrumenation is activated only when
+// <i>The QS software tracing instrumentation is activated only when
 // <i>the macro Q_SPY is defined on the command-line to the compiler.
 // <i>Typically, Q_SPY is defined only in the "spy" build configuration.
 
@@ -198,22 +202,6 @@
 // <i>Size of the timestamp in QS [bytes]
 // <i>Default: 4 (2^32 dynamic range)
 #define QS_TIME_SIZE 4U
-
-// <o>Object pointer size (QS_OBJ_PTR_SIZE)
-//   <2U=>2
-//   <4U=>4 (default)
-//   <8U=>8
-// <i>Size of object pointer for QS [bytes]
-// <i>Default: 4 (4G address space)
-#define QS_OBJ_PTR_SIZE 4U
-
-// <o>Function pointer size (QS_FUN_PTR_SIZE)
-//   <2U=>2
-//   <4U=>4 (default)
-//   <8U=>8
-// <i>Size of function pointer for QS [bytes]
-// <i>Default: 4 (4G address space)
-#define QS_FUN_PTR_SIZE 4U
 
 // <o>QS buffer counter size (QS_CTR_SIZE)
 //   <1U=>1
@@ -243,7 +231,7 @@
 // <i>Enable context switch callback QF_onContextSw()
 // <i>When Q_SPY is defined.
 //#ifdef Q_SPY
-//#define QF_ON_CONTEXT_SW
+#define QF_ON_CONTEXT_SW
 //#endif
 // </c>
 
@@ -253,6 +241,15 @@
 // <i>Enable memory isolation (requires MPU)
 // <i>NOTE: implies QF_ON_CONTEXT_SW.
 //#define QF_MEM_ISOLATE
+// </c>
+
+// <c4>Use IRQ handler for QK return-from-preemption
+// <i>Enable this option only if the NMI handler is used in the project.
+// <i>If enabled, provide the otherwise unused IRQ number (QK_USE_IRQ_NUM)
+// <i>and the corresponding IRQ handler name (QK_USE_IRQ_HANDLER)
+// <i>in the "Text Editor" mode.
+//#define QK_USE_IRQ_NUM     31
+//#define QK_USE_IRQ_HANDLER Reserved31_IRQHandler
 // </c>
 
 // <c4>Use IRQ handler for QXK return-from-preemption

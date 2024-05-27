@@ -1,34 +1,32 @@
 //============================================================================
 // Product: Console-based BSP
-// Last Updated for Version: 6.3.6
-// Date of the Last Update:  2018-10-14
+// Last Updated for Version: 7.4.0
+// Date of the Last Update:  2024-06-05
 //
-//                    Q u a n t u m  L e a P s
-//                    ------------------------
-//                    Modern Embedded Software
+//                   Q u a n t u m  L e a P s
+//                   ------------------------
+//                   Modern Embedded Software
 //
-// Copyright (C) 2002-2018 Quantum Leaps, LLC. All rights reserved.
+// Copyright (C) 2005 Quantum Leaps, LLC <state-machine.com>.
 //
-// This program is open source software: you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as published
-// by the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 //
-// Alternatively, this program may be distributed and modified under the
-// terms of Quantum Leaps commercial licenses, which expressly supersede
-// the GNU General Public License and are specifically designed for
-// licensees interested in retaining the proprietary status of their code.
+// This software is dual-licensed under the terms of the open source GNU
+// General Public License version 3 (or any later version), or alternatively,
+// under the terms of one of the closed source Quantum Leaps commercial
+// licenses.
 //
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
+// The terms of the open source GNU General Public License version 3
+// can be found at: <www.gnu.org/licenses/gpl-3.0>
 //
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <www.gnu.org/licenses/>.
+// The terms of the closed source Quantum Leaps commercial licenses
+// can be found at: <www.state-machine.com/licensing>
+//
+// Redistributions in source code must retain this top-level comment block.
+// Plagiarizing this software to sidestep the license obligations is illegal.
 //
 // Contact information:
-// <www.state-machine.com/licensing>
+// <www.state-machine.com>
 // <info@state-machine.com>
 //============================================================================
 #include "qpcpp.hpp"
@@ -37,33 +35,30 @@
 #include <iostream>
 #include <cstdlib>  // for exit()
 
-using namespace std;
-using namespace QP;
-
 //............................................................................
-void BSP_init(int /*argc*/, char * /*argv*/[]) {
+void BSP::init(int /*argc*/, char * /*argv*/[]) {
 }
 //............................................................................
-void QF::onStartup(void) {
-    QF::setTickRate(BSP_TICKS_PER_SEC, 30); // set the desired tick rate
-    QF::consoleSetup();
+void QP::QF::onStartup(void) {
+    QP::QF::setTickRate(BSP::TICKS_PER_SEC, 30); // set the desired tick rate
+    QP::QF::consoleSetup();
 }
 //............................................................................
-void QF::onCleanup(void) {
-    cout << "\nBye!Bye!\n";
-    QF::consoleCleanup();
+void QP::QF::onCleanup(void) {
+    std::cout << "\nBye!Bye!\n";
+    QP::QF::consoleCleanup();
 }
 //............................................................................
 void QP::QF::onClockTick(void) {
-    QTimeEvt::TICK_X(0U, &l_clock_tick); // perform the QF clock tick processing
-    int key = QF::consoleGetKey();
-    if (key != 0U) { /* any key pressed? */
-        BSP_onKeyboardInput((uint8_t)key);
+    QP::QTimeEvt::TICK_X(0U, nullptr); // the QF clock tick processing
+    int key = QP::QF::consoleGetKey();
+    if (key != 0U) { // any key pressed?
+        BSP::onKeyboardInput((uint8_t)key);
     }
 }
 //............................................................................
 extern "C" Q_NORETURN Q_onError(char const * const module, int_t const id) {
-    cerr << "Assertion failed in " << module << ":" << id << endl;
-    QF::onCleanup();
+    std::cerr << "Assertion failed in " << module << ":" << id << std::endl;
+    QP::QF::onCleanup();
     exit(-1);
 }

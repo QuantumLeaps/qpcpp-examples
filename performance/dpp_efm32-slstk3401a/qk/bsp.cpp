@@ -1,7 +1,7 @@
 //============================================================================
 // Product: DPP example, EFM32-SLSTK3401A board, preemptive QK kernel
-// Last updated for version 7.3.2
-// Last updated on  2023-12-13
+// Last updated for version 7.4.0
+// Last updated on  2024-06-07
 //
 //                    Q u a n t u m  L e a P s
 //                    ------------------------
@@ -155,7 +155,8 @@ void GPIO_EVEN_IRQHandler(void) {
     QK_ISR_ENTRY(); // inform QK about entering an ISR
 
     // for testing...
-    AO_Table->POST(Q_NEW(QP::QEvt, MAX_PUB_SIG), &l_GPIO_EVEN_IRQHandler);
+    static QP::QEvt const tstEvt{ APP::MAX_PUB_SIG };
+    AO_Table->POST(&tstEvt, &l_GPIO_EVEN_IRQHandler);
 
     QK_ISR_EXIT();  // inform QK about exiting an ISR
 }

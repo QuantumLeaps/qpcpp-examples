@@ -1,7 +1,7 @@
 //============================================================================
 // Product: "Low-Power" example, preemptive QK kernel
-// Last Updated for Version: 7.3.0
-// Date of the Last Update:  2023-09-01
+// Last Updated for Version: 7.4.0
+// Date of the Last Update:  2024-06-07
 //
 //                    Q u a n t u m  L e a P s
 //                    ------------------------
@@ -88,7 +88,7 @@ void Timer0A_IRQHandler(void) {
 void GPIOPortF_IRQHandler(void) {
     QK_ISR_ENTRY();  // inform QK about entering an ISR
     if ((GPIOF->RIS & BTN_SW1) != 0U) { // interrupt caused by SW1?
-        static QP::QEvt const pressedEvt(BTN_PRESSED_SIG);
+        static QP::QEvt const pressedEvt{BTN_PRESSED_SIG};
         QP::QF::PUBLISH(&pressedEvt, nullptr);
     }
     GPIOF->ICR = 0xFFU; // clear interrupt sources

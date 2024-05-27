@@ -419,6 +419,11 @@
               <FileType>8</FileType>
               <FilePath>..\..\main.cpp</FilePath>
             </File>
+            <File>
+              <FileName>qp_config.hpp</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\qp_config.hpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1050,6 +1055,11 @@
               <FileType>8</FileType>
               <FilePath>..\..\main.cpp</FilePath>
             </File>
+            <File>
+              <FileName>qp_config.hpp</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\qp_config.hpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1680,6 +1690,11 @@
               <FileName>main.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>..\..\main.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>qp_config.hpp</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\qp_config.hpp</FilePath>
             </File>
           </Files>
         </Group>

@@ -9,23 +9,21 @@
 //
 // Copyright (C) 2005 Quantum Leaps, LLC. <state-machine.com>
 //
-// This program is open source software: you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as published
-// by the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 //
-// Alternatively, this program may be distributed and modified under the
-// terms of Quantum Leaps commercial licenses, which expressly supersede
-// the GNU General Public License and are specifically designed for
-// licensees interested in retaining the proprietary status of their code.
+// This software is dual-licensed under the terms of the open source GNU
+// General Public License version 3 (or any later version), or alternatively,
+// under the terms of one of the closed source Quantum Leaps commercial
+// licenses.
 //
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
+// The terms of the open source GNU General Public License version 3
+// can be found at: <www.gnu.org/licenses/gpl-3.0>
 //
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <www.gnu.org/licenses/>.
+// The terms of the closed source Quantum Leaps commercial licenses
+// can be found at: <www.state-machine.com/licensing>
+//
+// Redistributions in source code must retain this top-level comment block.
+// Plagiarizing this software to sidestep the license obligations is illegal.
 //
 // Contact information:
 // <www.state-machine.com/licensing>
@@ -154,6 +152,7 @@ void SysTick_Handler(void) {
 void EXTI0_1_IRQHandler(void); // prototype
 void EXTI0_1_IRQHandler(void) {
 
+    // for testing..
     static QP::QEvt const testEvt(APP::TEST_SIG);
     APP::AO_Table->POST(&testEvt, &l_EXTI0_1_IRQHandler);
 
@@ -167,13 +166,22 @@ void EXTI0_1_IRQHandler(void) {
 // the QF/QV and is not disabled. Such ISRs cannot post or publish events.
 
 void USART2_IRQHandler(void); // prototype
-void USART2_IRQHandler(void) { // used in QS-RX (kernel UNAWARE interrutp)
+void USART2_IRQHandler(void) { // used in QS-RX (kernel UNAWARE interrupt)
+    uint32_t mpu_ctrl = MPU->CTRL;  // save the previous MPU CTRL
+    MPU->CTRL = MPU_CTRL_ENABLE_Msk        // enable the MPU
+                | MPU_CTRL_PRIVDEFENA_Msk; // enable background region
+    __ISB();
+    __DSB();
+
     // is RX register NOT empty?
-    QF_MEM_SYS();
     if ((USART2->ISR & (1U << 5U)) != 0U) {
         std::uint8_t b = USART2->RDR;
         QP::QS::rxPut(b);
     }
+
+    MPU->CTRL = mpu_ctrl; // restore the previous MPU CTRL
+    __ISB();
+    __DSB();
 
     QV_ARM_ERRATUM_838869();
 }
@@ -220,7 +228,7 @@ static MPU_Region const MPU_Table[3] = {
     { 0U + 0x12U,                              //---- region #2
       0U },
 };
-#endif
+#endif // QF_MEM_ISOLATE
 
 // Philo AOs..................................................................
 // size of Philo instance, as power-of-2
@@ -339,14 +347,30 @@ static MPU_Region const MPU_Philo[APP::N_PHILO][3] = {
     { 0U + 0x12U,                              //---- region #2
       0U }},
 };
-#endif
+#endif // QF_MEM_ISOLATE
+
+// Shared Event-pools.........................................................
+constexpr std::uint32_t EPOOLS_SIZE_POW2 {8U};
+
+__attribute__((aligned((1U << EPOOLS_SIZE_POW2))))
+static struct EPools {
+    QF_MPOOL_EL(APP::TableEvt) smlPool[2*APP::N_PHILO];
+    // ... other pools
+} EPools_sto;
+static_assert(sizeof(EPools_sto) <= (1U << EPOOLS_SIZE_POW2),
+              "Insufficient storage for Event Pools");
 
 } // unnamed namespace
 
 // Idle thread ............................................................
-#ifdef QF_MEM_ISOLATE
-
 #ifdef Q_SPY
+
+// size of QS-RX buffer, as power-of-2
+#define QS_RX_BUF_SIZE_POW2 ((uint32_t)7U)
+__attribute__((aligned((1U << QS_RX_BUF_SIZE_POW2))))
+std::uint8_t QS_rxBuf[1U << QS_RX_BUF_SIZE_POW2];
+
+#ifdef QF_MEM_ISOLATE
 // Idle thread owns QS-RX, so it needs access to its data...
 
 // size of QS_rxPriv_, as power-of-2
@@ -362,11 +386,6 @@ static_assert(sizeof(rxPriv_) <= (1U << QS_RX_PRIV_SIZE_POW2),
 } // namespace QP
 
 namespace { // unnamed namespace
-
-// size of QS-RX buffer, as power-of-2
-#define QS_RX_BUF_SIZE_POW2 ((uint32_t)7U)
-__attribute__((aligned((1U << QS_RX_BUF_SIZE_POW2))))
-std::uint8_t QS_rxBuf[1U << QS_RX_BUF_SIZE_POW2];
 
 static MPU_Region const MPU_Idle[3] = {
     { reinterpret_cast<std::uint32_t>(&QP::QS::rxPriv_) + 0x10U, //---- region #0
@@ -393,7 +412,11 @@ static MPU_Region const MPU_Idle[3] = {
 
 } // unnamed namespace
 
+#endif // QF_MEM_ISOLATE
+
 #else // Q_SPY not defined
+
+#ifdef QF_MEM_ISOLATE
 
 namespace { // unnamed namespace
 
@@ -408,33 +431,22 @@ static MPU_Region const MPU_Idle[3] = {
 
 } // unnamed namespace
 
-#endif // Q_SPY not defined
-
 #endif // QF_MEM_ISOLATE
 
-// Shared Event-pools.........................................................
-namespace { // unnamed namespace
-
-constexpr std::uint32_t EPOOLS_SIZE_POW2 {8U};
-
-__attribute__((aligned((1U << EPOOLS_SIZE_POW2))))
-static struct EPools {
-    QF_MPOOL_EL(APP::TableEvt) smlPool[2*APP::N_PHILO];
-    // ... other pools
-} EPools_sto;
-static_assert(sizeof(EPools_sto) <= (1U << EPOOLS_SIZE_POW2),
-              "Insufficient storage for Event Pools");
-
-} // unnamed namespace
-
+#endif // Q_SPY not defined
 
 //============================================================================
 #ifdef QF_MEM_ISOLATE
 
 extern "C" {
+
 //............................................................................
 __attribute__(( used ))
 void QF_onMemSys(void) {
+    uint32_t const mpu_ctrl = MPU->CTRL;  // save the previous MPU CTRL
+    // no nesting of memory protection
+    Q_REQUIRE_INCRIT(400, (mpu_ctrl & MPU_CTRL_PRIVDEFENA_Msk) == 0U);
+
     MPU->CTRL = MPU_CTRL_ENABLE_Msk        // enable the MPU
                 | MPU_CTRL_PRIVDEFENA_Msk; // enable background region
     __ISB();
@@ -443,6 +455,10 @@ void QF_onMemSys(void) {
 //............................................................................
 __attribute__(( used ))
 void QF_onMemApp() {
+    uint32_t const mpu_ctrl = MPU->CTRL;  // save the previous MPU CTRL
+    // no nesting of memory protection
+    Q_REQUIRE_INCRIT(500, (mpu_ctrl & MPU_CTRL_PRIVDEFENA_Msk) != 0U);
+
     MPU->CTRL = MPU_CTRL_ENABLE_Msk; // enable the MPU
                 // but do NOT enable background region
     __ISB();
@@ -473,10 +489,11 @@ void QF_onContextSw(QP::QActive *prev, QP::QActive *next) {
 
 } // extern "C"
 
+//============================================================================
 namespace { // unnamed namespace
 
 //............................................................................
-static void STM32C031C6_MPU_setup(void) {
+static void STM32C031C6_MPU_setup() {
 
     MPU->CTRL = 0U; // disable the MPU
 
@@ -787,7 +804,7 @@ void QV::onIdle() { // CAUTION: called with interrupts DISABLED, see NOTE0
 }
 
 //============================================================================
-// QS callbacks...
+// QS facilities...
 #ifdef Q_SPY
 namespace QS {
 

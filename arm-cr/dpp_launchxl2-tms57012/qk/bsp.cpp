@@ -1,7 +1,7 @@
 //============================================================================
 // Product: "DPP" on LAUCHXL2-TMS570LS12 board, preemptive QK kernel
-// Last updated for version 7.3.2
-// Last updated on  2023-12-13
+// Last updated for version 7.4.0
+// Last updated on  2024-06-07
 //
 //                   Q u a n t u m  L e a P s
 //                   ------------------------
@@ -155,7 +155,8 @@ QK_IRQ_END()
 QK_IRQ_BEGIN(ssiTest)  // System Software Interrupt for testing
     systemREG1->SSIF = 0x01; // clear the SSI0 source
     // for testing...
-    APP::AO_Table->POST(Q_NEW(QP::QEvt, APP::MAX_PUB_SIG), &l_ssiTest);
+    static QP::QEvt const tstEvt{ APP::MAX_PUB_SIG };
+    APP::AO_Table->POST(&tstEvt, &l_ssiTest);
 QK_IRQ_END()
 
 //............................................................................
