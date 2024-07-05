@@ -1,6 +1,13 @@
 //============================================================================
 // Test fixture for DPP example
-// Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
+// Last updated for version 7.4.0
+// Last updated on  2024-07-31
+//
+//                   Q u a n t u m  L e a P s
+//                   ------------------------
+//                   Modern Embedded Software
+//
+// Copyright (C) 2005 Quantum Leaps, LLC <state-machine.com>.
 //
 // SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 //
@@ -43,10 +50,10 @@ QP::QActive * const APP::AO_Philo[APP::N_PHILO] = {
     &Philo_dummy[4]
 };
 
-//............................................................................
-int main() {
-    QP::QF::init();  // initialize the framework and the underlying RT kernel
-    BSP::init();     // initialize the BSP
+//============================================================================
+int main(int argc, char* argv[]) {
+    QP::QF::init(); // initialize the framework and the underlying RT kernel
+    BSP::init(argc, argv); // initialize the BSP
 
     for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
        QS_OBJ_ARR_DICTIONARY(&Philo_dummy[n], n);
