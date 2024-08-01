@@ -2,11 +2,11 @@
 This file is best viewed in a **markdown viewer**, such as the one built into GitHub. Markdown viewers are also available as plug-ins to popular Internet browsers.
 
 # Blinky on EK-TM4C123GXL
-This example implements the simple [Blinky application](https://www.state-machine.com/qpcpp/tut_blinky.html) on the EK-TM4C123GLX board (ARM Cortex-M4F). The example blinks the LED
+This example implements the simple [Blinky application](https://www.state-machine.com/qpc/tut_blinky.html) on the EK-TM4C123GLX board (ARM Cortex-M4F). The example blinks the LED
 on the EK-TM4C123GXL board at 1Hz (0.5 seconds on, 0.5 seconds off).
 
 <p align="center">
-<img src="./ek-tm4c123gxl.jpg"/><br>
+<img src="ek-tm4c123gxl.webp"/><br>
 <b>EK-TM4C123GXL (TivaC LaunchPad)</b>
 </p>
 

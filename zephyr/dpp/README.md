@@ -1,12 +1,16 @@
 # DPP example
 
+<p align="center">
+<img src="qp-zephyr.webp"/>
+</p>
+
+
 # Overview
 Dining Philosophers Problem (DPP) example with multiple
 active objects.
 
-
 # Building and Running (Linux)
-Open a terminal in the directory of this example (`qpcpp/examples/zephry/dpp`).
+Open a terminal in the directory of this example (`qpc/examples/zephry/dpp`).
 
 Depending on your Zephyr installation, you might need to shell the script
 to configure Zephyr environment:
