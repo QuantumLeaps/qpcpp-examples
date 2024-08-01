@@ -79,7 +79,7 @@ VPATH = \
 	$(FREERTOS) \
 	$(FREERTOS)/portable/GCC/ARM_CM7/r0p1 \
 	$(QPCPP)/3rd_party/STM32CubeH7/nucleo-h743zi/gnu \
-	$(QPCPP)/3rd_party/STM32CubeH7/Drivers/BSP\STM32H7xx_Nucleo_144 \
+	$(QPCPP)/3rd_party/STM32CubeH7/Drivers/BSP/STM32H7xx_Nucleo_144 \
 	$(QPCPP)/3rd_party/STM32CubeH7/Drivers/STM32H7xx_HAL_Driver/Src \
 	$(QPCPP)/3rd_party/STM32CubeH7/Drivers/CMSIS/Device/ST/STM32H7xx/Source/Templates
 
