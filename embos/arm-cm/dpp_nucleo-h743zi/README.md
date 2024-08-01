@@ -1,40 +1,31 @@
 > **NOTE**
 This file is best viewed in a **markdown viewer**, such as the one built into GitHub. Markdown viewers are also available as plug-ins to popular Internet browsers.
 
-# DPP on NUCLEO-U545RE
-This example demonstrates the [Dining Philosophers Problem (DPP) application](https://www.state-machine.com/qpc/tut_dpp.html) on the STM32 NUCLEO-U545RE board (ARM Cortex-__M33__).
+# DPP on NUCLEO-H743ZI
+This example demonstrates QP port to the SEGGER embOS RTOS on the STM32 NUCLEO-H743ZI board (ARM Cortex-M7).
 
 <p align="center">
-<img src="stm32-nucleo-u545re.webp"/><br>
-<b>STM32 NUCLEO-U545RE</b>
+<img src="logo_embos.webp"/>
 </p>
 
-> **NOTE**
-This example can be used as a starting point for any other ARM Cortex-M MCU, including those based on different Cortex-M cores (M0/M0+/M3/M4/M7/M23/M33/M55/M85...) The most simplifying factor is that the QP-ports to Cortex-M don't need to change at all (the correct port is selected automatically based on the standard preprocessor macros provided by the compiler).
+The example uses the [Dining Philosophers Problem (DPP) application](https://www.state-machine.com/qpc/tut_dpp.html)
 
 <p align="center">
-<img src="../qp_arm-cm.jpg"/>
+<img src="./stm32-nucleo-h743zi.webp"/><br>
+<b>STM32 NUCLEO-H743ZI</b>
 </p>
 
 ## Features Demonstrated
+- QP port to SEGGER embOS RTOS
+  + with GNU-ARM toolchain
+  + with IAR-ARM toolchain
 - multiple cooperating active objects
 - immutable (const) events
 - mutable (dynamic) events
 - time events
 - direct event posting
 - publish-subscribe event delivery
-- cooperative QV kernel
-  + with ARM-KEIL toolchain
-  + with GNU-ARM toolchain
-  + with IAR-ARM toolchain
-- preemptive run-to-completion QK kernel
-  + with ARM-KEIL toolchain
-  + with GNU-ARM toolchain
-  + with IAR-ARM toolchain
-- preemptive dual-mode QXK kernel
-  + with ARM-KEIL toolchain
-  + with GNU-ARM toolchain
-  + with IAR-ARM toolchain
+
 
 ## Build Configurations
 - Debug
@@ -43,42 +34,20 @@ This example can be used as a starting point for any other ARM Cortex-M MCU, inc
 
 # Code Organization
 ```
-examples\arm-cm\dpp_nucleo-u545re
+examples\embos\dpp_nucleo-h743zi
 |
-+---qk                        // preemptive QK kernel
-|   +---gnu                   // GNU-ARM toolchain
+|   +---gnu        // GNU-ARM toolchain
 |   |   \---targetConfigs
 |   |       Makefile          // Makefile for GNU-ARM
-|   +---armclang              // ARM/KEIL toolchain with Compiler 6 (ARM/CLANG)
-|   |       dpp-qk.uvprojx    // uVision project
-|   \---iar                   // IAR EWARM
-|           dpp-qk.eww        // IAR EW-ARM workspace
-|
-\---qv                        // cooperative QK kernel
-|   +---gnu                   // GNU-ARM toolchain
-|   |   \---targetConfigs
-|   |       Makefile          // Makefile for GNU-ARM
-|   +---armclang              // ARM/KEIL toolchain with Compiler 6 (ARM/CLANG)
-|   |       dpp-qv.uvprojx    // uVision project
-|   \---iar                   // IAR EWARM
-|           dpp-qv.eww        // IAR EW-ARM workspace
-|
-+---qxk                       // preemptive, dual-mode QXK kernel
-|   +---gnu                   // GNU-ARM toolchain
-|   |   \---targetConfigs
-|   |       Makefile          // Makefile for GNU-ARM
-|   +---armclang              // ARM/KEIL toolchain with Compiler 6 (ARM/CLANG)
-|   |       dpp-qxk.uvprojx   // uVision project
-|   \---iar                   // IAR EWARM
-|           dpp-qxk.eww       // IAR EW-ARM workspace
-|
+|   \---iar        // IAR EWARM
+|           dpp-qk.eww     // IAR EW-ARM workspace
 ```
 
 # Building the example
 
 ### GNU/ARM
 - open terminal window
-- change to the desired directory (either `examples\arm-cm\dpp_nucleo-u545re\qk\gnu`, `examples\arm-cm\dpp_nucleo-u545re\qv\gnu`, or `examples\arm-cm\dpp_nucleo-u545re\qxk\gnu`)
+- change to the desired directory (either `examples\embos\dpp_nucleo-h743zi\qk\gnu`, `examples\embos\dpp_nucleo-h743zi\qv\gnu`, or `examples\embos\dpp_nucleo-h743zi\qxk\gnu`)
 - to build the default Debug configuration, type:
 
 ```
@@ -99,12 +68,6 @@ make CONF=rel
 ```
 make CONF=spy
 ```
-
-
-### ARM/KEIL MDK
-- Open the provided KEIL uVision project (either `dpp-qk.uvprojx`, `dpp-qv.uvprojx`, or `dpp-qxk.uvprojx`)
-in Keil uVision IDE. Build/Debug/Download to the board from the IDE.
-- Change the build configuration in the "Project Target" drop-down menu.
 
 
 ### IAR EWARM

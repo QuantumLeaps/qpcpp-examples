@@ -1,14 +1,17 @@
-# Blinky example
+# Blinky example for Zephyr
+
+<p align="center">
+<img src="qp-zephyr.webp"/>
+</p>
 
 # Overview
-
 Blinks an on-board LED once per second. The blinking is performed
  by an Active Object (Blinky) with a state machine.
 
 
 # Building and Running (Linux)
 
-Open a terminal in the directory of this example (`qpcpp/examples/zephry/blinky`).
+Open a terminal in the directory of this example (`qpc/examples/zephry/blinky`).
 
 Depending on your Zephyr installation, you might need to shell the script
 to configure Zephyr environment:
@@ -37,7 +40,7 @@ west flash
 
 # Sample Output
 The application also produces ASCII output to the serial terminal
-(if supported by the board):
+(if suppoted by the board):
 
 ```
 *** Booting Zephyr OS build v2.6.0-rc2-88-g3d39f72a88b3  ***

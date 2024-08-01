@@ -2,17 +2,17 @@
 [![Quantum Leaps](https://www.state-machine.com/attachments/logo_ql_400.png)](https://www.state-machine.com)
 <hr>
 
-# About qpcpp-examples
-This repository contains the application examples for the QP/C++
-Real-Time Embedded Framework (see https://github.com/QuantumLeaps/qpcpp ).
+# About qpc-examples
+This repository contains the application examples for the QP/C
+Real-Time Embedded Framework (see https://github.com/QuantumLeaps/qpc ).
 
 This repository can be used in several ways:
 - [Standalone examples](#standalone-examples-in-the-cmsis-packs-folder)
-  that don't require the [qpcpp framework repo](https://github.com/QuantumLeaps/qpcpp).
-  (These examples rely on the qpcpp framework included from the
+  that don't require the [qpc framework repo](https://github.com/QuantumLeaps/qpc).
+  (These examples rely on the qpc framework included from the
   [CMIS-packs](https://github.com/QuantumLeaps/cmsis-packs))
 
-- [As a sub-module to the qpcpp repo](#as-a-sub-module-to-the-qpcpp-repository)
+- [As a sub-module to the qpc repo](#as-a-sub-module-to-the-qpc-repository)
 
 - [Examples for the QView monitoring system](#examples-for-qview-monitoring-system)
 
@@ -29,7 +29,7 @@ This repository can be used in several ways:
 |
 ```
 
-## As a sub-module to the qpcpp repository
+## As a sub-module to the qpc repository
 ```
 +---arm-cm
 |   +---blinky_ek-tm4c123gxl
@@ -106,6 +106,17 @@ This repository can be used in several ways:
 |   +---reminder
 |   \---reminder2
 |
++---threadx
+|   \---arm-cm
+|       +---dpp_ek-tm4c123gxl
+|       \---dpp_stm32f429-discovery
++---uc-os2
+|   \---arm-cm
+|       \---dpp_ek-tm4c123gxl
++---zephyr
+|   +---blinky
+|   \---dpp
+|
 +---qutest    <== examples for QUTest testing harness
 |   +---blinky
 |   +---dpp
@@ -124,26 +135,34 @@ This repository can be used in several ways:
 |       +---src
 |       \---test
 |
-+---threadx
-|   \---arm-cm
-|       +---dpp_ek-tm4c123gxl
-|       \---dpp_stm32f429-discovery
-+---uc-os2
-|   \---arm-cm
-|       \---dpp_ek-tm4c123gxl
-+---zephyr
-|   +---blinky
-|   \---dpp
-|
-+---qview-dpp  <== examples for the QView monitoring system
++---qview-dpp   <== examples for QView monitoring (DPP example)
 |   +---img
 |       dpp.py
+|       dpp1.py
+|       qview-dpp.lnk
+|       qview-dpp.lnk
 |
 +---qwin-gui   <== examples for the QWin GUI
 |   +---dpp-gui
 |   \---game-gui
 |
 ```
+
+## Examples for QTest Testing System
+The "qutest" Python package  (included in the
+[QTools collection](https://github.com/QuantumLeaps/qtools))
+is a powerful [testing system](https://www.state-machine.com/qtools/qutest.html).
+It has been specifically designed for deeply embedded systems, but also supports
+unit and integration testing of embedded code on host computers ("dual targeting").
+QUTest is the fundamental tooling for Test-Driven Development (TDD) and Behavior-
+Driven Development (BDD) of QP/C/C++ applications , which is a highly recommended
+best-practice.
+
+The following screen shot show a typical QUTest run with the QSPY ouptut
+in the background.
+
+![](qutest/img/qutest-dpp.webp)
+
 
 ## Examples for QView Monitoring System
 The "qview" Python package (included in the
@@ -174,18 +193,3 @@ application with the QSPY ouptut in the background.
 
 ![](qview-dpp/img/qview-dpp.webp)
 
-
-## Examples for QTest Testing System
-The "qutest" Python package  (included in the
-[QTools collection](https://github.com/QuantumLeaps/qtools))
-is a powerful [testing system](https://www.state-machine.com/qtools/qutest.html).
-It has been specifically designed for deeply embedded systems, but also supports
-unit and integration testing of embedded code on host computers ("dual targeting").
-QUTest is the fundamental tooling for Test-Driven Development (TDD) and Behavior-
-Driven Development (BDD) of QP/C/C++ applications , which is a highly recommended
-best-practice.
-
-The following screen shot show a typical QUTest run with the QSPY ouptut
-in the background.
-
-![](qutest/img/qutest-dpp.webp)
