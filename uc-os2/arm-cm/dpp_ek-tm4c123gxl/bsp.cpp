@@ -285,7 +285,7 @@ void start() {
     // the lowest priority levels are reserved for the internal
     // uC-OS2 tasks.
 
-    static QP::QEvt const *philoQueueSto[APP::N_PHILO][10];
+    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10];
     static OS_STK philoStack[APP::N_PHILO][128]; // stacks for the Philos
     for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
         APP::AO_Philo[n]->start(
@@ -296,7 +296,7 @@ void start() {
             sizeof(philoStack[n]));  // stack size [bytes]
     }
 
-    static QP::QEvt const *tableQueueSto[APP::N_PHILO];
+    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
     static OS_STK tableStack[128]; // stack for the Table
     APP::AO_Table->start(
         Q_PRIO(APP::N_PHILO + 1U, APP::N_PHILO + 4U), // QP-prio., uC-OS2 prio.

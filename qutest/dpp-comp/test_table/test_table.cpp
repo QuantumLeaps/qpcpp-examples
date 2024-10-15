@@ -61,7 +61,7 @@ int main() {
                      sizeof(smlPoolSto), sizeof(smlPoolSto[0]));
 
     // start and setup AOs...
-    static QP::QEvt const *tableQueueSto[APP::N_PHILO];
+    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
     APP::AO_Table->start(
         1U,  // QP priority
         tableQueueSto, Q_DIM(tableQueueSto),

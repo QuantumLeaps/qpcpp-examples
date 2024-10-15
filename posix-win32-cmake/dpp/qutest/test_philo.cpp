@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
     QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
 
     // start the active objects...
-    static QP::QEvt const *philoQueueSto[APP::N_PHILO][10];
+    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10];
     std::uint8_t n = 2;
     APP::AO_Philo[n]->start(
         n + 1U,   // QP priority

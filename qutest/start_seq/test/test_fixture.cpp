@@ -1,7 +1,7 @@
 //***************************************************************************
 // Product: Fixture for QUTEST
-// Last updated for version 7.3.0
-// Last updated on  2023-07-19
+// Last Updated for Version: 8.0.0
+// Date of the Last Update:  2024-09-20
 //
 //                    Q u a n t u m  L e a P s
 //                    ------------------------
@@ -40,12 +40,11 @@ using namespace QP;
 Q_DEFINE_THIS_FILE
 
 //............................................................................
-int main(int argc, char *argv[]) {
-
+int main() {
     QF::init();  // initialize the framework
 
     // initialize the QS software tracing
-    if (!QS_INIT(argc > 1 ? argv[1] : nullptr)) {
+    if (!QS_INIT(nullptr)) {
         Q_ERROR();
     }
 
@@ -61,10 +60,10 @@ int main(int argc, char *argv[]) {
     QF::poolInit(smlPoolSto, sizeof(smlPoolSto), sizeof(smlPoolSto[0]));
 
     // start the active objects...
-    static QEvt const *qQSto[10]; // event queue storage
+    static QEvtPtr qQSto[10]; // event queue storage
     AO_Gizmo->start(1U,
                     qQSto, Q_DIM(qQSto),
-                    nullptr, 0U, (QEvt *)0);
+                    nullptr, 0U, nullptr);
 
     return QF::run();
 }

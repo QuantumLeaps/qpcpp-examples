@@ -1,13 +1,13 @@
 //============================================================================
 // Product: Console-based BSP
-// Last Updated for Version: 7.3.0
-// Date of the Last Update:  2023-07-19
+// Last Updated for Version: 8.0.0
+// Date of the Last Update:  2024-09-16
 //
-//                    Q u a n t u m  L e a P s
-//                    ------------------------
-//                    Modern Embedded Software
+//                   Q u a n t u m  L e a P s
+//                   ------------------------
+//                   Modern Embedded Software
 //
-// Copyright (C) 2005-2020 Quantum Leaps, LLC. All rights reserved.
+// Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 //
 // This program is open source software: you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as published
@@ -40,13 +40,12 @@
 Q_DEFINE_THIS_FILE
 
 #ifdef Q_SPY
-static std::uint8_t const l_QF::onClockTick = 0;
+static std::uint8_t const l_QF_onClockTick = 0;
 #endif
 
 //............................................................................
 extern "C" Q_NORETURN Q_onError(char const * const module, int_t const loc) {
-    printf("Assertion failed in %s:%d\n", module, loc);
-    FPRINTF_S(stderr, "Assertion failed in %s:%d", module, loc);
+    PRINTF_S("Assertion failed in %s:%d", module, loc);
     QP::QF::onCleanup();
     exit(-1);
 }
@@ -58,8 +57,7 @@ void BSP_init(int argc, char * argv[]) {
     if (!QS_INIT(argc > 1 ? argv[1] : nullptr)) {
         Q_ERROR();
     }
-
-    QS_OBJ_DICTIONARY(&l_QF::onClockTick);
+    QS_OBJ_DICTIONARY(&l_QF_onClockTick);
 
     // setup the QS filters...
     QS_GLB_FILTER(QP::QS_ALL_RECORDS);
@@ -74,17 +72,18 @@ void QF::onStartup(void) {
 }
 //............................................................................
 void QF::onCleanup(void) {
+    PRINTF_S("\n%s\n", "Bye! Bye!");
     QF::consoleCleanup();
 }
 //............................................................................
 void QF::onClockTick(void) {
-    QTimeEvt::TICK_X(0U, &l_QF::onClockTick); // perform the QF clock tick processing
+    QTimeEvt::TICK_X(0U, &l_QF_onClockTick); // perform QF clock tick processing
 
     QS_RX_INPUT(); // handle the QS-RX input
     QS_OUTPUT();   // handle the QS output
 
     int key = QF::consoleGetKey();
-    if (key != 0) { /* any key pressed? */
+    if (key != 0) { // any key pressed?
         BSP_onKeyboardInput((uint8_t)key);
     }
 }

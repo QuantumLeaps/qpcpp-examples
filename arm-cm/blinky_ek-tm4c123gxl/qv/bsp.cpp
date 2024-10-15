@@ -157,7 +157,7 @@ void start() {
 
     // instantiate and start AOs/threads...
 
-    static QP::QEvt const *blinkyQueueSto[10];
+    static QP::QEvtPtr blinkyQueueSto[10];
     APP::AO_Blinky->start(
         1U,                         // QP prio. of the AO
         blinkyQueueSto,             // event queue storage

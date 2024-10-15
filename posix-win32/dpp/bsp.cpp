@@ -1,7 +1,7 @@
 //============================================================================
 // Product: BSP for DPP example (console)
-// Last updated for version 7.3.0
-// Last updated on  2023-08-24
+// Last updated for version 8.0.0
+// Last updated on  2024-09-19
 //
 //                   Q u a n t u m  L e a P s
 //                   ------------------------
@@ -97,6 +97,7 @@ void init(int argc, char **argv) {
 
     BSP::randomSeed(1234U);
 
+    // initialize the QS software tracing
     if (!QS_INIT(argc > 1 ? argv[1] : nullptr)) {
         Q_ERROR();
     }
@@ -125,7 +126,7 @@ void start() {
 
     // start AOs/threads...
 
-    static QP::QEvt const *philoQueueSto[APP::N_PHILO][10];
+    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10];
     for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
         APP::AO_Philo[n]->start(
             n + 3U,                  // QP prio. of the AO
@@ -134,7 +135,7 @@ void start() {
             nullptr, 0U);            // no stack storage
     }
 
-    static QP::QEvt const *tableQueueSto[APP::N_PHILO];
+    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
     APP::AO_Table->start(
         APP::N_PHILO + 7U,       // QP prio. of the AO
         tableQueueSto,           // event queue storage
@@ -168,7 +169,7 @@ std::uint32_t random() { // a very cheap pseudo-random-number generator
     std::uint32_t rnd = l_rnd * (3U*7U*11U*13U*23U);
     l_rnd = rnd; // set for the next time
 
-    return (rnd >> 8);
+    return rnd >> 8;
 }
 //............................................................................
 void randomSeed(std::uint32_t seed) {
@@ -180,10 +181,20 @@ void randomSeed(std::uint32_t seed) {
 //============================================================================
 namespace QP {
 
+#if CUST_TICK
+#include <sys/select.h> // for select() call used in custom tick processing
+#endif
+
 //............................................................................
 void QF::onStartup() {
     consoleSetup();
-    setTickRate(BSP::TICKS_PER_SEC, 10); // desired tick rate/prio
+
+#if CUST_TICK
+    // disable the standard clock-tick service by setting tick-rate to 0
+    setTickRate(0U, 10U); // zero tick-rate / ticker thread prio.
+#else
+    setTickRate(BSP::TICKS_PER_SEC, 10U); // desired tick rate/prio
+#endif
 }
 //............................................................................
 void QF::onCleanup() {
@@ -192,6 +203,20 @@ void QF::onCleanup() {
 }
 //............................................................................
 void QF::onClockTick() {
+
+#if CUST_TICK
+    // NOTE:
+    // The standard clock-tick service has been DISABLED in QF::onStartup()
+    // by setting the clock tick rate to zero.
+    // Therefore QF::onClockTick() must implement an alternative waiting
+    // mechanism for the clock period. This particular implementation is
+    // based on the select() system call to block for the desired timeout.
+
+    struct timeval tv;
+    tv.tv_sec = 0;
+    tv.tv_usec = (1000000/BSP::TICKS_PER_SEC);
+    select(0, NULL, NULL, NULL, &tv); // block for the timevalue
+#endif
 
     QTimeEvt::TICK_X(0U, &l_clock_tick); // process time events at rate 0
 

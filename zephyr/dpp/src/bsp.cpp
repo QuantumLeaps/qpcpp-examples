@@ -142,7 +142,7 @@ void start() {
 
     // start AOs/threads...
 
-    static QP::QEvt const *philoQueueSto[APP::N_PHILO][10];
+    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10];
     static K_THREAD_STACK_DEFINE(philoStack[APP::N_PHILO], 512);
     for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
         APP::AO_Philo[n]->start(
@@ -154,7 +154,7 @@ void start() {
             nullptr);                // no initialization param
     }
 
-    static QP::QEvt const *tableQueueSto[APP::N_PHILO];
+    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
     static K_THREAD_STACK_DEFINE(tableStack, 1024);
     APP::AO_Table->start(
         APP::N_PHILO + 7U,       // QP prio. of the AO

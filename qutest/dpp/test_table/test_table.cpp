@@ -1,6 +1,6 @@
 //============================================================================
 // Test fixture for DPP example
-// Last updated for version 7.4.0
+// Last updated for version 8.0.0
 // Last updated on  2024-07-31
 //
 //                   Q u a n t u m  L e a P s
@@ -51,9 +51,9 @@ QP::QActive * const APP::AO_Philo[APP::N_PHILO] = {
 };
 
 //============================================================================
-int main(int argc, char* argv[]) {
+int main() {
     QP::QF::init(); // initialize the framework and the underlying RT kernel
-    BSP::init(argc, argv); // initialize the BSP
+    BSP::init();    // initialize the BSP
 
     for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
        QS_OBJ_ARR_DICTIONARY(&Philo_dummy[n], n);
@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
     }
 
     // start the active object under test (AOUT)...
-    static QP::QEvt const *tableQueueSto[APP::N_PHILO];
+    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
     APP::AO_Table->start(
         APP::N_PHILO + 1U, // QP priority
         tableQueueSto, Q_DIM(tableQueueSto),

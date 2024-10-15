@@ -1,7 +1,7 @@
 //============================================================================
 // Purpose: Fixture for QUTEST
-// Last updated for version 7.3.0
-// Last updated on  2023-07-19
+// Last updated for version 8.0.0
+// Last updated on  2024-09-20
 //
 //                    Q u a n t u m  L e a P s
 //                    ------------------------
@@ -37,15 +37,11 @@
 Q_DEFINE_THIS_FILE
 
 //............................................................................
-int main(int argc, char *argv[]) {
-    static QSubscrList subscrSto[MAX_PUB_SIG];
-    static QF_MPOOL_EL(MyEvt3) smlPoolSto[10];
-    static QEvt const *myAoQueueSto[10];
-
+int main() {
     QF::init();   // initialize the framework and the underlying RT kernel
 
     // initialize the QS software tracing
-    if (!QS_INIT(argc > 1 ? argv[1] : nullptr)) {
+    if (!QS_INIT(nullptr)) {
         Q_ERROR();
     }
 
@@ -56,12 +52,15 @@ int main(int argc, char *argv[]) {
     QS_TEST_PAUSE();
 
     // initialize publish-subscribe..
+    static QSubscrList subscrSto[MAX_PUB_SIG];
     QActive::psInit(subscrSto, Q_DIM(subscrSto));
 
     // initialize event pools...
+    static QF_MPOOL_EL(MyEvt3) smlPoolSto[10];
     QF::poolInit(smlPoolSto, sizeof(smlPoolSto), sizeof(smlPoolSto[0]));
 
-    AO_MyAO->start(1U,                  // QP priority of the AO
+    static QEvtPtr myAoQueueSto[10];
+    AO_MyAO->start(1U,                 // QP priority of the AO
                   myAoQueueSto,         // event queue storage
                   Q_DIM(myAoQueueSto),  // queue length [events]
                   nullptr, 0U);         // stack storage and size (not used)
@@ -89,8 +88,10 @@ void QS::onTestTeardown(void) {
 }
 
 //............................................................................
-void QS::onCommand(uint8_t cmdId,
-                   uint32_t param1, uint32_t param2, uint32_t param3)
+void QS::onCommand(std::uint8_t cmdId,
+                   std::uint32_t param1,
+                   std::uint32_t param2,
+                   std::uint32_t param3)
 {
     (void)param1; // unused parameter
     (void)param2; // unused parameter

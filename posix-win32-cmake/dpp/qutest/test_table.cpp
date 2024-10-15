@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
     }
 
     // start the active object under test (AOUT)...
-    static QP::QEvt const *tableQueueSto[APP::N_PHILO];
+    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
     APP::AO_Table->start(
         APP::N_PHILO + 1U, // QP priority
         tableQueueSto, Q_DIM(tableQueueSto),

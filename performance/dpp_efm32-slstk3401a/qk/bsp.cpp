@@ -1,6 +1,6 @@
 //============================================================================
 // Product: DPP example, EFM32-SLSTK3401A board, preemptive QK kernel
-// Last updated for version 7.4.0
+// Last updated for version 8.0.0
 // Last updated on  2024-06-07
 //
 //                    Q u a n t u m  L e a P s
@@ -63,8 +63,8 @@ static uint32_t l_rnd; // random seed
     QP::QSTimeCtr QS_tickPeriod_;
 
     // QS source IDs
-    static QP::QSpyId const l_SysTick_Handler = { 0U };
-    static QP::QSpyId const l_GPIO_EVEN_IRQHandler = { 0U };
+    static QP::QSpyId const l_SysTick_Handler { 0U };
+    static QP::QSpyId const l_GPIO_EVEN_IRQHandler { 0U };
 
     static USART_TypeDef * const l_USART0 = ((USART_TypeDef *)(0x40010000UL));
 
@@ -102,7 +102,6 @@ void assert_failed(char const * const module, int const id); // prototype
 void assert_failed(char const * const module, int const id) {
     Q_onError(module, id);
 }
-
 
 //............................................................................
 void SysTick_Handler(void); // prototype
@@ -155,7 +154,7 @@ void GPIO_EVEN_IRQHandler(void) {
     QK_ISR_ENTRY(); // inform QK about entering an ISR
 
     // for testing...
-    static QP::QEvt const tstEvt{ APP::MAX_PUB_SIG };
+    static QP::QEvt const tstEvt{ DPP::MAX_PUB_SIG };
     AO_Table->POST(&tstEvt, &l_GPIO_EVEN_IRQHandler);
 
     QK_ISR_EXIT();  // inform QK about exiting an ISR

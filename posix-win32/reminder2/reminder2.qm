@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<model version="6.1.2" links="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm.xsd">
+<model version="7.0.0" links="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm7.xsd">
  <documentation>Reminder state pattern</documentation>
  <!--${qpcpp}-->
  <framework name="qpcpp"/>
@@ -108,7 +108,7 @@ POST(reminder, this);</action>
       </tran_glyph>
      </tran>
      <state_glyph node="2,6,42,26">
-      <entry box="1,2,6,2"/>
+      <entry box="0,3,6,2"/>
      </state_glyph>
     </state>
     <!--${Components::Cruncher::SM::final}-->
@@ -116,7 +116,7 @@ POST(reminder, this);</action>
      <entry brief="stop">PRINTF_S(&quot;%s\n&quot;, &quot;final-ENTRY;&quot;);
          QP::QF::stop(); // terminate the application</entry>
      <state_glyph node="2,36,30,10">
-      <entry box="1,2,6,2"/>
+      <entry box="0,3,6,2"/>
      </state_glyph>
     </state>
     <state_diagram size="50,48"/>
@@ -171,7 +171,7 @@ int main(int argc, char *argv[]) {
     // publish-subscribe not used, no call to QActive::psInit()
 
     // instantiate and start the active objects...
-    QP::QEvt const *cruncherQSto[10]; // Event queue storage for Cruncher AO
+    QP::QEvtPtr cruncherQSto[10]; // Event queue storage for Cruncher AO
     l_cruncher.start(1U,
                      cruncherQSto, Q_DIM(cruncherQSto),
                      nullptr, 0U, nullptr);

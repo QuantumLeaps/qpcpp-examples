@@ -54,8 +54,7 @@ Q_DEFINE_THIS_MODULE("bsp") // for functional-safety assertions
 
 #ifdef Q_SPY
     // QSpy source IDs
-    static QSpyId const l_SysTick_Handler = { 100U };
-
+    static QP::QSpyId const l_SysTick_Handler { 100U };
 #endif
 
 //============================================================================
@@ -183,7 +182,7 @@ void init() {
 //............................................................................
 void start() {
     // instantiate and start QP/C active objects...
-    static QP::QEvt const *periodic1QSto[10]; // Event queue storage
+    static QP::QEvtPtr periodic1QSto[10]; // Event queue storage
     APP::AO_Periodic1->start(
         1U,                    // QF-prio
         periodic1QSto,         // storage for the AO's queue
@@ -191,7 +190,7 @@ void start() {
         nullptr, 0U,           // stack storage, size (not used)
         getEvtPeriodic1(0U));  // initialization param
 
-    static QP::QEvt const *sporadic2QSto[8]; // Event queue storage
+    static QP::QEvtPtr sporadic2QSto[8]; // Event queue storage
     APP::AO_Sporadic2->start(
         2U,                    // QF-prio
         sporadic2QSto,         // storage for the AO's queue
@@ -199,7 +198,7 @@ void start() {
         nullptr, 0U,           // stack storage, size (not used)
         (void const *)0);      // initialization param -- not used
 
-    static QP::QEvt const *sporadic3QSto[8]; // Event queue storage
+    static QP::QEvtPtr sporadic3QSto[8]; // Event queue storage
     APP::AO_Sporadic3->start(
         3U,                    // QF-prio
         sporadic3QSto,         // storage for the AO's queue
@@ -207,7 +206,7 @@ void start() {
         nullptr, 0U,           // stack storage, size (not used)
         (void const *)0);      // initialization param -- not used
 
-    static QP::QEvt const *periodic4QSto[8]; // Event queue storage
+    static QP::QEvtPtr periodic4QSto[8]; // Event queue storage
     APP::AO_Periodic4->start(
         4U,                    // QF-prio
         periodic4QSto,         // storage for the AO's queue

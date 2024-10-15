@@ -68,17 +68,17 @@ int main() {
     BSP::the_Ticker0->start(1U, // priority
                              0, 0, 0, 0);
 
-    static QP::QEvt const * tunnelQueueSto[GAME_MINES_MAX + 5];
+    static QP::QEvtPtr  tunnelQueueSto[GAME_MINES_MAX + 5];
     GAME::AO_Tunnel ->start(2U,                     // priority
                       tunnelQueueSto, Q_DIM(tunnelQueueSto), // evt queue
                       nullptr, 0U);  // no per-thread stack
 
-    static QP::QEvt const * shipQueueSto[3];
+    static QP::QEvtPtr  shipQueueSto[3];
     GAME::AO_Ship   ->start(3U,                     // priority
                       shipQueueSto, Q_DIM(shipQueueSto), // evt queue
                       nullptr, 0U);  // no per-thread stack
 
-    static QP::QEvt const * missileQueueSto[2];
+    static QP::QEvtPtr  missileQueueSto[2];
     GAME::AO_Missile->start(4U,                     // priority
                       missileQueueSto, Q_DIM(missileQueueSto), // evt queue
                       nullptr, 0U);  // no per-thread stack

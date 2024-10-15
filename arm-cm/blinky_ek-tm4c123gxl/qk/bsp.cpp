@@ -163,7 +163,7 @@ void start() {
 
     // instantiate and start AOs/threads...
 
-    static QP::QEvt const *blinkyQueueSto[10];
+    static QP::QEvtPtr blinkyQueueSto[10];
     APP::AO_Blinky->start(
         1U,                         // QP prio. of the AO
         blinkyQueueSto,              // event queue storage
@@ -180,7 +180,7 @@ void ledOff() {
     GPIOF_AHB->DATA_Bits[LED_RED] = 0x00U;
 }
 //............................................................................
-void terminate(int16_t result) {
+void terminate(std::int16_t result) {
     Q_UNUSED_PAR(result);
 }
 

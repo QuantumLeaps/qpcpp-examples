@@ -64,12 +64,11 @@ enum UsrSig {
 };
 
 //----------------------------------------------------------------------------
-int main(int argc, char *argv[]) {
-
+int main() {
     QF::init();  // initialize the framework
 
     // initialize the QS software tracing
-    if (!QS_INIT(argc > 1 ? argv[1] : nullptr)) {
+    if (!QS_INIT(nullptr)) {
         Q_ERROR();
     }
 

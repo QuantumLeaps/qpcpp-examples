@@ -55,7 +55,7 @@ void tx_application_define(void * /*first_unused_memory*/) {
 
     // start the active objects...
 
-    static QP::QEvt const *philoQueueSto[APP::N_PHILO][10];
+    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10];
     static ULONG philoStk[APP::N_PHILO][200]; // stacks for the Philos
     for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
         APP::AO_Philo[n]->setAttr(QP::THREAD_NAME_ATTR, "Philo");
@@ -65,7 +65,7 @@ void tx_application_define(void * /*first_unused_memory*/) {
             philoStk[n], sizeof(philoStk[n]));
     }
 
-    static QP::QEvt const *tableQueueSto[APP::N_PHILO];
+    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
     static ULONG tableStk[200]; // stack for the Table
     APP::AO_Table->setAttr(QP::THREAD_NAME_ATTR, "Table");
     APP::AO_Table->start(

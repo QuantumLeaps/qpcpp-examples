@@ -54,7 +54,7 @@ int main() {
     QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
 
     // start the active objects...
-    static QP::QEvt const *tableQueueSto[APP::N_PHILO];
+    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
     APP::AO_Table->start(          // AO to start
         APP::N_PHILO + 1U,         // QF-priority
         tableQueueSto,             // event queue storage

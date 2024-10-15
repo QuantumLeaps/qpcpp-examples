@@ -226,7 +226,6 @@
                 </option>
                 <option>
                     <name>CCDefines</name>
-                    <state>QP_CONFIG</state>
                     <state>EFM32PG1B200F256GM48</state>
                 </option>
                 <option>
@@ -1308,7 +1307,6 @@
                 <option>
                     <name>CCDefines</name>
                     <state>NDEBUG</state>
-                    <state>QP_CONFIG</state>
                     <state>EFM32PG1B200F256GM48</state>
                 </option>
                 <option>
@@ -2390,7 +2388,6 @@
                 <option>
                     <name>CCDefines</name>
                     <state>Q_SPY</state>
-                    <state>QP_CONFIG</state>
                     <state>EFM32PG1B200F256GM48</state>
                 </option>
                 <option>

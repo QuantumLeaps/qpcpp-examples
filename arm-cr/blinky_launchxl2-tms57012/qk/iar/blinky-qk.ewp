@@ -226,7 +226,7 @@
                 </option>
                 <option>
                     <name>CCDefines</name>
-                    <state>QP_API_VERSION=660</state>
+                    <state></state>
                 </option>
                 <option>
                     <name>CCPreprocFile</name>
@@ -1306,7 +1306,6 @@
                 <option>
                     <name>CCDefines</name>
                     <state>NDEBUG</state>
-                    <state>QP_API_VERSION=660</state>
                 </option>
                 <option>
                     <name>CCPreprocFile</name>
@@ -2386,7 +2385,6 @@
                 <option>
                     <name>CCDefines</name>
                     <state>Q_SPY</state>
-                    <state>QP_API_VERSION=660</state>
                 </option>
                 <option>
                     <name>CCPreprocFile</name>

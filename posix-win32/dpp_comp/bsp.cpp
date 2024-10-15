@@ -125,7 +125,7 @@ void start() {
 
     // start AOs/threads...
 
-    static QP::QEvt const *tableQueueSto[APP::N_PHILO];
+    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
     APP::AO_Table->start(
         APP::N_PHILO + 7U,       // QP prio. of the AO
         tableQueueSto,           // event queue storage

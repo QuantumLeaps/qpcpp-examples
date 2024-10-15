@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<model version="5.3.0" links="1">
+<model version="7.0.0" links="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm7.xsd">
  <documentation>Dining Philosopher Problem example</documentation>
  <!--${qpcpp}-->
  <framework name="qpcpp"/>
@@ -87,8 +87,8 @@ BSP_showTime24H(&quot;*** Alarm reset &quot;,  m_alarm_time, 100U);</action>
       </tran_glyph>
      </tran>
      <state_glyph node="2,5,32,15">
-      <entry box="1,2,6,2"/>
-      <exit box="1,4,6,2"/>
+      <entry box="0,3,6,2"/>
+      <exit box="0,5,6,2"/>
      </state_glyph>
     </state>
     <!--${Components::Alarm::SM::on}-->
@@ -125,7 +125,7 @@ APP_alarmClock-&gt;POST(Q_NEW(QEvt, ALARM_SIG), this);</action>
       </tran_glyph>
      </tran>
      <state_glyph node="2,24,32,20">
-      <entry box="1,2,5,2"/>
+      <entry box="0,3,5,2"/>
      </state_glyph>
     </state>
     <state_diagram size="46,48"/>
@@ -155,7 +155,7 @@ m_current_time = 0U;
 
 // (!) trigger the initial transition in the component
 m_alarm.init(m_prio);</action>
-     <initial_glyph conn="2,4,5,1,44,4,-2">
+     <initial_glyph conn="2,4,5,1,44,6,-2">
       <action box="0,-2,6,2"/>
      </initial_glyph>
     </initial>
@@ -166,26 +166,26 @@ m_timeEvt.armX(BSP_TICKS_PER_SEC, BSP_TICKS_PER_SEC);</entry>
      <exit>m_timeEvt.disarm();</exit>
      <!--${Components::AlarmClock::SM::timekeeping::initial}-->
      <initial target="../6">
-      <initial_glyph conn="4,13,5,1,36,27,-4">
+      <initial_glyph conn="4,15,5,1,36,27,-4">
        <action box="0,-2,10,2"/>
       </initial_glyph>
      </initial>
      <!--${Components::AlarmClock::SM::timekeeping::CLOCK_24H}-->
      <tran trig="CLOCK_24H" target="../6">
-      <tran_glyph conn="2,16,3,1,36,22,-2">
+      <tran_glyph conn="2,18,3,1,36,22,-2">
        <action box="0,-2,10,4"/>
       </tran_glyph>
      </tran>
      <!--${Components::AlarmClock::SM::timekeeping::CLOCK_12H}-->
      <tran trig="CLOCK_12H" target="../7">
-      <tran_glyph conn="2,18,3,1,40,34,-6">
+      <tran_glyph conn="2,20,3,1,40,34,-6">
        <action box="0,-2,10,2"/>
       </tran_glyph>
      </tran>
      <!--${Components::AlarmClock::SM::timekeeping::ALARM}-->
      <tran trig="ALARM">
       <action>BSP_showMsg(&quot;Wake up!!!&quot;);</action>
-      <tran_glyph conn="2,28,3,-1,18">
+      <tran_glyph conn="2,30,3,-1,18">
        <action box="0,-2,10,2"/>
       </tran_glyph>
      </tran>
@@ -193,14 +193,14 @@ m_timeEvt.armX(BSP_TICKS_PER_SEC, BSP_TICKS_PER_SEC);</entry>
      <tran trig="ALARM_SET, ALARM_ON, ALARM_OFF">
       <action>// (!) synchronously dispatch to the orthogonal component
 m_alarm.dispatch(e, m_prio);</action>
-      <tran_glyph conn="2,22,3,-1,18">
+      <tran_glyph conn="2,24,3,-1,18">
        <action box="0,-2,11,6"/>
       </tran_glyph>
      </tran>
      <!--${Components::AlarmClock::SM::timekeeping::TERMINATE}-->
      <tran trig="TERMINATE" target="../../2">
       <action>BSP_showMsg(&quot;--&gt; final&quot;);</action>
-      <tran_glyph conn="2,32,3,1,44,38,-13">
+      <tran_glyph conn="2,34,3,1,44,38,-13">
        <action box="0,-2,10,2"/>
       </tran_glyph>
      </tran>
@@ -220,12 +220,12 @@ TimeEvt const pe(TIME_SIG, m_current_time);
 
 // (!) synchronously dispatch to the orthogonal component
 m_alarm.dispatch(&amp;pe, m_prio);</action>
-       <tran_glyph conn="4,44,3,-1,16">
+       <tran_glyph conn="4,46,3,-1,16">
         <action box="0,-2,8,2"/>
        </tran_glyph>
       </tran>
-      <state_glyph node="4,36,32,12">
-       <entry box="1,2,27,2"/>
+      <state_glyph node="4,38,32,12">
+       <entry box="0,3,27,2"/>
       </state_glyph>
      </state>
      <!--${Components::AlarmClock::SM::timekeeping::mode12h}-->
@@ -244,25 +244,25 @@ TimeEvt const pe(TIME_SIG, m_current_time);
 
 // (!) synchronously dispatch to the orthogonal component
 m_alarm.dispatch(&amp;pe, m_prio);</action>
-       <tran_glyph conn="4,58,3,-1,16">
+       <tran_glyph conn="4,60,3,-1,16">
         <action box="0,-2,8,2"/>
        </tran_glyph>
       </tran>
-      <state_glyph node="4,50,32,12">
-       <entry box="1,2,17,2"/>
+      <state_glyph node="4,52,32,12">
+       <entry box="0,3,17,2"/>
       </state_glyph>
      </state>
-     <state_glyph node="2,6,42,58">
-      <entry box="1,2,6,2"/>
-      <exit box="1,4,6,2"/>
+     <state_glyph node="2,6,42,60">
+      <entry box="0,3,6,2"/>
+      <exit box="0,5,6,2"/>
      </state_glyph>
     </state>
     <!--${Components::AlarmClock::SM::final}-->
     <state name="final">
      <entry brief="terminate">BSP_showMsg(&quot;Bye! Bye!&quot;);
 QF::stop(); // terminate the application</entry>
-     <state_glyph node="2,68,31,8">
-      <entry box="1,2,11,2"/>
+     <state_glyph node="2,70,31,8">
+      <entry box="0,3,11,2"/>
      </state_glyph>
     </state>
     <state_diagram size="50,80"/>

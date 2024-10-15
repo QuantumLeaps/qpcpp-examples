@@ -1,7 +1,7 @@
 //============================================================================
 // Product: Reminder state pattern example
-// Last Updated for Version: 6.5.0
-// Date of the Last Update:  2019-03-25
+// Last Updated for Version: 8.0.0
+// Date of the Last Update:  2024-09-20
 //
 //                    Q u a n t u m  L e a P s
 //                    ------------------------
@@ -172,8 +172,6 @@ Q_STATE_DEF(Sensor, busy) {
 
 // Local-scope objects -------------------------------------------------------
 static Sensor l_sensor; // the Sensor active object
-static QEvt const *l_sensorQSto[10]; // storage for event queue for Sensor
-static void *l_regPoolSto[100/sizeof(void *)]; // storage for the event pool
 
 //............................................................................
 int main(int argc, char *argv[]) {
@@ -188,11 +186,13 @@ int main(int argc, char *argv[]) {
     // publish-subscribe not used, no call to QActive::psInit()
 
     // initialize event pools...
+    static void *l_regPoolSto[100/sizeof(void *)]; // storage for the event pool
     QF::poolInit(l_regPoolSto, sizeof(l_regPoolSto), sizeof(QEvt));
 
     // start the active objects...
+    static QEvtPtr l_sensorQSto[10]; // storage for event queue for Sensor
     l_sensor.start(1U, l_sensorQSto, Q_DIM(l_sensorQSto),
-                   nullptr, 0, (QEvt *)0);
+                    nullptr, 0, nullptr);
 
     return QF::run();  // run the QF application
 }

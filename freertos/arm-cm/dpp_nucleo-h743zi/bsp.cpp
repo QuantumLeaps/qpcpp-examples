@@ -324,7 +324,7 @@ void start() {
     QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
 
     // start AOs/threads...
-    static QP::QEvt const *philoQueueSto[APP::N_PHILO][10];
+    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10];
     static StackType_t philoStack[APP::N_PHILO][configMINIMAL_STACK_SIZE];
     for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
         APP::AO_Philo[n]->start(
@@ -335,7 +335,7 @@ void start() {
             sizeof(philoStack[n]));  // stack size [bytes]
     }
 
-    static QP::QEvt const *tableQueueSto[APP::N_PHILO];
+    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
     static StackType_t tableStack[configMINIMAL_STACK_SIZE];
     APP::AO_Table->start(
         Q_PRIO(APP::N_PHILO + 7U, 7U), // QP prio., FreeRTOS prio.

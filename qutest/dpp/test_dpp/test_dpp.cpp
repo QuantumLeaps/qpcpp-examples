@@ -1,6 +1,6 @@
 //============================================================================
 // Product: QUTEST fixture for the DPP components
-// Last updated for version 7.4.0
+// Last updated for version 8.0.0
 // Last updated on  2024-07-31
 //
 //                   Q u a n t u m  L e a P s
@@ -36,9 +36,9 @@
 //#include "safe_std.h" // portable "safe" <stdio.h>/<string.h> facilities
 
 //============================================================================
-int main(int argc, char* argv[]) {
+int main() {
     QP::QF::init(); // initialize the framework and the underlying RT kernel
-    BSP::init(argc, argv); // initialize the BSP
+    BSP::init();    // initialize the BSP
 
     // pause execution of the test and wait for the test script to continue
     QS_TEST_PAUSE();
@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
     QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
 
     // start the active objects...
-    static QP::QEvt const *philoQueueSto[APP::N_PHILO][10];
+    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10];
     for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
         APP::AO_Philo[n]->start(   // AO to start
             n + 1U,                // QF-priority
@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
             0U);                   // size of the stack [bytes]
     }
 
-    static QP::QEvt const *tableQueueSto[APP::N_PHILO];
+    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
     APP::AO_Table->start(          // AO to start
         APP::N_PHILO + 1U,         // QF-priority
         tableQueueSto,             // event queue storage

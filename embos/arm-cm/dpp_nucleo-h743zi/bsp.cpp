@@ -270,7 +270,7 @@ void start() {
     QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
 
     // start AOs/threads...
-    static QP::QEvt const *philoQueueSto[APP::N_PHILO][APP::N_PHILO];
+    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][APP::N_PHILO];
     static OS_STACKPTR int philoStack[APP::N_PHILO][128];
     for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
         APP::AO_Philo[n]->start(
@@ -281,7 +281,7 @@ void start() {
             sizeof(philoStack[n]));  // stack size [bytes]
     }
 
-    static QP::QEvt const *tableQueueSto[APP::N_PHILO];
+    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
     static OS_STACKPTR int tableStack[128];
     APP::AO_Table->start(
         Q_PRIO(APP::N_PHILO + 7U, 7U),// QP-prio., embOS prio.

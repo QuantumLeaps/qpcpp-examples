@@ -115,7 +115,7 @@ void start() {
 
     // start AOs/threads...
 
-    static QP::QEvt const *blinkyQueueSto[10];
+    static QP::QEvtPtr blinkyQueueSto[10];
     static K_THREAD_STACK_DEFINE(blinkyStack, 1024);
     APP::AO_Blinky->start(
         1U,                         // QP prio. of the AO

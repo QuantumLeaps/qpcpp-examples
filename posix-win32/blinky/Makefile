@@ -1,33 +1,29 @@
 ##############################################################################
-# Product: Makefile for QP/C++ for Windows and POSIX *HOSTS*
-# Last updated for version 7.3.0
-# Last updated on  2023-07-26
+# Makefile for QP/C++ on the host (Windows/Linux/macOS)
 #
-#                    Q u a n t u m  L e a P s
-#                    ------------------------
-#                    Modern Embedded Software
+# Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 #
-# Copyright (C) 2005 Quantum Leaps, LLC, <state-machine.com>.
+#                   Q u a n t u m  L e a P s
+#                   ------------------------
+#                   Modern Embedded Software
 #
-# This program is open source software: you can redistribute it and/or
-# modify it under the terms of the GNU General Public License as published
-# by the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 #
-# Alternatively, this program may be distributed and modified under the
-# terms of Quantum Leaps commercial licenses, which expressly supersede
-# the GNU General Public License and are specifically designed for
-# licensees interested in retaining the proprietary status of their code.
+# The QP/C software is dual-licensed under the terms of the open-source GNU
+# General Public License (GPL) or under the terms of one of the closed-
+# source Quantum Leaps commercial licenses.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+# Redistributions in source code must retain this top-level comment block.
+# Plagiarizing this software to sidestep the license obligations is illegal.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program. If not, see <www.gnu.org/licenses/>.
+# NOTE:
+# The GPL (see <www.gnu.org/licenses/gpl-3.0>) does NOT permit the
+# incorporation of the QP/C software into proprietary programs. Please
+# contact Quantum Leaps for commercial licensing options, which expressly
+# supersede the GPL and are designed explicitly for licensees interested
+# in using QP/C in closed-source proprietary applications.
 #
-# Contact information:
+# Quantum Leaps contact information:
 # <www.state-machine.com/licensing>
 # <info@state-machine.com>
 ##############################################################################
@@ -44,54 +40,76 @@
 # To use this Makefile on Windows, you will need the GNU make utility, which
 # is included in the QTools collection for Windows, see:
 #    https://github.com/QuantumLeaps/qtools
-#
 
 #-----------------------------------------------------------------------------
-# project name:
+# project:
 #
 PROJECT := blinky
 
+VPATH := .
+
+INCLUDES := -I.
+
+C_SRCS :=
+
+CPP_SRCS := \
+	blinky.cpp
+
+DEFINES  :=
+
+LIB_DIRS :=
+LIBS     :=
+OUTPUT   := $(PROJECT)
+
 #-----------------------------------------------------------------------------
-# project directories:
+# target
+#
+TARGET   := host
+
+DEFINES +=
+
+BIN_DIR := build_$(TARGET)
+
+#-----------------------------------------------------------------------------
+# QP framework
 #
 
-# list of all source directories used by this project
-VPATH := . \
-
-# list of all include directories needed by this project
-INCLUDES := -I. \
-
-# location of the QP/C framework (if not provided in an env. variable)
+# location of the QP/C++ framework (if not provided in an env. variable)
 ifeq ($(QPCPP),)
 QPCPP := ../../..
 endif
 
-#-----------------------------------------------------------------------------
-# project files:
-#
+ifeq ($(OS),Windows_NT)
 
-# C source files...
-C_SRCS :=
+ifdef QV
+QP_PORT_DIR := $(QPCPP)/ports/win32-qv
+else
+QP_PORT_DIR := $(QPCPP)/ports/win32
+endif
+LIBS += -lws2_32
 
-# C++ source files...
-CPP_SRCS := \
-	blinky.cpp
+else
 
-LIB_DIRS :=
-LIBS     :=
+ifdef QV
+QP_PORT_DIR := $(QPCPP)/ports/posix-qv
+else
+QP_PORT_DIR := $(QPCPP)/ports/posix
+endif
+LIBS += -lpthread
 
-# defines...
-# QP_API_VERSION controls the QP API compatibility; 9999 means the latest API
-DEFINES   := -DQP_API_VERSION=9999
-
-ifeq (,$(CONF))
-	CONF := dbg
 endif
 
+VPATH += \
+	$(QP_PORT_DIR)
+
+INCLUDES += \
+	-I$(QPC)/include \
+	-I$(QP_PORT_DIR)
+
 #-----------------------------------------------------------------------------
-# add QP/C++ framework:
+# QP/C++ framework sources
 #
-CPP_SRCS += \
+QP_SRCS := \
 	qep_hsm.cpp \
 	qep_msm.cpp \
 	qf_act.cpp \
@@ -106,61 +124,44 @@ CPP_SRCS += \
 	qf_time.cpp \
 	qf_port.cpp
 
-# C++ QS source files
 QS_SRCS := \
 	qs.cpp \
 	qs_64bit.cpp \
 	qs_rx.cpp \
 	qs_fp.cpp \
-	qs_64bit.cpp \
 	qs_port.cpp
 
-ifeq ($(OS),Windows_NT)
+VPATH += \
+	$(QPCPP)/src/qf \
+	$(QP_PORT_DIR)
 
-# NOTE:
-# For Windows hosts, you can choose:
-# - the single-threaded QP/C++ port (win32-qv) or
-# - the multithreaded QP/C++ port (win32).
-#
-QP_PORT_DIR := $(QPCPP)/ports/win32-qv
-#QP_PORT_DIR := $(QPCPP)/ports/win32
-LIBS += -lws2_32
+INCLUDES += \
+	-I$(QPCPP)/include \
+	-I$(QP_PORT_DIR)
 
-else
+# add the QP sources to the build
+CPP_SRCS += $(QP_SRCS)
 
-# NOTE:
-# For POSIX hosts (Linux, MacOS), you can choose:
-# - the single-threaded QP/C++ port (posix-qv) or
-# - the multithreaded QP/C++ port (posix).
-#
-QP_PORT_DIR := $(QPCPP)/ports/posix-qv
-#QP_PORT_DIR := $(QPCPP)/ports/posix
-
-LIBS += -lpthread
-
+ifeq (spy, $(CONF))  # Spy configuration
+VPATH  += $(QPCPP)/src/qs
+CPP_SRCS += $(QS_SRCS)
 endif
-
-#============================================================================
-# Typically you should not need to change anything below this line
-
-VPATH    += $(QPCPP)/src/qf $(QP_PORT_DIR)
-INCLUDES += -I$(QPCPP)/include -I$(QP_PORT_DIR)
 
 #-----------------------------------------------------------------------------
 # GNU toolset:
-#
-# NOTE:
-# GNU toolset (MinGW) is included in the QTools collection for Windows, see:
-#     https://github.com/QuantumLeaps/qtools
-# It is assumed that $(QTOOLS)/bin directory is added to the PATH
+# NOTE:  GNU toolset (MinGW) is included in the QTools collection for Windows, see:
+#     https://www.state-machine.com/qtools
+# It is assumed that %QTOOLS%\bin directory is added to the PATH
 #
 CC    := gcc
 CPP   := g++
 #LINK  := gcc    # for C programs
 LINK  := g++   # for C++ programs
+COV   := gcov -f
 
 #-----------------------------------------------------------------------------
-# basic utilities (depends on the OS this Makefile runs on):
+# basic utilities (included in QTools for Windows), see:
+#     https://www.state-machine.com/qtools
 #
 ifeq ($(OS),Windows_NT)
 	MKDIR      := mkdir
@@ -176,6 +177,10 @@ else
 	TARGET_EXT :=
 endif
 
+
+##############################################################################
+# Typically you should not need to change anything below this line
+
 #-----------------------------------------------------------------------------
 # build configurations...
 
@@ -183,44 +188,47 @@ ifeq (rel, $(CONF)) # Release configuration ..................................
 
 BIN_DIR := build_rel
 # gcc options:
-CFLAGS  = -c -O3 -fno-pie -std=c11 -pedantic -Wall -Wextra -W \
-	$(INCLUDES) $(DEFINES) -DNDEBUG
+CFLAGS := -c -fno-pie -std=c11 -pedantic -Wall -Wextra -W \
+	-O3 $(INCLUDES) $(DEFINES) $(DEF) -DNDEBUG
 
-CPPFLAGS = -c -O3 -fno-pie -std=c++11 -pedantic -Wall -Wextra \
+CPPFLAGS := -c -fno-pie -std=c++11 -pedantic -Wall -Wextra \
 	-fno-rtti -fno-exceptions \
-	$(INCLUDES) $(DEFINES) -DNDEBUG
+	-O3 $(INCLUDES) $(DEFINES) $(DEF) -DNDEBUG
 
 else ifeq (spy, $(CONF))  # Spy configuration ................................
 
 BIN_DIR := build_spy
 
-CPP_SRCS += $(QS_SRCS)
-VPATH    += $(QPCPP)/src/qs
-
 # gcc options:
-CFLAGS  = -c -g -O -fno-pie -std=c11 -pedantic -Wall -Wextra -W \
-	$(INCLUDES) $(DEFINES) -DQ_SPY
+CFLAGS := -c -g -fno-pie -std=c11 -pedantic -Wall -Wextra -W \
+	-O $(INCLUDES) $(DEFINES) $(DEF) -DQ_SPY
 
-CPPFLAGS = -c -g -O -fno-pie -std=c++11 -pedantic -Wall -Wextra \
+CPPFLAGS := -c -g -fno-pie -std=c++11 -pedantic -Wall -Wextra \
 	-fno-rtti -fno-exceptions \
-	$(INCLUDES) $(DEFINES) -DQ_SPY
+	-O $(INCLUDES) $(DEFINES) -DQ_SPY
 
 else # default Debug configuration .........................................
 
 BIN_DIR := build
 
 # gcc options:
-CFLAGS  = -c -g -O -fno-pie -std=c11 -pedantic -Wall -Wextra -W \
-	$(INCLUDES) $(DEFINES)
+CFLAGS := -c -g -fno-pie -std=c11 -pedantic -Wall -Wextra -W \
+	-O $(INCLUDES) $(DEFINES) $(DEF)
 
-CPPFLAGS = -c -g -O -fno-pie -std=c++11 -pedantic -Wall -Wextra \
+CPPFLAGS := -c -g -fno-pie -std=c++11 -pedantic -Wall -Wextra \
 	-fno-rtti -fno-exceptions \
-	$(INCLUDES) $(DEFINES)
+	-O $(INCLUDES) $(DEFINES) $(DEF)
 
 endif  # .....................................................................
 
 ifndef GCC_OLD
 	LINKFLAGS := -no-pie
+endif
+
+ifdef GCOV
+	CFLAGS    += -fprofile-arcs -ftest-coverage
+	CPPFLAGS  += -fprofile-arcs -ftest-coverage
+	LINKFLAGS += -lgcov --coverage
 endif
 
 #-----------------------------------------------------------------------------
@@ -229,9 +237,9 @@ CPP_OBJS     := $(patsubst %.cpp,%.o, $(CPP_SRCS))
 
 TARGET_EXE   := $(BIN_DIR)/$(PROJECT)$(TARGET_EXT)
 C_OBJS_EXT   := $(addprefix $(BIN_DIR)/, $(C_OBJS))
-C_DEPS_EXT   := $(patsubst %.o,%.d, $(C_OBJS_EXT))
+C_DEPS_EXT   := $(patsubst %.o, %.d, $(C_OBJS_EXT))
 CPP_OBJS_EXT := $(addprefix $(BIN_DIR)/, $(CPP_OBJS))
-CPP_DEPS_EXT := $(patsubst %.o,%.d, $(CPP_OBJS_EXT))
+CPP_DEPS_EXT := $(patsubst %.o, %.d, $(CPP_OBJS_EXT))
 
 # create $(BIN_DIR) if it does not exist
 ifeq ("$(wildcard $(BIN_DIR))","")
@@ -246,9 +254,18 @@ endif
 
 all: $(TARGET_EXE)
 
+ifeq (spy, $(CONF))
+
 $(TARGET_EXE) : $(C_OBJS_EXT) $(CPP_OBJS_EXT)
 	$(CPP) $(CPPFLAGS) $(QPCPP)/src/qs/qstamp.cpp -o $(BIN_DIR)/qstamp.o
 	$(LINK) $(LINKFLAGS) $(LIB_DIRS) -o $@ $^ $(BIN_DIR)/qstamp.o $(LIBS)
+
+else
+
+$(TARGET_EXE) : $(C_OBJS_EXT) $(CPP_OBJS_EXT)
+	$(LINK) $(LINKFLAGS) $(LIB_DIRS) -o $@ $^ $(LIBS)
+
+endif
 
 $(BIN_DIR)/%.d : %.c
 	$(CC) -MM -MT $(@:.d=.o) $(CFLAGS) $< > $@
@@ -275,22 +292,23 @@ endif
 endif
 
 clean :
-	-$(RM) $(BIN_DIR)/*.o \
-	$(BIN_DIR)/*.d \
-	$(TARGET_EXE)
+	-$(RM) $(BIN_DIR)/*.*
 
 show :
 	@echo PROJECT      = $(PROJECT)
 	@echo TARGET_EXE   = $(TARGET_EXE)
+	@echo MAKECMDGOALS = $(MAKECMDGOALS)
 	@echo VPATH        = $(VPATH)
+	@echo INCLUDES     = $(INCLUDES)
+	@echo DEFINES      = $(DEFINES)
+	@echo DEF          = $(DEF)
 	@echo C_SRCS       = $(C_SRCS)
 	@echo CPP_SRCS     = $(CPP_SRCS)
 	@echo C_DEPS_EXT   = $(C_DEPS_EXT)
 	@echo C_OBJS_EXT   = $(C_OBJS_EXT)
-	@echo C_DEPS_EXT   = $(C_DEPS_EXT)
 	@echo CPP_DEPS_EXT = $(CPP_DEPS_EXT)
 	@echo CPP_OBJS_EXT = $(CPP_OBJS_EXT)
 	@echo LIB_DIRS     = $(LIB_DIRS)
 	@echo LIBS         = $(LIBS)
 	@echo DEFINES      = $(DEFINES)
-
+	@echo QTOOLS       = $(QTOOLS)

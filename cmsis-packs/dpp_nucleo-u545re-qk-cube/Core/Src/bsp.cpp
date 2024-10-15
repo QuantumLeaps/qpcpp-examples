@@ -1,6 +1,6 @@
 //============================================================================
 // Product: DPP example, NUCLEO-U545RE-Q board, QK kernel
-// Last updated for version 7.4.0
+// Last updated for version 8.0.0
 // Last updated on  2024-06-24
 //
 //                   Q u a n t u m  L e a P s
@@ -248,7 +248,7 @@ void start() {
 
     // instantiate and start AOs/threads...
 
-    static QP::QEvt const *philoQueueSto[APP::N_PHILO][10];
+    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10];
     for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
         APP::AO_Philo[n]->start(
 
@@ -261,7 +261,7 @@ void start() {
             nullptr, 0U);            // no stack storage
     }
 
-    static QP::QEvt const *tableQueueSto[APP::N_PHILO];
+    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
     APP::AO_Table->start(
         APP::N_PHILO + 7U,           // QP prio. of the AO
         tableQueueSto,               // event queue storage

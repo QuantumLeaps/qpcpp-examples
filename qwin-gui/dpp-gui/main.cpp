@@ -52,14 +52,14 @@ int main() {
                      sizeof(smlPoolSto), sizeof(smlPoolSto[0]));
 
     // start the active objects...
-    static QP::QEvt const *philoQueueSto[APP::N_PHILO][10*WIN_FUDGE_FACTOR];
+    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10*WIN_FUDGE_FACTOR];
     for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
         APP::AO_Philo[n]->start(n + 1U,
                            philoQueueSto[n], Q_DIM(philoQueueSto[n]),
                            nullptr, 0U);
     }
     // leave the priority level (N_PHILO + 1) free for the mutex in BSP
-    static QP::QEvt const *tableQueueSto[APP::N_PHILO*WIN_FUDGE_FACTOR];
+    static QP::QEvtPtr tableQueueSto[APP::N_PHILO*WIN_FUDGE_FACTOR];
     APP::AO_Table->start(APP::N_PHILO + 2U,
                     tableQueueSto, Q_DIM(tableQueueSto),
                     nullptr, 0U);

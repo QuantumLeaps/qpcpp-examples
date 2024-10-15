@@ -1,6 +1,6 @@
 //============================================================================
 // Product: DPP example (console)
-// Last updated for version 7.4.0
+// Last updated for version 8.0.0
 // Last updated on  2024-07-31
 //
 //                   Q u a n t u m  L e a P s
@@ -36,7 +36,7 @@ namespace BSP {
 
 constexpr std::uint32_t TICKS_PER_SEC {100U};
 
-void init(int argc, char** argv);
+void init();
 void start();
 void displayPaused(std::uint8_t const paused);
 void displayPhilStat(std::uint8_t const n, char const *stat);

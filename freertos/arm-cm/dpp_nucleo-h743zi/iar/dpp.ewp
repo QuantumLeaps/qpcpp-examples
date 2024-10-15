@@ -226,7 +226,6 @@
                 </option>
                 <option>
                     <name>CCDefines</name>
-                    <state>QP_CONFIG</state>
                     <state>STM32H743xx</state>
                     <state>USE_HAL_DRIVER</state>
                     <state>USE_STM32H7XX_NUCLEO_144</state>
@@ -1314,7 +1313,6 @@
                 <option>
                     <name>CCDefines</name>
                     <state>NDEBUG</state>
-                    <state>QP_CONFIG</state>
                     <state>STM32H743xx</state>
                     <state>USE_HAL_DRIVER</state>
                     <state>USE_STM32H7XX_NUCLEO_144</state>
@@ -2402,7 +2400,6 @@
                 <option>
                     <name>CCDefines</name>
                     <state>Q_SPY</state>
-                    <state>QP_CONFIG</state>
                     <state>STM32H743xx</state>
                     <state>USE_HAL_DRIVER</state>
                     <state>USE_STM32H7XX_NUCLEO_144</state>

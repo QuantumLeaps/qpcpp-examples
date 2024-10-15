@@ -1,7 +1,7 @@
 //============================================================================
 // Product: DPP example, NUCLEO-U545RE-Q board, QXK kernel
-// Last updated for version 7.4.0
-// Last updated on  2024-06-24
+// Last updated for version 8.0.0
+// Last updated on  2024-09-18
 //
 //                   Q u a n t u m  L e a P s
 //                   ------------------------
@@ -192,31 +192,45 @@ void QF_onContextSw(QP::QActive *prev, QP::QActive *next) {
 namespace BSP {
 
 static void STM32U545RE_MPU_setup(void) {
-    MPU->CTRL = 0U;  // disable the MPU
+    // Set Attr 0
+    ARM_MPU_SetMemAttr(0UL,
+        ARM_MPU_ATTR(     // Normal memory
+            // Outer Write-Through non-transient
+            ARM_MPU_ATTR_MEMORY_(1UL, 0UL, 1UL, 0UL),
+            // Inner Write-Through non-transient
+            ARM_MPU_ATTR_MEMORY_(1UL, 0UL, 1UL, 0UL))
+    );
 
     MPU->RNR = 0U; // region 0 (for ROM: read-only, can-execute)
-    MPU->RBAR = (0x08000000U & MPU_RBAR_BASE_Msk)  | (0x3U << MPU_RBAR_AP_Pos);
-    MPU->RLAR = (0x08080000U & MPU_RLAR_LIMIT_Msk) | MPU_RLAR_EN_Msk;
+    MPU->RBAR = ARM_MPU_RBAR(0x08000000U,
+        ARM_MPU_SH_NON,
+        ARM_MPU_AP_RO,
+        ARM_MPU_AP_PO,
+        ARM_MPU_EX);
+    MPU->RLAR = ARM_MPU_RLAR(0x0807FFFFU, 0U);
 
-    MPU->RNR = 1U; // region 1 (for RAM1: read-write, execute-never)
-    MPU->RBAR = (0x20000000U & MPU_RBAR_BASE_Msk)  | (0x1U << MPU_RBAR_AP_Pos)
-                | MPU_RBAR_XN_Msk;
-    MPU->RLAR = (0x20040000U & MPU_RLAR_LIMIT_Msk) | MPU_RLAR_EN_Msk;
+    MPU->RNR = 1U; // region 0 (for RAM1: read-write, execute-never)
+    MPU->RBAR = ARM_MPU_RBAR(0x20000000U,
+        ARM_MPU_SH_OUTER,
+        ARM_MPU_AP_RW,
+        ARM_MPU_AP_PO,
+        ARM_MPU_XN);
+    MPU->RLAR = ARM_MPU_RLAR(0x2003FFFFU, 0U);
 
-    MPU->RNR = 2U; // region 2 (for RAM2: read-write, execute-never)
-    MPU->RBAR = (0x28000000U & MPU_RBAR_BASE_Msk)  | (0x1U << MPU_RBAR_AP_Pos)
-                | MPU_RBAR_XN_Msk;
-    MPU->RLAR = (0x28004000U & MPU_RLAR_LIMIT_Msk) | MPU_RLAR_EN_Msk;
+    MPU->RNR = 2U; // region 0 (for RAM2: read-write, execute-never)
+    MPU->RBAR = ARM_MPU_RBAR(0x28000000U,
+        ARM_MPU_SH_OUTER,
+        ARM_MPU_AP_RW,
+        ARM_MPU_AP_PO,
+        ARM_MPU_XN);
+    MPU->RLAR = ARM_MPU_RLAR(0x28003FFFU, 0U);
 
-    MPU->RNR  = 7U; // region 7 (no access: for NULL pointer protection)
-    MPU->RBAR = (0x00000000U & MPU_RBAR_BASE_Msk)  | MPU_RBAR_XN_Msk;
-    MPU->RLAR = (0x00080000U & MPU_RLAR_LIMIT_Msk) | MPU_RLAR_EN_Msk;
+    // Enable MPU with all region definitions
     __DMB();
+    MPU->CTRL = MPU_CTRL_PRIVDEFENA_Msk | MPU_CTRL_HFNMIENA_Msk | MPU_CTRL_ENABLE_Msk;
 
-    MPU->CTRL = MPU_CTRL_ENABLE_Msk | MPU_CTRL_PRIVDEFENA_Msk;
-
+    // Enable MemManage Faults
     SCB->SHCSR |= SCB_SHCSR_MEMFAULTENA_Msk;
-
     __DSB();
     __ISB();
 }
@@ -297,7 +311,7 @@ void start() {
     QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
 
     // start AOs/threads...
-    static QP::QEvt const *xThread1QueueSto[5];
+    static QP::QEvtPtr xThread1QueueSto[5];
     static uint64_t xThread1StackSto[64];
     APP::TH_XThread1->start(
         1U,                          // QP priority of the thread
@@ -306,7 +320,7 @@ void start() {
         &xThread1StackSto[0],        // stack storage
         sizeof(xThread1StackSto));   // stack size [bytes]
 
-    static QP::QEvt const *philoQueueSto[APP::N_PHILO][APP::N_PHILO];
+    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][APP::N_PHILO];
     for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
         APP::AO_Philo[n]->start(
             n + 3U,                  // QF-prio/pthre. see NOTE1
@@ -315,7 +329,7 @@ void start() {
             nullptr, 0U);            // no stack storage
     }
 
-    static QP::QEvt const *xThread2QueueSto[5];
+    static QP::QEvtPtr xThread2QueueSto[5];
     static uint64_t xThread2StackSto[64];
     APP::TH_XThread2->start(
         APP::N_PHILO + 5U,           // QP priority of the thread
@@ -324,7 +338,7 @@ void start() {
         &xThread2StackSto[0],        // stack storage
         sizeof(xThread2StackSto));   // stack size [bytes]
 
-    static QP::QEvt const *tableQueueSto[APP::N_PHILO];
+    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
     APP::AO_Table->start(
         APP::N_PHILO + 7U,           // QP prio. of the AO
         tableQueueSto,               // event queue storage

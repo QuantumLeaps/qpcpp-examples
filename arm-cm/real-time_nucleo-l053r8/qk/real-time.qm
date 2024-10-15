@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<model version="5.3.0" links="0">
+<model version="7.0.0" links="0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm7.xsd">
  <framework name="qpcpp"/>
  <package name="Shared" stereotype="0x01" namespace="APP::">
   <attribute name="AppSignals" type="enum" visibility="0x04" properties="0x00">
@@ -61,8 +61,7 @@
    </operation>
    <statechart properties="0x02">
     <initial target="../1">
-     <action>Q_REQUIRE_ID(300, (QP::QEvt::verify_(e))
-             &amp;&amp; (e-&gt;sig == PERIODIC_SPEC_SIG));
+     <action>Q_REQUIRE_ID(300, e-&gt;sig == PERIODIC_SPEC_SIG);
 
 m_te.armX(Q_EVT_CAST(PeriodicSpecEvt)-&gt;ticks,
           Q_EVT_CAST(PeriodicSpecEvt)-&gt;ticks);
@@ -107,8 +106,7 @@ BSP::d6off();</action>
    </operation>
    <statechart properties="0x02">
     <initial target="../1">
-     <action>Q_REQUIRE_ID(300, QP::QEvt::verify_(e)
-             &amp;&amp; (e-&gt;sig == PERIODIC_SPEC_SIG));
+     <action>Q_REQUIRE_ID(300, e-&gt;sig == PERIODIC_SPEC_SIG);
 
 m_te.armX(Q_EVT_CAST(PeriodicSpecEvt)-&gt;ticks,
           Q_EVT_CAST(PeriodicSpecEvt)-&gt;ticks);

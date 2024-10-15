@@ -1,6 +1,6 @@
 //============================================================================
 // Product: BSP for DPP example (console)
-// Last updated for version 7.4.0
+// Last updated for version 8.0.0
 // Last updated on  2024-07-31
 //
 //                   Q u a n t u m  L e a P s
@@ -55,11 +55,11 @@ static std::uint32_t l_rnd; // random seed
 //============================================================================
 namespace BSP {
 
-void init(int argc, char** argv) {
+void init(void) {
     BSP::randomSeed(1234U);
 
     // initialize the QS software tracing
-    if (!QS_INIT(argc <= 1 ? nullptr : argv[1])) {
+    if (!QS_INIT(nullptr)) {
         Q_ERROR();
     }
 

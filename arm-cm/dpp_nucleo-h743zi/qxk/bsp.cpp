@@ -244,7 +244,7 @@ void start() {
     QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
 
     // start AOs/threads...
-    static QP::QEvt const *xThread1QueueSto[5];
+    static QP::QEvtPtr xThread1QueueSto[5];
     static uint64_t xThread1StackSto[64];
     APP::TH_XThread1->start(
         1U,                          // QP priority of the thread
@@ -253,7 +253,7 @@ void start() {
         &xThread1StackSto[0],        // stack storage
         sizeof(xThread1StackSto));   // stack size [bytes]
 
-    static QP::QEvt const *philoQueueSto[APP::N_PHILO][APP::N_PHILO];
+    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][APP::N_PHILO];
     for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
         APP::AO_Philo[n]->start(
             n + 3U,                  // QF-prio/pthre. see NOTE1
@@ -262,7 +262,7 @@ void start() {
             nullptr, 0U);            // no stack storage
     }
 
-    static QP::QEvt const *xThread2QueueSto[5];
+    static QP::QEvtPtr xThread2QueueSto[5];
     static uint64_t xThread2StackSto[64];
     APP::TH_XThread2->start(
         APP::N_PHILO + 5U,           // QP priority of the thread
@@ -271,7 +271,7 @@ void start() {
         &xThread2StackSto[0],        // stack storage
         sizeof(xThread2StackSto));   // stack size [bytes]
 
-    static QP::QEvt const *tableQueueSto[APP::N_PHILO];
+    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
     APP::AO_Table->start(
         APP::N_PHILO + 7U,           // QP prio. of the AO
         tableQueueSto,               // event queue storage

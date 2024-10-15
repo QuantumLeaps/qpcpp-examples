@@ -1,6 +1,6 @@
 //============================================================================
 // Purpose: Fixture for QUTEST
-// Last Updated for Version: 7.4.0
+// Last Updated for Version: 8.0.0
 // Date of the Last Update:  2024-09-04
 //
 //                   Q u a n t u m  L e a P s
@@ -85,7 +85,7 @@ void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
             break;
         }
         case 1U: {
-            bool ret = APP::QHsmTst_isIn(param1);
+            bool ret = APP::TstSM_isIn(param1);
             QS_BEGIN_ID(APP::CMD, 0U) // app-specific record
                 QS_U8(0U, ret ? 1 : 0);
                 QS_U8(0U, (uint8_t)param1);
@@ -121,17 +121,16 @@ void QS::onTestPost(void const *sender, QActive *recipient,
 //============================================================================
 using namespace APP;
 
-int main(int argc, char *argv[]) {
-    static QF_MPOOL_EL(QP::QEvt) smlPoolSto[10]; // small pool
-
+int main() {
     QP::QF::init(); // initialize the framework and the underlying RT kernel
 
     // initialize the QS software tracing
-    if (!QS_INIT(argc > 1 ? argv[1] : nullptr)) {
+    if (!QS_INIT(nullptr)) {
         Q_ERROR();
     }
 
     // initialize event pools...
+    static QF_MPOOL_EL(QP::QEvt) smlPoolSto[10]; // small pool
     QP::QF::poolInit(smlPoolSto, sizeof(smlPoolSto), sizeof(smlPoolSto[0]));
 
     // dictionaries...

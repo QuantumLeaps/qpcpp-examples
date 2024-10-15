@@ -46,8 +46,8 @@ int main() {
     static OS_STK tableStackSto[256];
     static OS_STK testStackSto[128];
 
-    static QP::QEvt const *tableQueueSto[N_PHILO];
-    static QP::QEvt const *philoQueueSto[N_PHILO][N_PHILO];
+    static QP::QEvtPtr tableQueueSto[N_PHILO];
+    static QP::QEvtPtr philoQueueSto[N_PHILO][N_PHILO];
 
     static QP::QSubscrList subscrSto[DPP::MAX_PUB_SIG];
     static QF_MPOOL_EL(DPP::TableEvt) smlPoolSto[2*N_PHILO]; // small pool

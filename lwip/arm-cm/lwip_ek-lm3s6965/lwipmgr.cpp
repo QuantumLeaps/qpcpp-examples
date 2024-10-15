@@ -1,6 +1,6 @@
 //============================================================================
 // Product: lwIP-Manager Active Object
-// Last Updated for QP Version: 7.4.0
+// Last Updated for QP Version: 8.0.0
 // Date of the Last Update:  2024-06-03
 //
 //                    Q u a n t u m  L e a P s
@@ -324,7 +324,7 @@ static char const *cgi_display(int index, int numParams,
         if (strstr(param[i], "text") != (char *)0) { // param text found?
             TextEvt *te = Q_NEW(TextEvt, DISPLAY_CGI_SIG);
             strncpy(te->text, value[i], Q_DIM(te->text));
-            QF::PUBLISH((QEvt *)te, AO_LwIPMgr);
+            QF::PUBLISH(te, AO_LwIPMgr);
             return "/thank_you.htm";
         }
     }
