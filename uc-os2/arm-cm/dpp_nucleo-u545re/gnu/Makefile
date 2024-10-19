@@ -1,5 +1,5 @@
 ##############################################################################
-# Product: Makefile for QP/C++ on NUCLEO-H743ZI, FreeRTOS-Kernel, GNU-ARM
+# Makefile for QP/C++ on NUCLEO-U545RE-Q, uC-OS2 kernel, GNU-ARM
 #
 # Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 #
@@ -9,9 +9,9 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 #
-# The QP/C software is dual-licensed under the terms of the open-source GNU
-# General Public License (GPL) or under the terms of one of the closed-
-# source Quantum Leaps commercial licenses.
+# The QP/C++ software is dual-licensed under the terms of the open-source
+# GNU General Public License (GPL) or under the terms of one of the
+# closed-source Quantum Leaps commercial licenses.
 #
 # Redistributions in source code must retain this top-level comment block.
 # Plagiarizing this software to sidestep the license obligations is illegal.
@@ -57,13 +57,8 @@ ifeq ($(QPCPP),)
 QPCPP := ../../../../..
 endif
 
-# location of the FREERTOS (if not provided in an environment var.)
-ifeq ($(FREERTOS),)
-FREERTOS := $(QPCPP)/3rd_party/FreeRTOS-Kernel
-endif
-
 # QP port used in this project
-QP_PORT_DIR := $(QPCPP)/ports/freertos
+QP_PORT_DIR := $(QPCPP)/ports/uc-os2
 
 # list of all source directories used by this project
 VPATH = \
@@ -71,45 +66,34 @@ VPATH = \
 	$(QPCPP)/src/qf \
 	$(QPCPP)/src/qs \
 	$(QP_PORT_DIR) \
-	$(FREERTOS) \
-	$(FREERTOS)/portable/GCC/ARM_CM7/r0p1 \
-	$(QPCPP)/3rd_party/STM32CubeH7/nucleo-h743zi/gnu \
-	$(QPCPP)/3rd_party/STM32CubeH7/Drivers/BSP/STM32H7xx_Nucleo_144 \
-	$(QPCPP)/3rd_party/STM32CubeH7/Drivers/STM32H7xx_HAL_Driver/Src \
-	$(QPCPP)/3rd_party/STM32CubeH7/Drivers/CMSIS/Device/ST/STM32H7xx/Source/Templates
+	$(QPCPP)/3rd_party/uC-OS2/Source \
+	$(QPCPP)/3rd_party/uC-OS2/Ports/ARM-Cortex-M/ARMv7-M \
+	$(QPCPP)/3rd_party/uC-OS2/Ports/ARM-Cortex-M/ARMv7-M/GNU \
+	$(QPCPP)/3rd_party/nucleo-u545re \
+	$(QPCPP)/3rd_party/nucleo-u545re/gnu
 
 # list of all include directories needed by this project
 INCLUDES  = \
 	-I.. \
 	-I$(QPCPP)/include \
 	-I$(QP_PORT_DIR) \
-	-I$(FREERTOS)/include \
-	-I$(FREERTOS)/portable/GCC/ARM_CM4F \
+	-I$(QPCPP)/3rd_party/uC-OS2/Source \
+	-I$(QPCPP)/3rd_party/uC-OS2/Ports/ARM-Cortex-M/ARMv7-M/GNU \
 	-I$(QPCPP)/3rd_party/CMSIS/Include \
-	-I$(QPCPP)/3rd_party/STM32CubeH7/Drivers/CMSIS/Device/ST/STM32H7xx/Include \
-	-I$(QPCPP)/3rd_party/STM32CubeH7/Drivers/BSP/STM32H7xx_Nucleo_144 \
-	-I$(QPCPP)/3rd_party/STM32CubeH7/Drivers/STM32H7xx_HAL_Driver/Inc
+	-I$(QPCPP)/3rd_party/nucleo-u545re
 
 #-----------------------------------------------------------------------------
 # files
 #
 
 # assembler source files
-ASM_SRCS :=
+ASM_SRCS := \
+	os_cpu_a.s
 
 # C source files
 C_SRCS := \
-	startup_stm32h743xx.c \
-	system_stm32h7xx.c \
-	stm32h7xx_nucleo_144.c \
-	stm32h7xx_hal.c \
-	stm32h7xx_hal_cortex.c \
-	stm32h7xx_hal_gpio.c \
-	stm32h7xx_hal_pwr_ex.c \
-	stm32h7xx_hal_rcc.c \
-	stm32h7xx_hal_rcc_ex.c \
-	stm32h7xx_hal_msp.c \
-	stm32h7xx_hal_uart.c
+	system_stm32u5xx.c \
+	startup_stm32u545retxq.c
 
 # C++ source files
 CPP_SRCS := \
@@ -136,10 +120,18 @@ QP_SRCS := \
 	qf_port.cpp
 
 RTOS_SRCS := \
-	tasks.c \
-	queue.c \
-	list.c \
-	port.c
+	os_core.c \
+	os_flag.c \
+	os_mbox.c \
+	os_mem.c \
+	os_mutex.c \
+	os_q.c \
+	os_sem.c \
+	os_task.c \
+	os_time.c \
+	os_tmr.c \
+	os_dbg.c \
+	os_cpu_c.c
 
 QS_SRCS := \
 	qs.cpp \
@@ -150,9 +142,7 @@ LIB_DIRS  :=
 LIBS      :=
 
 # defines
-DEFINES   := -DSTM32H743xx \
-	-DUSE_HAL_DRIVER \
-	-DUSE_STM32H7XX_NUCLEO_144 \
+DEFINES   := -DSTM32U545xx \
 	$(DEF)
 
 # ARM CPU, ARCH, FPU, and Float-ABI types...
@@ -160,9 +150,9 @@ DEFINES   := -DSTM32H743xx \
 # ARM_FPU:   [ | vfp]
 # FLOAT_ABI: [ | soft | softfp | hard]
 #
-ARM_CPU   := -mcpu=cortex-m7
-ARM_FPU   := -mfpu=fpv5-d16
-FLOAT_ABI := -mfloat-abi=softfp
+ARM_CPU   := -mcpu=cortex-m33
+ARM_FPU   := -mfpu=fpv5-sp-d16
+FLOAT_ABI := -mfloat-abi=hard -mthumb
 
 #-----------------------------------------------------------------------------
 # GNU-ARM toolset (NOTE: You need to adjust to your machine)
@@ -187,8 +177,8 @@ BIN   := $(GNU_ARM)/bin/arm-none-eabi-objcopy
 ##############################################################################
 # Typically, you should not need to change anything below this line
 
-# basic utilities (included in Qtools for Windows), see:
-#    http://sourceforge.net/projects/qpc/files/Qtools
+# basic utilities (included in QTools for Windows), see:
+#     https://www.state-machine.com/qtools
 
 MKDIR := mkdir
 RM    := rm
@@ -199,8 +189,8 @@ RM    := rm
 
 # combine all the sources...
 CPP_SRCS += $(QP_SRCS)
-ASM_SRCS += $(QP_ASMS)
-C_SRCS   += $(RTOS_SRCS)
+C_SRCS += $(RTOS_SRCS)
+ASM_SRCS += $(RTOS_ASMS)
 
 ifeq (rel, $(CONF)) # Release configuration ..................................
 
@@ -210,11 +200,11 @@ ASFLAGS = $(ARM_CPU) $(ARM_FPU) $(ASM_CPU) $(ASM_FPU)
 
 CFLAGS = -c $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb -Wall \
 	-ffunction-sections -fdata-sections \
-	-O1 $(INCLUDES) $(DEFINES) -DNDEBUG
+	-O2 $(INCLUDES) $(DEFINES) -DNDEBUG
 
 CPPFLAGS = -c $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb -Wall \
 	-ffunction-sections -fdata-sections -fno-rtti -fno-exceptions \
-	-O1 $(INCLUDES) $(DEFINES) -DNDEBUG
+	-O2 $(INCLUDES) $(DEFINES) -DNDEBUG
 
 else ifeq (spy, $(CONF))  # Spy configuration ................................
 
@@ -275,8 +265,14 @@ endif
 # rules
 #
 
-all: $(TARGET_BIN)
-#all: $(TARGET_ELF)
+.PHONY : run norun flash
+
+ifeq ($(MAKECMDGOALS),norun)
+all : $(TARGET_BIN)
+norun : all
+else
+all : $(TARGET_BIN) run
+endif
 
 $(TARGET_BIN): $(TARGET_ELF)
 	$(BIN) -O binary $< $@
@@ -300,6 +296,8 @@ $(BIN_DIR)/%.o : %.c
 $(BIN_DIR)/%.o : %.cpp
 	$(CPP) $(CPPFLAGS) $< -o $@
 
+.PHONY : clean show
+
 # include dependency files only if our goal depends on their existence
 ifneq ($(MAKECMDGOALS),clean)
   ifneq ($(MAKECMDGOALS),show)
@@ -308,7 +306,6 @@ ifneq ($(MAKECMDGOALS),clean)
 endif
 
 
-.PHONY : clean
 clean:
 	-$(RM) $(BIN_DIR)/*.o \
 	$(BIN_DIR)/*.d \

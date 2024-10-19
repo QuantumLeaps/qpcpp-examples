@@ -1,5 +1,5 @@
 ##############################################################################
-# Product: Makefile for QP/C++ on EK-TM4C123GXL, uC/OS-II kernel, GNU-ARM
+# Makefile for QP/C++ on EK-TM4C123GXL, uC/OS-II kernel, GNU-ARM
 #
 # Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 #
@@ -9,9 +9,9 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 #
-# The QP/C software is dual-licensed under the terms of the open-source GNU
-# General Public License (GPL) or under the terms of one of the closed-
-# source Quantum Leaps commercial licenses.
+# The QP/C software is dual-licensed under the terms of the open-source
+# GNU General Public License (GPL) or under the terms of one of the
+# closed-source Quantum Leaps commercial licenses.
 #
 # Redistributions in source code must retain this top-level comment block.
 # Plagiarizing this software to sidestep the license obligations is illegal.
@@ -40,9 +40,8 @@
 #
 # NOTE:
 # To use this Makefile on Windows, you will need the GNU make utility, which
-# is included in the Qtools collection for Windows, see:
-#    https://sourceforge.net/projects/qpc/files/QTools/
-#
+# is included in the QTools collection for Windows, see:
+#    https://github.com/QuantumLeaps/qtools
 
 #-----------------------------------------------------------------------------
 # project name
@@ -178,8 +177,8 @@ BIN   := $(GNU_ARM)/bin/arm-none-eabi-objcopy
 ##############################################################################
 # Typically, you should not need to change anything below this line
 
-# basic utilities (included in Qtools for Windows), see:
-#    http://sourceforge.net/projects/qpc/files/Qtools
+# basic utilities (included in QTools for Windows), see:
+#     https://www.state-machine.com/qtools
 
 MKDIR := mkdir
 RM    := rm

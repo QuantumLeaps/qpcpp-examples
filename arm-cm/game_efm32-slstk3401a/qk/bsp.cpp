@@ -235,7 +235,8 @@ void init() {
 
     BSP::randomSeed(1234U);
 
-    /* Initialize the DISPLAY driver. */
+    // Initialize the DISPLAY driver
+    //Q_ALLEGE(Display_init()); // deprecated
     if (!Display_init()) {
         Q_ERROR();
     }

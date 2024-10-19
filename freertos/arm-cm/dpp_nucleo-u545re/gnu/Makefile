@@ -1,5 +1,5 @@
 ##############################################################################
-# Product: Makefile for QP/C++ on NUCLEO-H743ZI, FreeRTOS-Kernel, GNU-ARM
+# Product: Makefile for QP/C on NUCLEO-U545RE, FreeRTOS-Kernel, GNU-ARM
 #
 # Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 #
@@ -72,11 +72,9 @@ VPATH = \
 	$(QPCPP)/src/qs \
 	$(QP_PORT_DIR) \
 	$(FREERTOS) \
-	$(FREERTOS)/portable/GCC/ARM_CM7/r0p1 \
-	$(QPCPP)/3rd_party/STM32CubeH7/nucleo-h743zi/gnu \
-	$(QPCPP)/3rd_party/STM32CubeH7/Drivers/BSP/STM32H7xx_Nucleo_144 \
-	$(QPCPP)/3rd_party/STM32CubeH7/Drivers/STM32H7xx_HAL_Driver/Src \
-	$(QPCPP)/3rd_party/STM32CubeH7/Drivers/CMSIS/Device/ST/STM32H7xx/Source/Templates
+	$(FREERTOS)/portable/GCC/ARM_CM33_NTZ/non_secure \
+	$(QPCPP)/3rd_party/nucleo-u545re \
+	$(QPCPP)/3rd_party/nucleo-u545re/gnu
 
 # list of all include directories needed by this project
 INCLUDES  = \
@@ -84,11 +82,9 @@ INCLUDES  = \
 	-I$(QPCPP)/include \
 	-I$(QP_PORT_DIR) \
 	-I$(FREERTOS)/include \
-	-I$(FREERTOS)/portable/GCC/ARM_CM4F \
+	-I$(FREERTOS)/portable/GCC/ARM_CM33_NTZ/non_secure \
 	-I$(QPCPP)/3rd_party/CMSIS/Include \
-	-I$(QPCPP)/3rd_party/STM32CubeH7/Drivers/CMSIS/Device/ST/STM32H7xx/Include \
-	-I$(QPCPP)/3rd_party/STM32CubeH7/Drivers/BSP/STM32H7xx_Nucleo_144 \
-	-I$(QPCPP)/3rd_party/STM32CubeH7/Drivers/STM32H7xx_HAL_Driver/Inc
+	-I$(QPCPP)/3rd_party/nucleo-u545re
 
 #-----------------------------------------------------------------------------
 # files
@@ -99,17 +95,8 @@ ASM_SRCS :=
 
 # C source files
 C_SRCS := \
-	startup_stm32h743xx.c \
-	system_stm32h7xx.c \
-	stm32h7xx_nucleo_144.c \
-	stm32h7xx_hal.c \
-	stm32h7xx_hal_cortex.c \
-	stm32h7xx_hal_gpio.c \
-	stm32h7xx_hal_pwr_ex.c \
-	stm32h7xx_hal_rcc.c \
-	stm32h7xx_hal_rcc_ex.c \
-	stm32h7xx_hal_msp.c \
-	stm32h7xx_hal_uart.c
+	system_stm32u5xx.c \
+	startup_stm32u545retxq.c
 
 # C++ source files
 CPP_SRCS := \
@@ -139,7 +126,8 @@ RTOS_SRCS := \
 	tasks.c \
 	queue.c \
 	list.c \
-	port.c
+	port.c \
+	portasm.c
 
 QS_SRCS := \
 	qs.cpp \
@@ -150,9 +138,7 @@ LIB_DIRS  :=
 LIBS      :=
 
 # defines
-DEFINES   := -DSTM32H743xx \
-	-DUSE_HAL_DRIVER \
-	-DUSE_STM32H7XX_NUCLEO_144 \
+DEFINES   := -DSTM32U545xx \
 	$(DEF)
 
 # ARM CPU, ARCH, FPU, and Float-ABI types...
@@ -160,9 +146,9 @@ DEFINES   := -DSTM32H743xx \
 # ARM_FPU:   [ | vfp]
 # FLOAT_ABI: [ | soft | softfp | hard]
 #
-ARM_CPU   := -mcpu=cortex-m7
-ARM_FPU   := -mfpu=fpv5-d16
-FLOAT_ABI := -mfloat-abi=softfp
+ARM_CPU   := -mcpu=cortex-m33
+ARM_FPU   := -mfpu=fpv5-sp-d16
+FLOAT_ABI := -mfloat-abi=hard
 
 #-----------------------------------------------------------------------------
 # GNU-ARM toolset (NOTE: You need to adjust to your machine)
@@ -183,23 +169,21 @@ AS    := $(GNU_ARM)/bin/arm-none-eabi-as
 LINK  := $(GNU_ARM)/bin/arm-none-eabi-g++
 BIN   := $(GNU_ARM)/bin/arm-none-eabi-objcopy
 
-
 ##############################################################################
-# Typically, you should not need to change anything below this line
+# Typically you should not need to change anything below this line
 
-# basic utilities (included in Qtools for Windows), see:
-#    http://sourceforge.net/projects/qpc/files/Qtools
+# basic utilities (included in QTools for Windows), see:
+#     https://www.state-machine.com/qtools
 
 MKDIR := mkdir
 RM    := rm
 
 #-----------------------------------------------------------------------------
-# build options for various configurations
+# build options for various configurations for ARM Cortex-M
 #
 
 # combine all the sources...
 CPP_SRCS += $(QP_SRCS)
-ASM_SRCS += $(QP_ASMS)
 C_SRCS   += $(RTOS_SRCS)
 
 ifeq (rel, $(CONF)) # Release configuration ..................................
@@ -252,7 +236,6 @@ endif # ......................................................................
 LINKFLAGS = -T$(LD_SCRIPT) $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb \
 	-specs=nosys.specs -specs=nano.specs \
 	-Wl,-Map,$(BIN_DIR)/$(OUTPUT).map,--cref,--gc-sections $(LIB_DIRS)
-
 
 ASM_OBJS     := $(patsubst %.s,%.o,  $(notdir $(ASM_SRCS)))
 C_OBJS       := $(patsubst %.c,%.o,  $(notdir $(C_SRCS)))
