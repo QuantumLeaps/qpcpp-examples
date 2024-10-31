@@ -10,7 +10,7 @@
       <TargetName>dbg</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>6210000::V6.21::ARMCLANG</pCCUsed>
+      <pCCUsed>6220000::V6.22::ARMCLANG</pCCUsed>
       <uAC6>1</uAC6>
       <TargetOption>
         <TargetCommonOption>
@@ -276,8 +276,8 @@
               </OCR_RVCT3>
               <OCR_RVCT4>
                 <Type>1</Type>
-                <StartAddress>0x0</StartAddress>
-                <Size>0x0</Size>
+                <StartAddress>0x8000000</StartAddress>
+                <Size>0x8000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
                 <Type>1</Type>
@@ -301,8 +301,8 @@
               </OCR_RVCT8>
               <OCR_RVCT9>
                 <Type>0</Type>
-                <StartAddress>0x0</StartAddress>
-                <Size>0x0</Size>
+                <StartAddress>0x20000000</StartAddress>
+                <Size>0x3000</Size>
               </OCR_RVCT9>
               <OCR_RVCT10>
                 <Type>0</Type>
@@ -431,7 +431,7 @@
       <TargetName>spy</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>6210000::V6.21::ARMCLANG</pCCUsed>
+      <pCCUsed>6220000::V6.22::ARMCLANG</pCCUsed>
       <uAC6>1</uAC6>
       <TargetOption>
         <TargetCommonOption>
@@ -697,8 +697,8 @@
               </OCR_RVCT3>
               <OCR_RVCT4>
                 <Type>1</Type>
-                <StartAddress>0x0</StartAddress>
-                <Size>0x0</Size>
+                <StartAddress>0x8000000</StartAddress>
+                <Size>0x8000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
                 <Type>1</Type>
@@ -722,8 +722,8 @@
               </OCR_RVCT8>
               <OCR_RVCT9>
                 <Type>0</Type>
-                <StartAddress>0x0</StartAddress>
-                <Size>0x0</Size>
+                <StartAddress>0x20000000</StartAddress>
+                <Size>0x3000</Size>
               </OCR_RVCT9>
               <OCR_RVCT10>
                 <Type>0</Type>
@@ -853,8 +853,8 @@
   <RTE>
     <apis/>
     <components>
-      <component Cclass="CMSIS" Cgroup="CORE" Cvendor="ARM" Cversion="5.6.0" condition="ARMv6_7_8-M Device">
-        <package name="CMSIS" schemaVersion="1.7.7" url="http://www.keil.com/pack/" vendor="ARM" version="5.9.0"/>
+      <component Cclass="CMSIS" Cgroup="CORE" Cvendor="ARM" Cversion="6.1.0" condition="ARMv6_7_8-M Device">
+        <package name="CMSIS" schemaVersion="1.7.36" url="https://www.keil.com/pack/" vendor="ARM" version="6.1.0"/>
         <targetInfos>
           <targetInfo name="dbg"/>
           <targetInfo name="spy"/>
@@ -867,31 +867,31 @@
           <targetInfo name="spy"/>
         </targetInfos>
       </component>
-      <component Cbundle="qpcpp" Cclass="RTEF" Cgroup="Event Processor" Cvariant="qep" Cvendor="QuantumLeaps" Cversion="7.3.4">
-        <package name="qpcpp" schemaVersion="1.7.7" url="https://raw.githubusercontent.com/QuantumLeaps/cmsis-packs/main/" vendor="QuantumLeaps" version="7.3.4"/>
+      <component Cbundle="qpcpp" Cclass="RTEF" Cgroup="Event Processor" Cvariant="qep" Cvendor="QuantumLeaps" Cversion="8.0.0">
+        <package name="qpcpp" schemaVersion="1.7.7" url="https://raw.githubusercontent.com/QuantumLeaps/cmsis-packs/main/" vendor="QuantumLeaps" version="8.0.0"/>
         <targetInfos>
           <targetInfo name="dbg"/>
           <targetInfo name="spy"/>
         </targetInfos>
       </component>
-      <component Cbundle="qpcpp" Cclass="RTEF" Cgroup="Framework" Cvariant="qf" Cvendor="QuantumLeaps" Cversion="7.3.4" condition="Comp_qep">
-        <package name="qpcpp" schemaVersion="1.7.7" url="https://raw.githubusercontent.com/QuantumLeaps/cmsis-packs/main/" vendor="QuantumLeaps" version="7.3.4"/>
+      <component Cbundle="qpcpp" Cclass="RTEF" Cgroup="Framework" Cvariant="qf" Cvendor="QuantumLeaps" Cversion="8.0.0" condition="Comp_qep">
+        <package name="qpcpp" schemaVersion="1.7.7" url="https://raw.githubusercontent.com/QuantumLeaps/cmsis-packs/main/" vendor="QuantumLeaps" version="8.0.0"/>
         <targetInfos>
           <targetInfo name="dbg"/>
           <targetInfo name="spy"/>
         </targetInfos>
       </component>
-      <component Cbundle="qpcpp" Cclass="RTEF" Cgroup="Real-Time Kernel" Cvariant="qk" Cvendor="QuantumLeaps" Cversion="7.3.4" condition="Comp_qf">
-        <package name="qpcpp" schemaVersion="1.7.7" url="https://raw.githubusercontent.com/QuantumLeaps/cmsis-packs/main/" vendor="QuantumLeaps" version="7.3.4"/>
+      <component Cbundle="qpcpp" Cclass="RTEF" Cgroup="Real-Time Kernel" Cvariant="qk" Cvendor="QuantumLeaps" Cversion="8.0.0" condition="Comp_qf">
+        <package name="qpcpp" schemaVersion="1.7.7" url="https://raw.githubusercontent.com/QuantumLeaps/cmsis-packs/main/" vendor="QuantumLeaps" version="8.0.0"/>
         <targetInfos>
           <targetInfo name="dbg"/>
           <targetInfo name="spy"/>
         </targetInfos>
       </component>
-      <component Cbundle="qpcpp" Cclass="RTEF" Cgroup="Software tracing" Cvariant="qs" Cvendor="QuantumLeaps" Cversion="7.3.4" condition="Comp_qep">
-        <package name="qpcpp" schemaVersion="1.7.7" url="https://raw.githubusercontent.com/QuantumLeaps/cmsis-packs/main/" vendor="QuantumLeaps" version="7.3.4"/>
+      <component Cbundle="qpcpp" Cclass="RTEF" Cgroup="Software tracing" Cvariant="qs" Cvendor="QuantumLeaps" Cversion="8.0.0" condition="Comp_qep">
+        <package name="qpcpp" schemaVersion="1.7.7" url="https://raw.githubusercontent.com/QuantumLeaps/cmsis-packs/main/" vendor="QuantumLeaps" version="8.0.0"/>
         <targetInfos>
-          <targetInfo excluded="1" name="dbg"/>
+          <targetInfo name="dbg"/>
           <targetInfo name="spy"/>
         </targetInfos>
       </component>
@@ -917,8 +917,8 @@
       </file>
       <file attr="config" category="header" condition="CoreM" name="ports\arm-cm\qk\config\qp_config.hpp" version="7.3.4">
         <instance index="0">RTE\RTEF\qp_config.hpp</instance>
-        <component Cbundle="qpcpp" Cclass="RTEF" Cgroup="Real-Time Kernel" Cvariant="qk" Cvendor="QuantumLeaps" Cversion="7.3.4" condition="Comp_qf" isDefaultVariant="1"/>
-        <package name="qpcpp" schemaVersion="1.7.7" url="https://raw.githubusercontent.com/QuantumLeaps/cmsis-packs/main/" vendor="QuantumLeaps" version="7.3.4"/>
+        <component Cbundle="qpcpp" Cclass="RTEF" Cgroup="Real-Time Kernel" Cvariant="qk" Cvendor="QuantumLeaps" Cversion="8.0.0" condition="Comp_qf" isDefaultVariant="1"/>
+        <package name="qpcpp" schemaVersion="1.7.7" url="https://raw.githubusercontent.com/QuantumLeaps/cmsis-packs/main/" vendor="QuantumLeaps" version="8.0.0"/>
         <targetInfos>
           <targetInfo name="dbg"/>
           <targetInfo name="spy"/>

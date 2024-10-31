@@ -257,8 +257,14 @@ endif
 # rules
 #
 
-all: $(TARGET_BIN)
-#all: $(TARGET_ELF)
+.PHONY : run norun flash
+
+ifeq ($(MAKECMDGOALS),norun)
+all : $(TARGET_BIN)
+norun : all
+else
+all : $(TARGET_BIN) run
+endif
 
 $(TARGET_BIN): $(TARGET_ELF)
 	$(BIN) -O binary $< $@
@@ -282,6 +288,8 @@ $(BIN_DIR)/%.o : %.c
 $(BIN_DIR)/%.o : %.cpp
 	$(CPP) $(CPPFLAGS) $< -o $@
 
+.PHONY : clean show
+
 # include dependency files only if our goal depends on their existence
 ifneq ($(MAKECMDGOALS),clean)
   ifneq ($(MAKECMDGOALS),show)
@@ -290,7 +298,6 @@ ifneq ($(MAKECMDGOALS),clean)
 endif
 
 
-.PHONY : clean
 clean:
 	-$(RM) $(BIN_DIR)/*.o \
 	$(BIN_DIR)/*.d \

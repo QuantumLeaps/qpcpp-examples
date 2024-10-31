@@ -22,7 +22,7 @@
 #define  __RTE_COMPONENTS_H__
 
 /* Defines ------------------------------------------------------------------*/
-/* QuantumLeaps.qpcpp.7.3.4 */
+/* QuantumLeaps.qpcpp.8.0.0 */
 #define RTE_RTEF_QPCPP_QEP /* QP/C++ QEP */
 #define RTE_RTEF_QPCPP_QF /* QP/C++ QF */
 #define RTE_RTEF_QPCPP_QS /* QP/C++ QS */

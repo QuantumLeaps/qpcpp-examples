@@ -83,7 +83,7 @@ enum AppRecords { // application-specific trace records
 // Error handler
 extern "C" {
 
-Q_NORETURN Q_onError(char const * const module, int const id) {
+Q_NORETURN Q_onError(char const * const module, int_t const id) {
     // NOTE: this implementation of the error handler is intended only
     // for debugging and MUST be changed for deployment of the application
     // (assuming that you ship your production code with assertions enabled).
@@ -397,7 +397,7 @@ std::uint32_t random() { // a very cheap pseudo-random-number generator
     l_rndSeed = rnd; // set for the next time
     xTaskResumeAll(); // unlock the FreeRTOS scheduler
 
-    return (rnd >> 8);
+    return (rnd >> 8U);
 }
 //............................................................................
 void ledOn() {
@@ -415,7 +415,6 @@ void terminate(int16_t result) {
 } // namespace BSP
 
 //============================================================================
-
 namespace QP {
 
 // QF callbacks --------------------------------------------------------------
@@ -444,7 +443,8 @@ void QF::onStartup() {
 void QF::onCleanup() {
 }
 
-// QS callbacks --------------------------------------------------------------
+//============================================================================
+// QS callbacks...
 #ifdef Q_SPY
 namespace QS {
 
@@ -652,4 +652,3 @@ void onCommand(std::uint8_t cmdId, std::uint32_t param1,
 // of the LED is proportional to the frequency of invocations of the idle loop.
 // Please note that the LED is toggled with interrupts locked, so no interrupt
 // execution time contributes to the brightness of the User LED.
-
