@@ -1,39 +1,31 @@
 //============================================================================
-//! Last updated for version 7.3.0
-//! Last updated on  2023-07-19
-//!
-//!                    Q u a n t u m  L e a P s
-//!                    ------------------------
-//!                    Modern Embedded Software
-//!
-//! Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
-//!
-//! This program is open source software: you can redistribute it and/or
-//! modify it under the terms of the GNU General Public License as published
-//! by the Free Software Foundation, either version 3 of the License, or
-//! (at your option) any later version.
-//!
-//! Alternatively, this program may be distributed and modified under the
-//! terms of Quantum Leaps commercial licenses, which expressly supersede
-//! the GNU General Public License and are specifically designed for
-//! licensees interested in retaining the proprietary status of their code.
-//!
-//! This program is distributed in the hope that it will be useful,
-//! but WITHOUT ANY WARRANTY; without even the implied warranty of
-//! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-//! GNU General Public License for more details.
-//!
-//! You should have received a copy of the GNU General Public License
-//! along with this program. If not, see <www.gnu.org/licenses>.
-//!
-//! Contact information:
-//! <www.state-machine.com/licensing>
-//! <info@state-machine.com>
+// Purpose: Fixture for QUTEST
+//
+// Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
+//
+//                    Q u a n t u m  L e a P s
+//                    ------------------------
+//                    Modern Embedded Software
+//
+// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
+//
+// The QP/C software is dual-licensed under the terms of the open-source GNU
+// General Public License (GPL) or under the terms of one of the closed-
+// source Quantum Leaps commercial licenses.
+//
+// Redistributions in source code must retain this top-level comment block.
+// Plagiarizing this software to sidestep the license obligations is illegal.
+//
+// NOTE:
+// The GPL does NOT permit the incorporation of this code into proprietary
+// programs. Please contact Quantum Leaps for commercial licensing options,
+// which expressly supersede the GPL and are designed explicitly for
+// closed-source distribution.
+//
+// Quantum Leaps contact information:
+// <www.state-machine.com/licensing>
+// <info@state-machine.com>
 //============================================================================
-//! @file
-//! @brief Fixture for QUTEST self-test
-//! @cond
-
 #include "qpcpp.hpp" // for QUTEST
 
 using namespace QP;
@@ -64,13 +56,25 @@ enum UsrSig {
 };
 
 //----------------------------------------------------------------------------
-int main() {
+//============================================================================
+#ifdef Q_HOST
+int main(int argc, char *argv[])
+#else
+int main(void)
+#endif
+{
     QF::init();  // initialize the framework
 
     // initialize the QS software tracing
+#ifdef Q_HOST
+    if (!QS_INIT((argc > 1) ? argv[1] : nullptr)) {
+        Q_ERROR();
+    }
+#else
     if (!QS_INIT(nullptr)) {
         Q_ERROR();
     }
+#endif
 
     // global filter
     QS_GLB_FILTER(QP::QS_ALL_RECORDS); // enable all QS records

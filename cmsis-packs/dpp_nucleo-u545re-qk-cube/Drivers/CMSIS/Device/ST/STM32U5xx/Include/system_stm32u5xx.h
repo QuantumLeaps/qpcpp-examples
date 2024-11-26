@@ -34,7 +34,7 @@ extern "C" {
 /** @addtogroup STM32U5xx_System_Includes
   * @{
   */
-  
+
 /**
   * @}
   */
