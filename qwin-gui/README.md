@@ -26,8 +26,8 @@ your PC. All you really need for this is two C/C++ compilers: one for the PC
 and another for the embedded device.*
 
 
-# About QWin™ GUI Prototyping Toolkit
-QWin™ is a free GUI toolkit for prototyping embedded systems on Windows in the
+# About QWin GUI Prototyping Toolkit
+QWin is a free GUI toolkit for prototyping embedded systems on Windows in the
 C or C++ programming language, including building realistic embedded front panels
 consisting of LCD displays (both graphic and segmented), LEDs, buttons, knobs,
 sliders, etc. The implementation is based on the raw Win32 API to provide simple
@@ -43,21 +43,21 @@ direct binding to C/C++, which complicates the build process and the debugging
 of the C/C++ code on the host._
 
 
-# QWin™ Code
-QWin™ is included in the QP/C and QP/C++ frameworks (in the `<qp>\ports\win32`
+# QWin Code
+QWin is included in the QP/C and QP/C++ frameworks (in the `<qp>\ports\win32`
 and `<qp>\ports\win32-qv` directories), where `<qp>` stands for the
 installation directory of the qpc or the qpcpp framework.
  from the QTools Collection._
 
 
-# QWin™ Features
-Currently QWin™ provides the following facilities:
+# QWin Features
+Currently QWin provides the following facilities:
 
 * Graphic displays (pixel-addressable) such as graphical LCDs, OLEDs, etc.
   with up to 24-bit color
 * Segmented displays such as segment LCDs, and segment LEDs with generic,
   custom bitmaps for the segments.
-* Owner-drawn buttons with custom “depressed” and “released” bitmaps and capable
+* Owner-drawn buttons with custom depressed and released bitmaps and capable
   of generating separate events when depressed and when released.
 
 Additionally, the provided code shows how to handle input sources:
@@ -65,8 +65,8 @@ Additionally, the provided code shows how to handle input sources:
 * Mouse move events and mouse-wheel events
 
 
-# QWin™ Documentation
-QWin™ GUI Prototyping Toolkit is described in the pplication Note:
+# QWin Documentation
+QWin GUI Prototyping Toolkit is described in the pplication Note:
 [QWIN GUI Kit for Prototyping Embedded Systems on Windows](https://www.state-machine.com/doc/AN_QWin-GUI.pdf).
 
 [![AppNote: QWIN GUI Kit for Prototyping Embedded Systems](https://www.state-machine.com/img/qwin_an.jpg)](https://www.state-machine.com/doc/AN_QWin-GUI.pdf)

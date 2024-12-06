@@ -142,7 +142,7 @@ if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.14")
     set_property(TARGET dpp PROPERTY POSITION_INDEPENDENT_CODE FALSE)
 endif()
 
-# set the qpc include path to find our local `qp_config.h´
+# set the qpcpp include path to find our local `qp_config.h`
 set(QPCPP_CFG_QPCONFIG_H_INCLUDE_PATH ${CMAKE_CURRENT_LIST_DIR})
 # add the qpcpp library to the project
 qpcpp_sdk_init()
