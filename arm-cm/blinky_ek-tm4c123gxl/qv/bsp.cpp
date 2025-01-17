@@ -1,33 +1,28 @@
 //============================================================================
 // Blinky example, EK-TM4C123GXL board, QV kernel
-// Last updated for: @ref qpcpp_7_3_0
-// Last updated on  2023-08-24
-//
-//                   Q u a n t u m  L e a P s
-//                   ------------------------
-//                   Modern Embedded Software
 //
 // Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 //
-// This program is open source software: you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as published
-// by the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+//                    Q u a n t u m  L e a P s
+//                    ------------------------
+//                    Modern Embedded Software
 //
-// Alternatively, this program may be distributed and modified under the
-// terms of Quantum Leaps commercial licenses, which expressly supersede
-// the GNU General Public License and are specifically designed for
-// licensees interested in retaining the proprietary status of their code.
+// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 //
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
+// This software is dual-licensed under the terms of the open-source GNU
+// General Public License (GPL) or under the terms of one of the closed-
+// source Quantum Leaps commercial licenses.
 //
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <www.gnu.org/licenses/>.
+// Redistributions in source code must retain this top-level comment block.
+// Plagiarizing this software to sidestep the license obligations is illegal.
 //
-// Contact information:
+// NOTE:
+// The GPL does NOT permit the incorporation of this code into proprietary
+// programs. Please contact Quantum Leaps for commercial licensing options,
+// which expressly supersede the GPL and are designed explicitly for
+// closed-source distribution.
+//
+// Quantum Leaps contact information:
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
@@ -41,13 +36,24 @@
 #include "gpio.h"                // GPIO driver (TI)
 // add other drivers if necessary...
 
+//============================================================================
+namespace { // unnamed namespace for local stuff with internal linkage
+
+Q_DEFINE_THIS_FILE
+
+// Local-scope objects -----------------------------------------------------
 #ifdef Q_SPY
-    #error Simple Blinky Application does not provide Spy build configuration
+
+    // QSpy source IDs
+    static QP::QSpyId const l_SysTick_Handler = { 0U };
+
+    constexpr std::uint32_t UART_BAUD_RATE      {115200U};
+    constexpr std::uint32_t UART_FR_TXFE        {1U << 7U};
+    constexpr std::uint32_t UART_FR_RXFE        {1U << 4U};
+    constexpr std::uint32_t UART_TXFIFO_DEPTH   {16U};
+
+
 #endif
-
-namespace { // unnamed local namespace
-
-//Q_DEFINE_THIS_FILE
 
 } // unnamed local namespace
 
@@ -65,11 +71,12 @@ namespace { // unnamed local namespace
 extern "C" {
 
 Q_NORETURN Q_onError(char const * const module, int_t const id) {
+    // NOTE: this implementation of the error handler is intended only
     // for debugging and MUST be changed for deployment of the application
     // (assuming that you ship your production code with assertions enabled).
     Q_UNUSED_PAR(module);
     Q_UNUSED_PAR(id);
-    QS_ASSERTION(module, id, 10000U);
+    QS_ASSERTION(module, id, 10000U); // report assertion to QS
 
 #ifndef NDEBUG
     // light up all LEDs
@@ -78,16 +85,19 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
     for (;;) {
     }
 #endif
-
     NVIC_SystemReset();
+    for (;;) { // explicitly "no-return"
+    }
 }
 //............................................................................
+// assertion failure handler for the STM32 library, including the startup code
 void assert_failed(char const * const module, int_t const id); // prototype
 void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
 }
 
-//............................................................................
+// ISRs used in the application ==============================================
+
 void SysTick_Handler(void); // prototype
 void SysTick_Handler(void) {
     QP::QTimeEvt::TICK_X(0U, nullptr); // process time events at rate 0
@@ -144,26 +154,37 @@ void init() {
 
     *(uint32_t volatile *)&GPIOF_AHB->CR = 0x00U;
     GPIOF_AHB->LOCK = 0x0; // lock GPIOCR register for SW2
+
+    // initialize the QS software tracing...
+    if (!QS_INIT(nullptr)) {
+        Q_ERROR();
+    }
+
+    // dictionaries...
+    QS_OBJ_DICTIONARY(&l_SysTick_Handler);
+
+    // setup the QS filters...
+    QS_GLB_FILTER(QP::QS_ALL_RECORDS);   // all records
+    QS_GLB_FILTER(-QP::QS_QF_TICK);      // exclude the clock tick
 }
 //............................................................................
 void start() {
     // initialize event pools
-    static QF_MPOOL_EL(QP::QEvt) smlPoolSto[200];
+    static QF_MPOOL_EL(QP::QEvt) smlPoolSto[20];
     QP::QF::poolInit(smlPoolSto, sizeof(smlPoolSto), sizeof(smlPoolSto[0]));
 
     // initialize publish-subscribe
     static QP::QSubscrList subscrSto[APP::MAX_PUB_SIG];
     QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
 
-    // instantiate and start AOs/threads...
+    // start Active Objects...
 
-    static QP::QEvtPtr blinkyQueueSto[10];
+    static QP::QEvtPtr blinkyQueueSto[5];
     APP::AO_Blinky->start(
         1U,                         // QP prio. of the AO
-        blinkyQueueSto,             // event queue storage
-        Q_DIM(blinkyQueueSto),      // queue length [events]
-        nullptr, 0U,                // no stack storage
-        nullptr);                   // no initialization param
+        blinkyQueueSto,              // event queue storage
+        Q_DIM(blinkyQueueSto),       // queue length [events]
+        nullptr, 0U);                // no stack storage
 }
 //............................................................................
 void ledOn() {
@@ -174,7 +195,7 @@ void ledOff() {
     GPIOF_AHB->DATA_Bits[LED_RED] = 0x00U;
 }
 //............................................................................
-void terminate(int16_t result) {
+void terminate(std::int16_t result) {
     Q_UNUSED_PAR(result);
 }
 
@@ -183,18 +204,23 @@ void terminate(int16_t result) {
 //============================================================================
 namespace QP {
 
+// QF callbacks...
 void QF::onStartup() {
-    // set up the SysTick timer to fire at BSP_TICKS_PER_SEC rate
+    // set up the SysTick timer to fire at BSP::TICKS_PER_SEC rate
     SysTick_Config(SystemCoreClock / BSP::TICKS_PER_SEC);
 
     // assign all priority bits for preemption-prio. and none to sub-prio.
     NVIC_SetPriorityGrouping(0U);
 
     // set priorities of ALL ISRs used in the system, see NOTE1
-    NVIC_SetPriority(SysTick_IRQn,   QF_AWARE_ISR_CMSIS_PRI);
+    NVIC_SetPriority(UART0_IRQn,     0U); // kernel unaware interrupt
+    NVIC_SetPriority(SysTick_IRQn,   QF_AWARE_ISR_CMSIS_PRI + 1U);
     // ...
 
     // enable IRQs...
+#ifdef Q_SPY
+    NVIC_EnableIRQ(UART0_IRQn); // UART interrupt used for QS-RX
+#endif
 }
 //............................................................................
 void QF::onCleanup() {
@@ -206,7 +232,23 @@ void QV::onIdle() { // CATION: called with interrupts DISABLED, NOTE0
     GPIOF_AHB->DATA_Bits[LED_BLUE] = 0xFFU;  // turn the Blue LED on
     GPIOF_AHB->DATA_Bits[LED_BLUE] = 0U;     // turn the Blue LED off
 
-#ifdef NDEBUG
+#ifdef Q_SPY
+    QF_INT_ENABLE();
+    QS::rxParse();  // parse all the received bytes
+
+    if ((UART0->FR & UART_FR_TXFE) != 0U) { // TX done?
+        std::uint16_t fifo = UART_TXFIFO_DEPTH; // max bytes we can accept
+
+        QF_INT_DISABLE();
+        // try to get next contiguous block to transmit
+        std::uint8_t const *block = QS::getBlock(&fifo);
+        QF_INT_ENABLE();
+
+        while (fifo-- != 0U) {       // any bytes in the block?
+            UART0->DR = *block++;    // put into the FIFO
+        }
+    }
+#elif defined NDEBUG
     // Put the CPU and peripherals to the low-power mode.
     // you might need to customize the clock management for your application,
     // see the datasheet for your particular Cortex-M MCU.
@@ -217,8 +259,129 @@ void QV::onIdle() { // CATION: called with interrupts DISABLED, NOTE0
 #endif
 }
 
+//============================================================================
+// QS callbacks...
+#ifdef Q_SPY
+namespace QS {
+
+//............................................................................
+bool onStartup(void const *arg) {
+    Q_UNUSED_PAR(arg);
+
+    static std::uint8_t qsTxBuf[2*1024]; // buffer for QS-TX channel
+    initBuf(qsTxBuf, sizeof(qsTxBuf));
+
+    static std::uint8_t qsRxBuf[100];    // buffer for QS-RX channel
+    rxInitBuf(qsRxBuf, sizeof(qsRxBuf));
+
+    // enable clock for UART0 and GPIOA (used by UART0 pins)
+    SYSCTL->RCGCUART |= (1U << 0U); // enable Run mode for UART0
+    SYSCTL->RCGCGPIO |= (1U << 0U); // enable Run mode for GPIOA
+
+    // configure UART0 pins for UART operation
+    std::uint32_t tmp = (1U << 0U) | (1U << 1U);
+    GPIOA->DIR   &= ~tmp;
+    GPIOA->SLR   &= ~tmp;
+    GPIOA->ODR   &= ~tmp;
+    GPIOA->PUR   &= ~tmp;
+    GPIOA->PDR   &= ~tmp;
+    GPIOA->AMSEL &= ~tmp;  // disable analog function on the pins
+    GPIOA->AFSEL |= tmp;   // enable ALT function on the pins
+    GPIOA->DEN   |= tmp;   // enable digital I/O on the pins
+    GPIOA->PCTL  &= ~0x00U;
+    GPIOA->PCTL  |= 0x11U;
+
+    // configure the UART for the desired baud rate, 8-N-1 operation
+    tmp = (((SystemCoreClock * 8U) / UART_BAUD_RATE) + 1U) / 2U;
+    UART0->IBRD   = tmp / 64U;
+    UART0->FBRD   = tmp % 64U;
+    UART0->LCRH   = (0x3U << 5U); // configure 8-N-1 operation
+    UART0->LCRH  |= (0x1U << 4U); // enable FIFOs
+    UART0->CTL    = (1U << 0U)    // UART enable
+                    | (1U << 8U)  // UART TX enable
+                    | (1U << 9U); // UART RX enable
+
+    // configure UART interrupts (for the RX channel)
+    UART0->IM   |= (1U << 4U) | (1U << 6U); // enable RX and RX-TO interrupt
+    UART0->IFLS |= (0x2U << 2U);    // interrupt on RX FIFO half-full
+    // NOTE: do not enable the UART0 interrupt yet. Wait till QF_onStartup()
+
+    // configure TIMER5 to produce QS time stamp
+    SYSCTL->RCGCTIMER |= (1U << 5U); // enable run mode for Timer5
+    TIMER5->CTL  = 0U;               // disable Timer1 output
+    TIMER5->CFG  = 0x0U;             // 32-bit configuration
+    TIMER5->TAMR = (1U << 4U) | 0x02U; // up-counting periodic mode
+    TIMER5->TAILR= 0xFFFFFFFFU;      // timer interval
+    TIMER5->ICR  = 0x1U;             // TimerA timeout flag bit clears
+    TIMER5->CTL |= (1U << 0U);       // enable TimerA module
+
+    return true; // return success
+}
+//............................................................................
+void onCleanup() {
+}
+//............................................................................
+QSTimeCtr onGetTime() { // NOTE: invoked with interrupts DISABLED
+    return TIMER5->TAV;
+}
+//............................................................................
+// NOTE:
+// No critical section in QS::onFlush() to avoid nesting of critical sections
+// in case QS::onFlush() is called from Q_onError().
+void onFlush() {
+    for (;;) {
+        std::uint16_t b = getByte();
+        if (b != QS_EOD) {
+            while ((UART0->FR & UART_FR_TXFE) == 0U) { // while TXE not empty
+            }
+            UART0->DR = b; // put into the DR register
+        }
+        else {
+            break;
+        }
+    }
+}
+//............................................................................
+void onReset() {
+    NVIC_SystemReset();
+}
+//............................................................................
+// callback function to execute a user command
+void onCommand(std::uint8_t cmdId, std::uint32_t param1,
+               std::uint32_t param2, std::uint32_t param3)
+{
+    Q_UNUSED_PAR(cmdId);
+    Q_UNUSED_PAR(param1);
+    Q_UNUSED_PAR(param2);
+    Q_UNUSED_PAR(param3);
+}
+
+} // namespace QS
+#endif // Q_SPY
+//----------------------------------------------------------------------------
 
 } // namespace QP
+
+//............................................................................
+#ifdef Q_SPY
+// ISR for receiving bytes from the QSPY Back-End
+// NOTE: This ISR is "QF-unaware" meaning that it does not interact with
+// the QF/QK and is not disabled. Such ISRs don't need to call
+// QK_ISR_ENTRY/QK_ISR_EXIT and they cannot post or publish events.
+
+void UART0_IRQHandler(void); // prototype
+void UART0_IRQHandler(void) {
+    uint32_t status = UART0->RIS; // get the raw interrupt status
+    UART0->ICR = status;          // clear the asserted interrupts
+
+    while ((UART0->FR & UART_FR_RXFE) == 0U) { // while RX FIFO NOT empty
+        std::uint8_t b = static_cast<uint8_t>(UART0->DR);
+        QP::QS::rxPut(b);
+    }
+
+    QV_ARM_ERRATUM_838869();
+}
+#endif // Q_SPY
 
 //============================================================================
 // NOTE0:
@@ -245,8 +408,8 @@ void QV::onIdle() { // CATION: called with interrupts DISABLED, NOTE0
 // triggering a "QF-aware" ISR, which can post/publish events.
 //
 // NOTE2:
-// One of the LEDs is used to visualize the idle loop activity. The brightness
-// of the LED is proportional to the frequency of the idle loop. Please note
-// that the LED is toggled with interrupts locked, so no interrupt execution
-// time contributes to the brightness of the User LED.
-//
+// The User LED is used to visualize the idle loop activity. The brightness
+// of the LED is proportional to the frequency of the idle loop.
+// Please note that the LED is toggled with interrupts locked, so no interrupt
+// execution time contributes to the brightness of the User LED.
+

@@ -1,37 +1,34 @@
 //============================================================================
-// Product: DPP example, NUCLEO-U545RE-Q board, uC-OS2 RTOS kernel
-// Last updated for @ref qpcpp_8_0_)
-// Last updated on  2024-10-28
+// DPP example, NUCLEO-U545RE-Q board, uC-OS2 RTOS kernel
 //
-//                   Q u a n t u m  L e a P s
-//                   ------------------------
-//                   Modern Embedded Software
+// Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 //
-// Copyright (C) 2005 Quantum Leaps, LLC. <state-machine.com>
+//                    Q u a n t u m  L e a P s
+//                    ------------------------
+//                    Modern Embedded Software
 //
 // SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 //
-// This software is dual-licensed under the terms of the open source GNU
-// General Public License version 3 (or any later version), or alternatively,
-// under the terms of one of the closed source Quantum Leaps commercial
-// licenses.
-//
-// The terms of the open source GNU General Public License version 3
-// can be found at: <www.gnu.org/licenses/gpl-3.0>
-//
-// The terms of the closed source Quantum Leaps commercial licenses
-// can be found at: <www.state-machine.com/licensing>
+// This software is dual-licensed under the terms of the open-source GNU
+// General Public License (GPL) or under the terms of one of the closed-
+// source Quantum Leaps commercial licenses.
 //
 // Redistributions in source code must retain this top-level comment block.
 // Plagiarizing this software to sidestep the license obligations is illegal.
 //
-// Contact information:
-// <www.state-machine.com>
+// NOTE:
+// The GPL does NOT permit the incorporation of this code into proprietary
+// programs. Please contact Quantum Leaps for commercial licensing options,
+// which expressly supersede the GPL and are designed explicitly for
+// closed-source distribution.
+//
+// Quantum Leaps contact information:
+// <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"      // QP/C++ real-time embedded framework
-#include "dpp.hpp"        // DPP Application interface
-#include "bsp.hpp"        // Board Support Package
+#include "qpcpp.hpp"             // QP/C++ real-time embedded framework
+#include "dpp.hpp"               // DPP Application interface
+#include "bsp.hpp"               // Board Support Package
 
 #include "stm32u545xx.h"  // CMSIS-compliant header file for the MCU used
 // add other drivers if necessary...
@@ -41,11 +38,12 @@ namespace { // unnamed namespace for local stuff with internal linkage
 
 Q_DEFINE_THIS_FILE
 
+// Local-scope objects -------------------------------------------------------
 // LED pins available on the board (just one user LED LD2--Green on PA.5)
-constexpr std::uint32_t LD2_PIN  {5U};
+constexpr std::uint32_t LD2_PIN     {5U};
 
 // Button pins available on the board (just one user Button B1 on PC.13)
-constexpr std::uint32_t B1_PIN   {13U};
+constexpr std::uint32_t B1_PIN      {13U};
 
 static std::uint32_t l_rndSeed;
 
@@ -74,7 +72,8 @@ static std::uint32_t l_rndSeed;
     WRITE_REG((REG), ((READ_REG(REG) & (~(CLEARMASK))) | (SETMASK)))
 
 //============================================================================
-// Error handler
+// Error handler and ISRs...
+
 extern "C" {
 
 Q_NORETURN Q_onError(char const * const module, int_t const id) {
@@ -88,13 +87,13 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
 #ifndef NDEBUG
     // light up the user LED
     GPIOA->BSRR = (1U << LD2_PIN);  // turn LED on
-    for (;;) { // for debugging, hang on in an endless loop...
+    // for debugging, hang on in an endless loop...
+    for (;;) {
     }
-#else
+#endif
     NVIC_SystemReset();
     for (;;) { // explicitly "no-return"
     }
-#endif
 }
 //............................................................................
 // assertion failure handler for the STM32 library, including the startup code
@@ -103,7 +102,7 @@ void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
 }
 
-// uCOS-II application hooks ===============================================
+// ISRs used in the application ==============================================
 
 void App_TimeTickHook(void) {
 
@@ -117,7 +116,7 @@ void App_TimeTickHook(void) {
         std::uint32_t previous;
     } buttons = { 0U, 0U };
 
-    std::uint32_t current = GPIOC->IDR; // read Port C with Button B1
+    std::uint32_t current = GPIOC->IDR; // read Port C with state of Button B1
     std::uint32_t tmp = buttons.depressed; // save the depressed buttons
     buttons.depressed |= (buttons.previous & current); // set depressed
     buttons.depressed &= (buttons.previous | current); // clear released
@@ -212,39 +211,40 @@ static void STM32U545RE_MPU_setup(void) {
 
     MPU->RNR = 0U; // region 0 (for ROM: read-only, can-execute)
     MPU->RBAR = ARM_MPU_RBAR(0x08000000U,
-        ARM_MPU_SH_NON,
-        ARM_MPU_AP_RO,
-        ARM_MPU_AP_PO,
-        ARM_MPU_EX);
+        ARM_MPU_SH_NON,        // SH: Normal memory (not-shareable)
+        1U,                    // RO: Normal memory, read-only
+        0U,                    // NP: Normal memory, privileged access only
+        0U);                   // XN: eXecute never (disabled)
     MPU->RLAR = ARM_MPU_RLAR(0x0807FFFFU, 0U);
 
     MPU->RNR = 1U; // region 0 (for RAM1: read-write, execute-never)
     MPU->RBAR = ARM_MPU_RBAR(0x20000000U,
-        ARM_MPU_SH_OUTER,
-        ARM_MPU_AP_RW,
-        ARM_MPU_AP_PO,
-        ARM_MPU_XN);
+        ARM_MPU_SH_OUTER,      // SH: Normal memory (outer shareable)
+        0U,                    // RO: Normal memory, read/write
+        0U,                    // NP: Normal memory, privileged access only
+        1U);                   // XN: eXecute never
     MPU->RLAR = ARM_MPU_RLAR(0x2003FFFFU, 0U);
 
     MPU->RNR = 2U; // region 0 (for RAM2: read-write, execute-never)
     MPU->RBAR = ARM_MPU_RBAR(0x28000000U,
-        ARM_MPU_SH_OUTER,
-        ARM_MPU_AP_RW,
-        ARM_MPU_AP_PO,
-        ARM_MPU_XN);
+        ARM_MPU_SH_OUTER,      // SH: Normal memory (outer shareable)
+        0U,                    // RO: Normal memory, read/write
+        0U,                    // NP: Normal memory, privileged access only
+        1U);                   // XN: eXecute never
     MPU->RLAR = ARM_MPU_RLAR(0x28003FFFU, 0U);
 
     // Enable MPU with all region definitions
     __DMB();
-    MPU->CTRL = MPU_CTRL_PRIVDEFENA_Msk | MPU_CTRL_ENABLE_Msk;
+    MPU->CTRL = MPU_CTRL_PRIVDEFENA_Msk
+                | MPU_CTRL_HFNMIENA_Msk
+                | MPU_CTRL_ENABLE_Msk;
 
     // Enable MemManage Faults
     SCB->SHCSR |= SCB_SHCSR_MEMFAULTENA_Msk;
     __DSB();
     __ISB();
 }
-
-
+//..........................................................................
 void init() {
     // setup the MPU...
     STM32U545RE_MPU_setup();
@@ -309,8 +309,8 @@ void init() {
     QS_ONLY(APP::produce_sig_dict());
 
     // setup the QS filters...
-    QS_GLB_FILTER(QP::QS_ALL_RECORDS);  // all records
-    QS_GLB_FILTER(-QP::QS_QF_TICK);     // exclude the clock tick
+    QS_GLB_FILTER(QP::QS_ALL_RECORDS);   // all records
+    QS_GLB_FILTER(-QP::QS_QF_TICK);      // exclude the clock tick
 }
 //............................................................................
 void start() {
@@ -414,13 +414,11 @@ void terminate(int16_t result) {
 } // namespace BSP
 
 //============================================================================
-
 namespace QP {
 
-// QF callbacks --------------------------------------------------------------
-
+// QF callbacks...
 void QF::onStartup() {
-    // set up the SysTick timer to fire at BSP_TICKS_PER_SEC rate
+    // set up the SysTick timer to fire at BSP::TICKS_PER_SEC rate
     // NOTE: do NOT call OS_CPU_SysTickInit() from uC/OS-II
     SysTick_Config(SystemCoreClock / BSP::TICKS_PER_SEC);
 
@@ -449,7 +447,8 @@ void QF::onCleanup() {
 #ifdef Q_SPY
 namespace QS {
 
-static uint16_t const QS_UARTPrescTable[12] = {
+//............................................................................
+static std::uint16_t const QS_UARTPrescTable[12] = {
     1U, 2U, 4U, 6U, 8U, 10U, 12U, 16U, 32U, 64U, 128U, 256U
 };
 
@@ -462,8 +461,8 @@ static uint16_t const QS_UARTPrescTable[12] = {
   + ((__BAUD__)/2U)) / (__BAUD__))
 
 // USART1 pins PA.9 and PA.10
-#define USART1_TX_PIN 9U
-#define USART1_RX_PIN 10U
+constexpr std::uint32_t USART1_TX_PIN {9U};
+constexpr std::uint32_t USART1_RX_PIN {10U};
 
 //............................................................................
 bool onStartup(void const *arg) {
@@ -617,8 +616,8 @@ void onCommand(std::uint8_t cmdId, std::uint32_t param1,
 }
 
 } // namespace QS
+
 #endif // Q_SPY
-//----------------------------------------------------------------------------
 
 } // namespace QP
 

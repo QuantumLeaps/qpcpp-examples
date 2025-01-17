@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<model version="6.1.2" links="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm.xsd">
+<model version="7.0.1" links="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm7.xsd">
  <documentation>Dining Philosopher Problem example with the &quot;Orthogonal Component&quot; state pattern (see https://www.state-machine.com/doc/Pattern_Orthogonal.pdf)
 
 The model demonstrates the following features:
@@ -248,7 +248,7 @@ if (m_isHungry[m] &amp;&amp; (m_fork[n] == FREE)) {
        </tran_glyph>
       </tran>
       <state_glyph node="4,24,34,26">
-       <entry box="1,2,27,2"/>
+       <entry box="0,3,27,2"/>
       </state_glyph>
      </state>
      <!--${Cont::Table::SM::active::paused}-->
@@ -294,8 +294,8 @@ m_fork[n] = FREE;</action>
        </tran_glyph>
       </tran>
       <state_glyph node="4,52,34,24">
-       <entry box="1,2,18,4"/>
-       <exit box="1,6,18,4"/>
+       <entry box="0,3,18,4"/>
+       <exit box="0,7,18,4"/>
       </state_glyph>
      </state>
      <state_glyph node="2,6,42,72"/>
@@ -386,8 +386,8 @@ if (!registered) {
       </tran_glyph>
      </tran>
      <state_glyph node="2,5,16,17">
-      <entry box="1,2,5,2"/>
-      <exit box="1,4,5,2"/>
+      <entry box="0,3,5,2"/>
+      <exit box="0,5,5,2"/>
      </state_glyph>
     </state>
     <!--${Comp::Philo::SM::hungry}-->
@@ -406,7 +406,7 @@ AO_Table-&gt;postLIFO(pe);</entry>
       </tran_glyph>
      </tran>
      <state_glyph node="2,24,16,12">
-      <entry box="1,2,5,2"/>
+      <entry box="0,3,5,2"/>
      </state_glyph>
     </state>
     <!--${Comp::Philo::SM::eating}-->
@@ -429,8 +429,8 @@ AO_Table-&gt;postLIFO(pe);</exit>
       </tran_glyph>
      </tran>
      <state_glyph node="2,38,16,14">
-      <entry box="1,2,5,2"/>
-      <exit box="1,4,5,2"/>
+      <entry box="0,3,5,2"/>
+      <exit box="0,5,5,2"/>
      </state_glyph>
     </state>
     <state_diagram size="28,54"/>

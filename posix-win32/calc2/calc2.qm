@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<model version="7.0.0" links="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm7.xsd">
+<model version="7.0.1" links="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm7.xsd">
  <documentation>Improved model of the Calculator described in Chapter 4 of PSiCC2. Improvements include:
 
 - using &quot;no me-&gt;&quot; pointer implementation
@@ -252,8 +252,8 @@ m_oper1 = Q_EVT_CAST(CalcEvt)-&gt;key_code;</action>
         </tran_glyph>
        </tran>
        <state_glyph node="30,22,16,10">
-        <entry box="1,2,5,2"/>
-        <exit box="1,4,5,2"/>
+        <entry box="0,3,5,2"/>
+        <exit box="0,5,5,2"/>
        </state_glyph>
       </state>
       <!--${SMs::Calc::SM::on::ready::result}-->
@@ -261,13 +261,13 @@ m_oper1 = Q_EVT_CAST(CalcEvt)-&gt;key_code;</action>
        <entry>BSP_message(&quot;result-ENTRY;&quot;);</entry>
        <exit>BSP_message(&quot;result-EXIT;&quot;);</exit>
        <state_glyph node="14,22,10,10">
-        <entry box="1,2,5,2"/>
-        <exit box="1,4,5,2"/>
+        <entry box="0,3,5,2"/>
+        <exit box="0,5,5,2"/>
        </state_glyph>
       </state>
       <state_glyph node="8,16,50,18">
-       <entry box="1,2,5,2"/>
-       <exit box="1,4,5,2"/>
+       <entry box="0,3,5,2"/>
+       <exit box="0,5,5,2"/>
       </state_glyph>
      </state>
      <!--${SMs::Calc::SM::on::operand1}-->
@@ -348,8 +348,8 @@ BSP_insert((int)'.');</action>
         </tran_glyph>
        </tran>
        <state_glyph node="12,44,14,13">
-        <entry box="1,2,5,2"/>
-        <exit box="1,4,5,2"/>
+        <entry box="0,3,5,2"/>
+        <exit box="0,5,5,2"/>
        </state_glyph>
       </state>
       <!--${SMs::Calc::SM::on::operand1::int1}-->
@@ -371,8 +371,8 @@ BSP_insert((int)'.');</action>
         </tran_glyph>
        </tran>
        <state_glyph node="30,44,14,13">
-        <entry box="1,2,5,2"/>
-        <exit box="1,4,5,2"/>
+        <entry box="0,3,5,2"/>
+        <exit box="0,5,5,2"/>
        </state_glyph>
       </state>
       <!--${SMs::Calc::SM::on::operand1::frac1}-->
@@ -394,8 +394,8 @@ BSP_insert((int)'.');</action>
         </tran_glyph>
        </tran>
        <state_glyph node="48,44,14,13">
-        <entry box="1,2,5,2"/>
-        <exit box="1,4,5,2"/>
+        <entry box="0,3,5,2"/>
+        <exit box="0,5,5,2"/>
        </state_glyph>
       </state>
       <!--${SMs::Calc::SM::on::operand1::negated1}-->
@@ -446,13 +446,13 @@ BSP_negate();</entry>
         </tran_glyph>
        </tran>
        <state_glyph node="64,44,22,12">
-        <entry box="1,2,5,2"/>
-        <exit box="1,4,5,2"/>
+        <entry box="0,3,5,2"/>
+        <exit box="0,5,5,2"/>
        </state_glyph>
       </state>
       <state_glyph node="8,38,80,26">
-       <entry box="1,2,5,2"/>
-       <exit box="1,4,5,2"/>
+       <entry box="0,3,5,2"/>
+       <exit box="0,5,5,2"/>
       </state_glyph>
      </state>
      <!--${SMs::Calc::SM::on::opEntered}-->
@@ -504,8 +504,8 @@ BSP_insert((int)'.');</action>
        </tran_glyph>
       </tran>
       <state_glyph node="32,68,33,16">
-       <entry box="1,2,5,2"/>
-       <exit box="1,4,5,2"/>
+       <entry box="0,3,5,2"/>
+       <exit box="0,5,5,2"/>
       </state_glyph>
      </state>
      <!--${SMs::Calc::SM::on::error}-->
@@ -513,13 +513,13 @@ BSP_insert((int)'.');</action>
       <entry>BSP_message(&quot;error-ENTRY;&quot;);</entry>
       <exit>BSP_message(&quot;error-EXIT;&quot;);</exit>
       <state_glyph node="11,68,7,8">
-       <entry box="1,2,5,2"/>
-       <exit box="1,4,5,2"/>
+       <entry box="0,3,5,2"/>
+       <exit box="0,5,5,2"/>
       </state_glyph>
      </state>
      <state_glyph node="2,4,92,82">
-      <entry box="1,2,5,2"/>
-      <exit box="1,4,5,2"/>
+      <entry box="0,3,5,2"/>
+      <exit box="0,5,5,2"/>
      </state_glyph>
     </state>
     <!--${SMs::Calc::SM::final}-->
@@ -527,7 +527,7 @@ BSP_insert((int)'.');</action>
      <entry>BSP_message(&quot;final-ENTRY;&quot;);
 BSP_exit();</entry>
      <state_glyph node="2,88,17,6">
-      <entry box="1,2,5,2"/>
+      <entry box="0,3,5,2"/>
      </state_glyph>
     </state>
     <state_diagram size="98,96"/>

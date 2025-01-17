@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model version="7.0.1" links="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm7.xsd">
+ <documentation>Blinky example</documentation>
+ <!--${qpcpp}-->
+ <framework name="qpcpp"/>
+ <!--${APP}-->
+ <package name="APP" stereotype="0x02" namespace="APP::">
+  <!--${APP::Blinky}-->
+  <class name="Blinky" superclass="qpcpp::QActive">
+   <!--${APP::Blinky::m_timeEvt}-->
+   <attribute name="m_timeEvt" type="QP::QTimeEvt" visibility="0x02" properties="0x00"/>
+   <!--${APP::Blinky::inst}-->
+   <attribute name="inst" type="Blinky" visibility="0x00" properties="0x01"/>
+   <!--${APP::Blinky::Blinky}-->
+   <operation name="Blinky" type="" visibility="0x00" properties="0x00">
+    <code>: QActive(Q_STATE_CAST(&amp;Blinky::initial)),
+    m_timeEvt(this, TIMEOUT_SIG, 0U)</code>
+   </operation>
+   <!--${APP::Blinky::SM}-->
+   <statechart properties="0x02">
+    <!--${APP::Blinky::SM::initial}-->
+    <initial target="../1">
+     <action>Q_UNUSED_PAR(e);
+
+// QS software tracing (active only in Spy configuration)
+QS_OBJ_DICTIONARY(&amp;Blinky::inst);
+QS_OBJ_DICTIONARY(&amp;Blinky::inst.m_timeEvt);
+QS_SIG_DICTIONARY(TIMEOUT_SIG, this);
+
+// arm the time event to fire in 1/2 sec and every 1/2 sec
+m_timeEvt.armX(BSP::TICKS_PER_SEC/2, BSP::TICKS_PER_SEC/2);</action>
+     <initial_glyph conn="2,2,5,1,20,6,-4">
+      <action box="0,-2,21,2"/>
+     </initial_glyph>
+    </initial>
+    <!--${APP::Blinky::SM::off}-->
+    <state name="off">
+     <entry brief="off">BSP::ledOff();</entry>
+     <!--${APP::Blinky::SM::off::TIMEOUT}-->
+     <tran trig="TIMEOUT" target="../../2">
+      <tran_glyph conn="2,14,3,1,18,8,-2">
+       <action box="0,-2,8,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="2,6,16,10">
+      <entry box="0,3,12,4"/>
+     </state_glyph>
+    </state>
+    <!--${APP::Blinky::SM::on}-->
+    <state name="on">
+     <entry brief="on">BSP::ledOn();</entry>
+     <!--${APP::Blinky::SM::on::TIMEOUT}-->
+     <tran trig="TIMEOUT" target="../../1">
+      <tran_glyph conn="2,28,3,1,20,-17,-4">
+       <action box="0,-2,8,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph color="2" node="2,20,16,10">
+      <entry box="0,3,12,4"/>
+     </state_glyph>
+    </state>
+    <state_diagram size="26,34"/>
+   </statechart>
+  </class>
+  <!--${APP::AO_Blinky}-->
+  <attribute name="AO_Blinky" type="QP::QActive * const" visibility="0x00" properties="0x00">
+   <code>= &amp;Blinky::inst;</code>
+  </attribute>
+ </package>
+ <!--${Inc}-->
+ <directory name="Inc">
+  <!--${Inc::blinky.hpp}-->
+  <file name="blinky.hpp">
+   <text>#ifndef BLINKY_HPP_
+#define BLINKY_HPP_
+
+namespace APP {
+
+enum AppSignals : QP::QSignal {
+    DUMMY_SIG = QP::Q_USER_SIG,
+    //...
+    MAX_PUB_SIG, // the last published signal
+
+    TIMEOUT_SIG,
+    //...
+    MAX_SIG      // the last signal
+};
+
+extern QP::QActive * const AO_Blinky; // global opaque pointer
+
+// for the QXK kernel only...
+#ifdef QXK_HPP_
+extern QP::QXThread * const XT_thr; // global opaque pointer
+#endif
+
+} // namespace APP
+
+#endif // BLINKY_HPP_
+</text>
+  </file>
+ </directory>
+ <!--${Src}-->
+ <directory name="Src">
+  <!--${Src::blinky.cpp}-->
+  <file name="blinky.cpp">
+   <text>#include &quot;qpcpp.hpp&quot;        // QP/C++ real-time embedded framework
+#include &quot;blinky.hpp&quot;       // Blinky Application interface
+#include &quot;bsp.hpp&quot;          // Board Support Package
+
+// unnamed namespace for local definitions with internal linkage
+namespace {
+Q_DEFINE_THIS_FILE
+} // unnamed namespace
+
+$declare ${APP::Blinky}
+
+$define ${APP::AO_Blinky}
+$define ${APP::Blinky}</text>
+  </file>
+ </directory>
+</model>

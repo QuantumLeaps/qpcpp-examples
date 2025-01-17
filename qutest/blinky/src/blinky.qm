@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<model version="5.3.0" links="1">
+<model version="7.0.1" links="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm7.xsd">
  <documentation>Simple Blinky example for QP/C++, which demonstrates:
 - Active object (Blinky) with state machine
 - Board Support Package abstraction for portability
@@ -50,7 +50,7 @@ m_timeEvt.armX(BSP::TICKS_PER_SEC/2,
       </tran_glyph>
      </tran>
      <state_glyph node="2,5,16,10">
-      <entry box="1,2,12,4"/>
+      <entry box="0,3,12,4"/>
      </state_glyph>
     </state>
     <!--${AOs::Blinky::SM::on}-->
@@ -63,7 +63,7 @@ m_timeEvt.armX(BSP::TICKS_PER_SEC/2,
       </tran_glyph>
      </tran>
      <state_glyph node="2,17,16,10">
-      <entry box="1,2,12,4"/>
+      <entry box="0,3,12,4"/>
      </state_glyph>
     </state>
     <state_diagram size="30,29"/>

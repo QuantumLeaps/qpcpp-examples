@@ -8,19 +8,19 @@ class MyAO : public QActive {
 public:
     MyAO() : QActive(Q_STATE_CAST(&MyAO::initial)) {}
 private:
-    static QState initial(MyAO * const me, QEvt const * const e);
-    static QState active(MyAO * const me, QEvt const * const e);
+    Q_STATE_DECL(initial);
+    Q_STATE_DECL(active);
 };
 
 // Local objects -------------------------------------------------------------
 static MyAO l_MyAO; // the single instance of the MyAO active object
 
 // Global-scope objects ------------------------------------------------------
-QActive * const AO_MyAO = &l_MyAO; /* "opaque" AO pointer */
+QActive * const AO_MyAO = &l_MyAO; // "opaque" AO pointer
 
 // MyAO::SM ------------------------------------------------------------------
-QState MyAO::initial(MyAO * const me, QEvt const * const e) {
-    (void)e; /* unused parameter */
+Q_STATE_DEF(MyAO, initial) {
+    Q_UNUSED_PAR(e); // unused parameter
 
     QS_FUN_DICTIONARY(&QHsm::top);
     QS_FUN_DICTIONARY(&MyAO::initial);
@@ -31,30 +31,30 @@ QState MyAO::initial(MyAO * const me, QEvt const * const e) {
     QS_SIG_DICTIONARY(MY_EVT2_SIG,   nullptr);
     QS_SIG_DICTIONARY(MY_EVT3_SIG,   nullptr);
 
-    return Q_TRAN(&MyAO::active);
+    return tran(&active);
 }
-//${AOs::MyAO::SM::active} ...................................................
-QState MyAO::active(MyAO * const me, QEvt const * const e) {
-    QState status_;
+//............................................................................
+Q_STATE_DEF(MyAO, active) {
+    QP::QState status_;
     switch (e->sig) {
         case MY_EVT0_SIG: {
-            status_ = Q_HANDLED();
+            status_ = Q_RET_HANDLED;
             break;
         }
         case MY_EVT1_SIG: {
-            status_ = Q_HANDLED();
+            status_ = Q_RET_HANDLED;
             break;
         }
         case MY_EVT2_SIG: {
-            status_ = Q_HANDLED();
+            status_ = Q_RET_HANDLED;
             break;
         }
         case MY_EVT3_SIG: {
-            status_ = Q_HANDLED();
+            status_ = Q_RET_HANDLED;
             break;
         }
         default: {
-            status_ = Q_SUPER(&QHsm::top);
+            status_ = super(&top);
             break;
         }
     }

@@ -1,32 +1,29 @@
 //============================================================================
-// Product: DPP example, NUCLEO-U545RE-Q board, QV kernel
-// Last updated for version 8.0.0
-// Last updated on  2024-09-18
+// Blinky example, NUCLEO-U545RE-Q board, QV kernel
 //
-//                   Q u a n t u m  L e a P s
-//                   ------------------------
-//                   Modern Embedded Software
+// Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 //
-// Copyright (C) 2005 Quantum Leaps, LLC. <state-machine.com>
+//                    Q u a n t u m  L e a P s
+//                    ------------------------
+//                    Modern Embedded Software
 //
 // SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 //
-// This software is dual-licensed under the terms of the open source GNU
-// General Public License version 3 (or any later version), or alternatively,
-// under the terms of one of the closed source Quantum Leaps commercial
-// licenses.
-//
-// The terms of the open source GNU General Public License version 3
-// can be found at: <www.gnu.org/licenses/gpl-3.0>
-//
-// The terms of the closed source Quantum Leaps commercial licenses
-// can be found at: <www.state-machine.com/licensing>
+// This software is dual-licensed under the terms of the open-source GNU
+// General Public License (GPL) or under the terms of one of the closed-
+// source Quantum Leaps commercial licenses.
 //
 // Redistributions in source code must retain this top-level comment block.
 // Plagiarizing this software to sidestep the license obligations is illegal.
 //
-// Contact information:
-// <www.state-machine.com>
+// NOTE:
+// The GPL does NOT permit the incorporation of this code into proprietary
+// programs. Please contact Quantum Leaps for commercial licensing options,
+// which expressly supersede the GPL and are designed explicitly for
+// closed-source distribution.
+//
+// Quantum Leaps contact information:
+// <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
 #include "qpcpp.hpp"             // QP/C++ real-time embedded framework
@@ -78,15 +75,16 @@ enum AppRecords { // application-specific trace records
 
 //============================================================================
 // Error handler and ISRs...
+
 extern "C" {
 
 Q_NORETURN Q_onError(char const * const module, int_t const id) {
-    // NOTE: this implementation of the assertion handler is intended only
+    // NOTE: this implementation of the error handler is intended only
     // for debugging and MUST be changed for deployment of the application
     // (assuming that you ship your production code with assertions enabled).
     Q_UNUSED_PAR(module);
     Q_UNUSED_PAR(id);
-    QS_ASSERTION(module, id, 10000U);
+    QS_ASSERTION(module, id, 10000U); // report assertion to QS
 
 #ifndef NDEBUG
     // light up the user LED
@@ -95,8 +93,9 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
     for (;;) {
     }
 #endif
-
     NVIC_SystemReset();
+    for (;;) { // explicitly "no-return"
+    }
 }
 //............................................................................
 // assertion failure handler for the STM32 library, including the startup code
@@ -105,7 +104,7 @@ void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
 }
 
-// ISRs used in the application ============================================
+// ISRs used in the application ==============================================
 
 void SysTick_Handler(void); // prototype
 void SysTick_Handler(void) {
@@ -185,7 +184,6 @@ void QF_onContextSw(QP::QActive *prev, QP::QActive *next) {
 
 } // extern "C"
 
-
 //============================================================================
 namespace BSP {
 
@@ -201,31 +199,33 @@ static void STM32U545RE_MPU_setup(void) {
 
     MPU->RNR = 0U; // region 0 (for ROM: read-only, can-execute)
     MPU->RBAR = ARM_MPU_RBAR(0x08000000U,
-        ARM_MPU_SH_NON,
-        ARM_MPU_AP_RO,
-        ARM_MPU_AP_PO,
-        ARM_MPU_EX);
+        ARM_MPU_SH_NON,        // SH: Normal memory (not-shareable)
+        1U,                    // RO: Normal memory, read-only
+        0U,                    // NP: Normal memory, privileged access only
+        0U);                   // XN: eXecute never (disabled)
     MPU->RLAR = ARM_MPU_RLAR(0x0807FFFFU, 0U);
 
     MPU->RNR = 1U; // region 0 (for RAM1: read-write, execute-never)
     MPU->RBAR = ARM_MPU_RBAR(0x20000000U,
-        ARM_MPU_SH_OUTER,
-        ARM_MPU_AP_RW,
-        ARM_MPU_AP_PO,
-        ARM_MPU_XN);
+        ARM_MPU_SH_OUTER,      // SH: Normal memory (outer shareable)
+        0U,                    // RO: Normal memory, read/write
+        0U,                    // NP: Normal memory, privileged access only
+        1U);                   // XN: eXecute never
     MPU->RLAR = ARM_MPU_RLAR(0x2003FFFFU, 0U);
 
     MPU->RNR = 2U; // region 0 (for RAM2: read-write, execute-never)
     MPU->RBAR = ARM_MPU_RBAR(0x28000000U,
-        ARM_MPU_SH_OUTER,
-        ARM_MPU_AP_RW,
-        ARM_MPU_AP_PO,
-        ARM_MPU_XN);
+        ARM_MPU_SH_OUTER,      // SH: Normal memory (outer shareable)
+        0U,                    // RO: Normal memory, read/write
+        0U,                    // NP: Normal memory, privileged access only
+        1U);                   // XN: eXecute never
     MPU->RLAR = ARM_MPU_RLAR(0x28003FFFU, 0U);
 
     // Enable MPU with all region definitions
     __DMB();
-    MPU->CTRL = MPU_CTRL_PRIVDEFENA_Msk | MPU_CTRL_HFNMIENA_Msk | MPU_CTRL_ENABLE_Msk;
+    MPU->CTRL = MPU_CTRL_PRIVDEFENA_Msk
+                | MPU_CTRL_HFNMIENA_Msk
+                | MPU_CTRL_ENABLE_Msk;
 
     // Enable MemManage Faults
     SCB->SHCSR |= SCB_SHCSR_MEMFAULTENA_Msk;
@@ -250,6 +250,8 @@ void init() {
     // NOTE: SystemInit() has been already called from the startup code
     // but SystemCoreClock needs to be updated
     SystemCoreClockUpdate();
+
+    // NOTE: The VFP (hardware Floating Point) unit is configured by QV
 
     // enable GPIOA clock port for the LED LD4
     RCC->AHB2ENR1 |= RCC_AHB2ENR1_GPIOAEN;
@@ -391,7 +393,6 @@ void terminate(int16_t result) {
 } // namespace BSP
 
 //============================================================================
-// namespace QP
 namespace QP {
 
 // QF callbacks...
@@ -400,7 +401,6 @@ void QF::onStartup() {
     SysTick_Config(SystemCoreClock / BSP::TICKS_PER_SEC);
 
     // assign all priority bits for preemption-prio. and none to sub-prio.
-    // NOTE: this might have been changed by STM32Cube.
     NVIC_SetPriorityGrouping(0U);
 
     // set priorities of ALL ISRs used in the system, see NOTE1
@@ -419,7 +419,6 @@ void QF::onStartup() {
 //............................................................................
 void QF::onCleanup() {
 }
-
 //............................................................................
 void QV::onIdle() { // CAUTION: called with interrupts DISABLED, see NOTE0
     // toggle an LED on and then off (not enough LEDs, see NOTE2)
@@ -463,14 +462,13 @@ void QV::onIdle() { // CAUTION: called with interrupts DISABLED, see NOTE0
 namespace QS {
 
 //............................................................................
-static uint16_t const QS_UARTPrescTable[12] = {
+static std::uint16_t const QS_UARTPrescTable[12] = {
     1U, 2U, 4U, 6U, 8U, 10U, 12U, 16U, 32U, 64U, 128U, 256U
 };
 
 #define __LL_USART_DIV_SAMPLING16(__PERIPHCLK__, __PRESCALER__, __BAUDRATE__) \
   ((((__PERIPHCLK__)/(USART_PRESCALER_TAB[(__PRESCALER__)]))\
     + ((__BAUDRATE__)/2U))/(__BAUDRATE__))
-
 
 #define QS_UART_DIV_SAMPLING16(__PCLK__, __BAUD__, __CLOCKPRESCALER__) \
   ((((__PCLK__)/QS_UARTPrescTable[(__CLOCKPRESCALER__)]) \
@@ -632,8 +630,8 @@ void onCommand(std::uint8_t cmdId, std::uint32_t param1,
 }
 
 } // namespace QS
+
 #endif // Q_SPY
-//----------------------------------------------------------------------------
 
 } // namespace QP
 

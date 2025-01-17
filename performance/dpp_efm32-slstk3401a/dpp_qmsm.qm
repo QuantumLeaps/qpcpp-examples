@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<model version="5.2.5" links="1">
+<model version="7.0.1" links="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm7.xsd">
  <documentation>Dining Philosopher Problem example with MSM state machines</documentation>
  <!--${qpcpp}-->
  <framework name="qpcpp"/>
@@ -81,8 +81,8 @@ Q_ASSERT(Q_EVT_CAST(TableEvt)-&gt;philoNum != PHILO_ID(this));</action>
       </tran_glyph>
      </tran>
      <state_glyph node="2,5,17,16">
-      <entry box="1,2,5,2"/>
-      <exit box="1,4,5,2"/>
+      <entry box="0,3,5,2"/>
+      <exit box="0,5,5,2"/>
      </state_glyph>
     </state>
     <!--${AOs::Philo::SM::hungry}-->
@@ -112,7 +112,7 @@ Q_ASSERT(Q_EVT_CAST(TableEvt)-&gt;philoNum != PHILO_ID(this));</action>
       </tran_glyph>
      </tran>
      <state_glyph node="2,23,17,16">
-      <entry box="1,2,5,2"/>
+      <entry box="0,3,5,2"/>
      </state_glyph>
     </state>
     <!--${AOs::Philo::SM::eating}-->
@@ -137,8 +137,8 @@ Q_ASSERT(Q_EVT_CAST(TableEvt)-&gt;philoNum != PHILO_ID(this));</action>
       </tran_glyph>
      </tran>
      <state_glyph node="2,41,17,18">
-      <entry box="1,2,5,2"/>
-      <exit box="1,4,5,2"/>
+      <entry box="0,3,5,2"/>
+      <exit box="0,5,5,2"/>
      </state_glyph>
     </state>
     <state_diagram size="36,61"/>
@@ -311,7 +311,7 @@ if (m_isHungry[m] &amp;&amp; (m_fork[n] == FREE)) {
        </tran_glyph>
       </tran>
       <state_glyph node="4,19,34,24">
-       <entry box="1,2,27,2"/>
+       <entry box="0,3,27,2"/>
       </state_glyph>
      </state>
      <!--${AOs::Table::SM::active::paused}-->
@@ -353,8 +353,8 @@ m_fork[n] = FREE;</action>
        </tran_glyph>
       </tran>
       <state_glyph node="4,45,34,20">
-       <entry box="1,2,18,4"/>
-       <exit box="1,6,18,4"/>
+       <entry box="0,3,18,4"/>
+       <exit box="0,7,18,4"/>
       </state_glyph>
      </state>
      <state_glyph node="2,5,44,62"/>
