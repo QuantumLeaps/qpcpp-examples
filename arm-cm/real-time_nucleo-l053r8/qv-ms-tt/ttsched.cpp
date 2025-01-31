@@ -35,7 +35,7 @@
 // <info@state-machine.com>
 //
 //$endhead${.::ttsched.cpp} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-#include "qpcpp.hpp"           // QP/C++ real-time embedded framework
+#include "qpcpp.hpp"           // QP/C++ real-time event framework
 #include "bsp.hpp"             // Board Support Package
 #include "app.hpp"             // Application interface
 

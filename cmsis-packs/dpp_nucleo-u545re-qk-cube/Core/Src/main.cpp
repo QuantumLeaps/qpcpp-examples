@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "qpcpp.hpp"             // QP/C++ real-time embedded framework
+#include "qpcpp.hpp"             // QP/C++ real-time event framework
 #include "bsp.hpp"               // Board Support Package
 /* USER CODE END Includes */
 
