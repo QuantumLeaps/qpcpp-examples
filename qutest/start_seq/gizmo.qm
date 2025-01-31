@@ -31,7 +31,7 @@
 POST(&amp;startEvt, this); // self-post</entry>
      <!--${AOs::Gizmo::SM::initialize::START}-->
      <tran trig="START">
-      <action>QS_BEGIN_ID(QP::QS_USER1, m_prio)
+      <action>QS_BEGIN_ID(QP::QS_USER1, getPrio())
    QS_STR(&quot;START&quot;);
 QS_END()</action>
       <!--${AOs::Gizmo::SM::initialize::START::[BSP:getStatus()]}-->
