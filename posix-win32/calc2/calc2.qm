@@ -149,12 +149,11 @@ BSP_display(result);
 return true;</code>
    </operation>
    <!--${SMs::Calc::SM}-->
-   <statechart properties="0x02">
+   <statechart properties="0x01">
     <!--${SMs::Calc::SM::initial}-->
     <initial target="../1">
-     <action>BSP_clear();
-(void)e; /* unused parameter */</action>
-     <initial_glyph conn="2,2,5,1,92,4,0">
+     <action>Q_UNUSED_PAR(e);</action>
+     <initial_glyph conn="2,2,5,1,96,6,-2">
       <action box="1,-2,13,4"/>
      </initial_glyph>
     </initial>
@@ -163,25 +162,37 @@ return true;</code>
      <entry>BSP_message(&quot;on-ENTRY;&quot;);</entry>
      <exit>BSP_message(&quot;on-EXIT;&quot;);</exit>
      <!--${SMs::Calc::SM::on::initial}-->
-     <initial target="../3">
-      <action>BSP_message(&quot;on-INIT;&quot;);</action>
-      <initial_glyph conn="15,9,5,1,45,9,-2">
+     <initial target="../4">
+      <action>BSP_message(&quot;on-INIT;&quot;);
+BSP_clear();</action>
+      <initial_glyph conn="49,12,5,1,13,8,-2">
        <action box="1,0,5,2"/>
       </initial_glyph>
      </initial>
      <!--${SMs::Calc::SM::on::C}-->
      <tran trig="C" target="..">
-      <action>BSP_clear();</action>
-      <tran_glyph conn="2,12,3,1,92">
-       <action box="0,-2,4,2"/>
+      <tran_glyph conn="2,14,3,1,94">
+       <action box="0,-2,12,4"/>
       </tran_glyph>
      </tran>
      <!--${SMs::Calc::SM::on::OFF}-->
      <tran trig="OFF" target="../../2">
-      <tran_glyph conn="2,14,3,1,94,76,-77">
+      <tran_glyph conn="2,16,3,1,96,76,-79">
        <action box="0,0,5,2"/>
       </tran_glyph>
      </tran>
+     <!--${SMs::Calc::SM::on::error}-->
+     <state name="error">
+      <documentation>// Error state after evaluation of an expression.
+This state can be exited only through the inherited C (Clear) event.
+</documentation>
+      <entry>BSP_message(&quot;error-ENTRY;&quot;);</entry>
+      <exit>BSP_message(&quot;error-EXIT;&quot;);</exit>
+      <state_glyph node="6,78,8,8">
+       <entry box="0,3,5,2"/>
+       <exit box="0,5,5,2"/>
+      </state_glyph>
+     </state>
      <!--${SMs::Calc::SM::on::ready}-->
      <state name="ready">
       <entry>BSP_message(&quot;ready-ENTRY;&quot;);
@@ -189,44 +200,53 @@ m_oper1 = KEY_NULL;
 m_oper2 = KEY_NULL;</entry>
       <exit>BSP_message(&quot;ready-EXIT;&quot;);</exit>
       <!--${SMs::Calc::SM::on::ready::initial}-->
-      <initial target="../5">
+      <initial target="../6">
        <action>BSP_message(&quot;ready-INIT;&quot;);</action>
-       <initial_glyph conn="18,20,5,0,20,2">
+       <initial_glyph conn="20,22,5,0,20,2">
         <action box="0,-2,6,2"/>
        </initial_glyph>
       </initial>
       <!--${SMs::Calc::SM::on::ready::DIGIT_0}-->
-      <tran trig="DIGIT_0" target="../../4/3">
+      <tran trig="DIGIT_0" target="../../5/6">
        <action>BSP_clear();</action>
-       <tran_glyph conn="18,34,2,0,10">
-        <action box="1,0,6,2"/>
+       <tran_glyph conn="20,36,2,0,10">
+        <action box="0,0,10,2"/>
        </tran_glyph>
       </tran>
       <!--${SMs::Calc::SM::on::ready::DIGIT_1_9}-->
-      <tran trig="DIGIT_1_9" target="../../4/4">
+      <tran trig="DIGIT_1_9" target="../../5/7">
        <action>BSP_clear();
 BSP_insert(Q_EVT_CAST(CalcEvt)-&gt;key_code);</action>
-       <tran_glyph conn="32,34,2,0,10">
+       <tran_glyph conn="38,36,2,0,10">
         <action box="1,0,9,2"/>
        </tran_glyph>
       </tran>
       <!--${SMs::Calc::SM::on::ready::POINT}-->
-      <tran trig="POINT" target="../../4/5">
+      <tran trig="POINT" target="../../5/8">
        <action>BSP_clear();
 BSP_insert((int)'0');
 BSP_insert((int)'.');</action>
-       <tran_glyph conn="52,34,2,0,10">
+       <tran_glyph conn="54,36,2,0,10">
         <action box="0,0,6,2"/>
        </tran_glyph>
       </tran>
       <!--${SMs::Calc::SM::on::ready::OPER}-->
-      <tran trig="OPER" target="../../5">
-       <action>m_op1  = BSP_get_value();
+      <tran trig="OPER" target="../../6">
+       <action>m_op1 = BSP_get_value();
 m_oper1 = Q_EVT_CAST(CalcEvt)-&gt;key_code;</action>
-       <tran_glyph conn="58,24,1,1,32,48,-25">
+       <tran_glyph conn="60,26,1,1,32,48,-26">
         <action box="0,-2,6,2"/>
        </tran_glyph>
       </tran>
+      <!--${SMs::Calc::SM::on::ready::result}-->
+      <state name="result">
+       <entry>BSP_message(&quot;result-ENTRY;&quot;);</entry>
+       <exit>BSP_message(&quot;result-EXIT;&quot;);</exit>
+       <state_glyph node="16,24,10,10">
+        <entry box="0,3,5,2"/>
+        <exit box="0,5,5,2"/>
+       </state_glyph>
+      </state>
       <!--${SMs::Calc::SM::on::ready::begin}-->
       <state name="begin">
        <entry>BSP_message(&quot;begin-ENTRY;&quot;);</entry>
@@ -234,223 +254,206 @@ m_oper1 = Q_EVT_CAST(CalcEvt)-&gt;key_code;</action>
        <!--${SMs::Calc::SM::on::ready::begin::OPER}-->
        <tran trig="OPER">
         <!--${SMs::Calc::SM::on::ready::begin::OPER::[e->key=='-']}-->
-        <choice target="../../../../4/6">
+        <choice target="../../../../5/9">
          <guard brief="e-&gt;key == '-'">Q_EVT_CAST(CalcEvt)-&gt;key_code == KEY_MINUS</guard>
-         <choice_glyph conn="40,30,5,0,34,14">
+         <choice_glyph conn="42,32,5,0,34,14">
           <action box="1,0,11,2"/>
          </choice_glyph>
         </choice>
         <!--${SMs::Calc::SM::on::ready::begin::OPER::[else]}-->
         <choice>
          <guard>else</guard>
-         <choice_glyph conn="40,30,4,-1,-4,4">
+         <choice_glyph conn="42,32,4,-1,-4,4">
           <action box="1,-3,6,2"/>
          </choice_glyph>
         </choice>
-        <tran_glyph conn="30,30,3,-1,10">
+        <tran_glyph conn="32,32,3,-1,10">
          <action box="0,-2,6,2"/>
         </tran_glyph>
        </tran>
-       <state_glyph node="30,22,16,10">
+       <state_glyph node="32,24,22,10">
         <entry box="0,3,5,2"/>
         <exit box="0,5,5,2"/>
        </state_glyph>
       </state>
-      <!--${SMs::Calc::SM::on::ready::result}-->
-      <state name="result">
-       <entry>BSP_message(&quot;result-ENTRY;&quot;);</entry>
-       <exit>BSP_message(&quot;result-EXIT;&quot;);</exit>
-       <state_glyph node="14,22,10,10">
-        <entry box="0,3,5,2"/>
-        <exit box="0,5,5,2"/>
-       </state_glyph>
-      </state>
-      <state_glyph node="8,16,50,18">
+      <state_glyph node="10,18,50,18">
        <entry box="0,3,5,2"/>
        <exit box="0,5,5,2"/>
       </state_glyph>
      </state>
-     <!--${SMs::Calc::SM::on::operand1}-->
-     <state name="operand1">
+     <!--${SMs::Calc::SM::on::operand}-->
+     <state name="operand">
       <entry>BSP_message(&quot;operand1-ENTRY;&quot;);</entry>
       <exit>BSP_message(&quot;operand1-EXIT;&quot;);</exit>
-      <!--${SMs::Calc::SM::on::operand1::CE}-->
-      <tran trig="CE" target="../../3">
+      <!--${SMs::Calc::SM::on::operand::CE}-->
+      <tran trig="CE" target="../../4">
        <action>BSP_clear();</action>
-       <tran_glyph conn="80,38,0,1,-10,-22">
+       <tran_glyph conn="84,40,0,1,-10,-24">
         <action box="0,-2,6,2"/>
        </tran_glyph>
       </tran>
-      <!--${SMs::Calc::SM::on::operand1::OPER}-->
-      <tran trig="OPER">
-       <!--${SMs::Calc::SM::on::operand1::OPER::[else]}-->
-       <choice target="../../../6">
-        <guard brief="else"/>
-        <choice_glyph conn="22,82,5,2,-8,-6">
-         <action box="-7,0,6,2"/>
-        </choice_glyph>
-       </choice>
-       <!--${SMs::Calc::SM::on::operand1::OPER::[eval()]}-->
-       <choice target="../../../5">
-        <guard brief="eval()">eval(BSP_get_value(), Q_EVT_CAST(CalcEvt)-&gt;key_code)</guard>
-        <choice_glyph conn="22,82,5,3,10">
-         <action box="1,0,12,2"/>
-        </choice_glyph>
-       </choice>
-       <tran_glyph conn="22,64,2,-1,18">
-        <action box="-4,-2,6,2"/>
-       </tran_glyph>
-      </tran>
-      <!--${SMs::Calc::SM::on::operand1::EQUALS}-->
+      <!--${SMs::Calc::SM::on::operand::EQUALS}-->
       <tran trig="EQUALS">
-       <!--${SMs::Calc::SM::on::operand1::EQUALS::[else]}-->
-       <choice target="../../../6">
+       <!--${SMs::Calc::SM::on::operand::EQUALS::[else]}-->
+       <choice target="../../../3">
         <guard brief="else"/>
-        <choice_glyph conn="6,70,5,3,5">
-         <action box="1,0,6,2"/>
+        <choice_glyph conn="7,72,5,0,3,6">
+         <action box="3,0,7,2"/>
         </choice_glyph>
        </choice>
-       <!--${SMs::Calc::SM::on::operand1::EQUALS::[eval()]}-->
-       <choice target="../../../3/6">
-        <guard brief="eval()">eval(BSP_get_value(), KEY_NULL)</guard>
-        <choice_glyph conn="6,70,5,3,-2,-46,10">
-         <action box="-5,0,10,2"/>
+       <!--${SMs::Calc::SM::on::operand::EQUALS::[Calc_eval()]}-->
+       <choice target="../../../4/5">
+        <guard brief="Calc_eval()">eval(BSP_get_value(), KEY_NULL)</guard>
+        <choice_glyph conn="7,72,5,3,-3,-46,12">
+         <action box="-3,-35,11,2"/>
         </choice_glyph>
        </choice>
-       <tran_glyph conn="8,57,3,-1,-2,13">
-        <action box="-2,1,8,2"/>
+       <tran_glyph conn="10,59,3,-1,-3,13">
+        <action box="-5,-2,10,2"/>
        </tran_glyph>
       </tran>
-      <!--${SMs::Calc::SM::on::operand1::zero1}-->
-      <state name="zero1">
-       <entry>BSP_message(&quot;zero1-ENTRY;&quot;);</entry>
-       <exit>BSP_message(&quot;zero1-EXIT;&quot;);</exit>
-       <!--${SMs::Calc::SM::on::operand1::zero1::DIGIT_0}-->
+      <!--${SMs::Calc::SM::on::operand::OPER}-->
+      <tran trig="OPER">
+       <!--${SMs::Calc::SM::on::operand::OPER::[Calc_eval()]}-->
+       <choice target="../../../6">
+        <guard brief="Calc_eval()">eval(BSP_get_value(), Q_EVT_CAST(CalcEvt)-&gt;key_code)</guard>
+        <choice_glyph conn="22,82,5,3,12">
+         <action box="1,0,11,2"/>
+        </choice_glyph>
+       </choice>
+       <!--${SMs::Calc::SM::on::operand::OPER::[else]}-->
+       <choice target="../../../3">
+        <guard brief="else"/>
+        <choice_glyph conn="22,82,5,1,-8">
+         <action box="-6,0,10,2"/>
+        </choice_glyph>
+       </choice>
+       <tran_glyph conn="22,66,2,-1,16">
+        <action box="-6,1,6,2"/>
+       </tran_glyph>
+      </tran>
+      <!--${SMs::Calc::SM::on::operand::POINT}-->
+      <tran trig="POINT" target="../8">
+       <action>BSP_insert(Q_EVT_CAST(CalcEvt)-&gt;key_code);</action>
+       <tran_glyph conn="58,66,2,2,-6">
+        <action box="1,-2,9,2"/>
+       </tran_glyph>
+      </tran>
+      <!--${SMs::Calc::SM::on::operand::DIGIT_0}-->
+      <tran trig="DIGIT_0" target="../6">
+       <action>BSP_insert(Q_EVT_CAST(CalcEvt)-&gt;key_code);</action>
+       <tran_glyph conn="24,66,2,2,-6">
+        <action box="-8,-2,9,2"/>
+       </tran_glyph>
+      </tran>
+      <!--${SMs::Calc::SM::on::operand::DIGIT_1_9}-->
+      <tran trig="DIGIT_1_9" target="../7">
+       <action>BSP_insert(Q_EVT_CAST(CalcEvt)-&gt;key_code);</action>
+       <tran_glyph conn="42,66,2,2,-6">
+        <action box="0,-2,9,2"/>
+       </tran_glyph>
+      </tran>
+      <!--${SMs::Calc::SM::on::operand::zero}-->
+      <state name="zero">
+       <entry>BSP_message(&quot;zero-ENTRY;&quot;);</entry>
+       <exit>BSP_message(&quot;zero-EXIT;&quot;);</exit>
+       <!--${SMs::Calc::SM::on::operand::zero::DIGIT_0}-->
        <tran trig="DIGIT_0">
         <action>;</action>
-        <tran_glyph conn="12,55,3,-1,10">
+        <tran_glyph conn="14,58,3,-1,10">
          <action box="0,-2,7,2"/>
         </tran_glyph>
        </tran>
-       <!--${SMs::Calc::SM::on::operand1::zero1::DIGIT_1_9}-->
-       <tran trig="DIGIT_1_9" target="../../4">
+       <!--${SMs::Calc::SM::on::operand::zero::DIGIT_1_9}-->
+       <tran trig="DIGIT_1_9" target="../../7">
         <action>BSP_insert(Q_EVT_CAST(CalcEvt)-&gt;key_code);</action>
-        <tran_glyph conn="12,52,3,3,16,-6,2">
+        <tran_glyph conn="14,55,3,3,16,-6,2">
          <action box="0,-2,9,2"/>
         </tran_glyph>
        </tran>
-       <!--${SMs::Calc::SM::on::operand1::zero1::POINT}-->
-       <tran trig="POINT" target="../../5">
-        <action>BSP_insert((int)'0');
-BSP_insert((int)'.');</action>
-        <tran_glyph conn="14,57,2,2,2,40,-2">
-         <action box="1,0,6,2"/>
-        </tran_glyph>
-       </tran>
-       <state_glyph node="12,44,14,13">
+       <state_glyph node="14,46,14,14">
         <entry box="0,3,5,2"/>
         <exit box="0,5,5,2"/>
        </state_glyph>
       </state>
-      <!--${SMs::Calc::SM::on::operand1::int1}-->
-      <state name="int1">
-       <entry>BSP_message(&quot;int1-ENTRY;&quot;);</entry>
-       <exit>BSP_message(&quot;int1-EXIT;&quot;);</exit>
-       <!--${SMs::Calc::SM::on::operand1::int1::POINT}-->
-       <tran trig="POINT" target="../../5">
+      <!--${SMs::Calc::SM::on::operand::intg}-->
+      <state name="intg">
+       <entry>BSP_message(&quot;intg-ENTRY;&quot;);</entry>
+       <exit>BSP_message(&quot;intg-EXIT;&quot;);</exit>
+       <!--${SMs::Calc::SM::on::operand::intg::POINT}-->
+       <tran trig="POINT" target="../../8">
         <action>BSP_insert((int)'.');</action>
-        <tran_glyph conn="30,52,3,3,16,-6,2">
+        <tran_glyph conn="32,55,3,3,16,-6,2">
          <action box="0,-2,6,2"/>
         </tran_glyph>
        </tran>
-       <!--${SMs::Calc::SM::on::operand1::int1::DIGIT_0, DIGIT_1_9}-->
+       <!--${SMs::Calc::SM::on::operand::intg::DIGIT_0, DIGIT_1_9}-->
        <tran trig="DIGIT_0, DIGIT_1_9">
         <action>BSP_insert(Q_EVT_CAST(CalcEvt)-&gt;key_code);</action>
-        <tran_glyph conn="30,55,3,-1,10">
-         <action box="0,-2,14,2"/>
+        <tran_glyph conn="32,58,3,-1,10">
+         <action box="0,-2,18,2"/>
         </tran_glyph>
        </tran>
-       <state_glyph node="30,44,14,13">
+       <state_glyph node="32,46,14,14">
         <entry box="0,3,5,2"/>
         <exit box="0,5,5,2"/>
        </state_glyph>
       </state>
-      <!--${SMs::Calc::SM::on::operand1::frac1}-->
-      <state name="frac1">
-       <entry>BSP_message(&quot;frac1-ENTRY;&quot;);</entry>
-       <exit>BSP_message(&quot;frac1-EXIT;&quot;);</exit>
-       <!--${SMs::Calc::SM::on::operand1::frac1::POINT}-->
+      <!--${SMs::Calc::SM::on::operand::frac}-->
+      <state name="frac">
+       <entry>BSP_message(&quot;frac-ENTRY;&quot;);</entry>
+       <exit>BSP_message(&quot;frac-EXIT;&quot;);</exit>
+       <!--${SMs::Calc::SM::on::operand::frac::POINT}-->
        <tran trig="POINT">
         <action>;</action>
-        <tran_glyph conn="48,55,3,-1,10">
+        <tran_glyph conn="50,58,3,-1,10">
          <action box="0,-2,6,2"/>
         </tran_glyph>
        </tran>
-       <!--${SMs::Calc::SM::on::operand1::frac1::DIGIT_0, DIGIT_1_9}-->
+       <!--${SMs::Calc::SM::on::operand::frac::DIGIT_0, DIGIT_1_9}-->
        <tran trig="DIGIT_0, DIGIT_1_9">
         <action>BSP_insert(Q_EVT_CAST(CalcEvt)-&gt;key_code);</action>
-        <tran_glyph conn="48,52,3,-1,10">
+        <tran_glyph conn="50,55,3,-1,10">
          <action box="0,-2,15,2"/>
         </tran_glyph>
        </tran>
-       <state_glyph node="48,44,14,13">
+       <state_glyph node="50,46,14,14">
         <entry box="0,3,5,2"/>
         <exit box="0,5,5,2"/>
        </state_glyph>
       </state>
-      <!--${SMs::Calc::SM::on::operand1::negated1}-->
-      <state name="negated1">
-       <entry>BSP_message(&quot;negated1-ENTRY;&quot;);
+      <!--${SMs::Calc::SM::on::operand::neg}-->
+      <state name="neg">
+       <entry>BSP_message(&quot;neg-ENTRY;&quot;);
 BSP_negate();</entry>
-       <exit>BSP_message(&quot;negated1-EXIT;&quot;);</exit>
-       <!--${SMs::Calc::SM::on::operand1::negated1::DIGIT_0}-->
-       <tran trig="DIGIT_0" target="../../3">
-        <action>BSP_insert(Q_EVT_CAST(CalcEvt)-&gt;key_code);</action>
-        <tran_glyph conn="66,56,2,2,4,-44,-3">
-         <action box="0,0,6,2"/>
-        </tran_glyph>
-       </tran>
-       <!--${SMs::Calc::SM::on::operand1::negated1::DIGIT_1_9}-->
-       <tran trig="DIGIT_1_9" target="../../4">
-        <action>BSP_insert(Q_EVT_CAST(CalcEvt)-&gt;key_code);</action>
-        <tran_glyph conn="73,56,2,2,5,-35,-4">
-         <action box="0,0,9,2"/>
-        </tran_glyph>
-       </tran>
-       <!--${SMs::Calc::SM::on::operand1::negated1::POINT}-->
-       <tran trig="POINT" target="../../5">
-        <action>BSP_insert(Q_EVT_CAST(CalcEvt)-&gt;key_code);</action>
-        <tran_glyph conn="81,56,2,2,6,-25,-5">
-         <action box="1,0,6,2"/>
-        </tran_glyph>
-       </tran>
-       <!--${SMs::Calc::SM::on::operand1::negated1::OPER}-->
+       <exit>BSP_message(&quot;neg-EXIT;&quot;);</exit>
+       <!--${SMs::Calc::SM::on::operand::neg::OPER}-->
        <tran trig="OPER">
-        <!--${SMs::Calc::SM::on::operand1::negated1::OPER::[else]}-->
+        <!--${SMs::Calc::SM::on::operand::neg::OPER::[else]}-->
         <choice>
          <guard>else</guard>
-         <choice_glyph conn="74,52,4,-1,-4,8">
+         <choice_glyph conn="76,57,4,-1,-4,8">
           <action box="1,-4,6,2"/>
          </choice_glyph>
         </choice>
-        <!--${SMs::Calc::SM::on::operand1::negated1::OPER::[e->key=='-']}-->
+        <!--${SMs::Calc::SM::on::operand::neg::OPER::[e->key=='-']}-->
         <choice>
          <guard brief="e-&gt;key == '-'">Q_EVT_CAST(CalcEvt)-&gt;key_code == KEY_MINUS</guard>
          <action>;</action>
-         <choice_glyph conn="74,52,5,-1,8">
+         <choice_glyph conn="76,57,5,-1,8">
           <action box="1,0,11,2"/>
          </choice_glyph>
         </choice>
-        <tran_glyph conn="64,52,3,-1,10">
+        <tran_glyph conn="66,57,3,-1,10">
          <action box="0,-2,6,2"/>
         </tran_glyph>
        </tran>
-       <state_glyph node="64,44,22,12">
+       <state_glyph node="66,46,22,14">
         <entry box="0,3,5,2"/>
         <exit box="0,5,5,2"/>
        </state_glyph>
       </state>
-      <state_glyph node="8,38,80,26">
+      <state_glyph node="10,40,80,26">
        <entry box="0,3,5,2"/>
        <exit box="0,5,5,2"/>
       </state_glyph>
@@ -460,64 +463,55 @@ BSP_negate();</entry>
       <entry>BSP_message(&quot;opEntered-ENTRY;&quot;);</entry>
       <exit>BSP_message(&quot;opEntered-EXIT;&quot;);</exit>
       <!--${SMs::Calc::SM::on::opEntered::DIGIT_0}-->
-      <tran trig="DIGIT_0" target="../../4/3">
+      <tran trig="DIGIT_0" target="../../5/6">
        <action>BSP_clear();</action>
-       <tran_glyph conn="36,68,0,2,-2,-12,-9">
-        <action box="1,0,6,2"/>
+       <tran_glyph conn="37,70,0,2,-6,-11,-4">
+        <action box="-7,-2,9,2"/>
        </tran_glyph>
       </tran>
       <!--${SMs::Calc::SM::on::opEntered::DIGIT_1_9}-->
-      <tran trig="DIGIT_1_9" target="../../4/4">
+      <tran trig="DIGIT_1_9" target="../../5/7">
        <action>BSP_clear();
 BSP_insert(Q_EVT_CAST(CalcEvt)-&gt;key_code);</action>
-       <tran_glyph conn="40,68,0,2,-11">
-        <action box="1,-2,9,2"/>
+       <tran_glyph conn="40,70,0,2,-10">
+        <action box="0,-2,12,2"/>
        </tran_glyph>
       </tran>
       <!--${SMs::Calc::SM::on::opEntered::POINT}-->
-      <tran trig="POINT" target="../../4/5">
+      <tran trig="POINT" target="../../5/8">
        <action>BSP_clear();
 BSP_insert((int)'0');
 BSP_insert((int)'.');</action>
-       <tran_glyph conn="58,68,0,2,-11">
-        <action box="1,-2,6,2"/>
+       <tran_glyph conn="56,70,0,2,-10">
+        <action box="0,-2,9,2"/>
        </tran_glyph>
       </tran>
       <!--${SMs::Calc::SM::on::opEntered::OPER}-->
       <tran trig="OPER">
        <!--${SMs::Calc::SM::on::opEntered::OPER::[e->key=='-']}-->
-       <choice target="../../../4/6">
+       <choice target="../../../5/9">
         <guard brief="e-&gt;key == '-'">Q_EVT_CAST(CalcEvt)-&gt;key_code == KEY_MINUS</guard>
-        <choice_glyph conn="41,78,5,1,51,-32,-6">
+        <choice_glyph conn="42,80,5,1,52,-31,-6">
          <action box="1,0,11,2"/>
         </choice_glyph>
        </choice>
        <!--${SMs::Calc::SM::on::opEntered::OPER::[else]}-->
        <choice>
         <guard>else</guard>
-        <choice_glyph conn="41,78,4,-1,-4,4">
+        <choice_glyph conn="42,80,4,-1,-4,4">
          <action box="1,-3,6,2"/>
         </choice_glyph>
        </choice>
-       <tran_glyph conn="32,78,3,-1,9">
+       <tran_glyph conn="34,80,3,-1,8">
         <action box="0,-2,6,2"/>
        </tran_glyph>
       </tran>
-      <state_glyph node="32,68,33,16">
+      <state_glyph node="34,70,32,16">
        <entry box="0,3,5,2"/>
        <exit box="0,5,5,2"/>
       </state_glyph>
      </state>
-     <!--${SMs::Calc::SM::on::error}-->
-     <state name="error">
-      <entry>BSP_message(&quot;error-ENTRY;&quot;);</entry>
-      <exit>BSP_message(&quot;error-EXIT;&quot;);</exit>
-      <state_glyph node="11,68,7,8">
-       <entry box="0,3,5,2"/>
-       <exit box="0,5,5,2"/>
-      </state_glyph>
-     </state>
-     <state_glyph node="2,4,92,82">
+     <state_glyph node="2,4,94,84">
       <entry box="0,3,5,2"/>
       <exit box="0,5,5,2"/>
      </state_glyph>
@@ -526,11 +520,11 @@ BSP_insert((int)'.');</action>
     <state name="final">
      <entry>BSP_message(&quot;final-ENTRY;&quot;);
 BSP_exit();</entry>
-     <state_glyph node="2,88,17,6">
+     <state_glyph node="2,90,17,6">
       <entry box="0,3,5,2"/>
      </state_glyph>
     </state>
-    <state_diagram size="98,96"/>
+    <state_diagram size="100,98"/>
    </statechart>
   </class>
   <!--${SMs::the_calc}-->

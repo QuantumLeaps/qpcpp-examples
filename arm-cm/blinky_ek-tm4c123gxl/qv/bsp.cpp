@@ -26,7 +26,7 @@
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"             // QP/C++ real-time embedded framework
+#include "qpcpp.hpp"             // QP/C++ real-time event framework
 #include "blinky.hpp"            // Blinky Application interface
 #include "bsp.hpp"               // Board Support Package
 

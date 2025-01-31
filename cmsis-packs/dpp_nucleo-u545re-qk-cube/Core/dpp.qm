@@ -453,7 +453,7 @@ extern QP::QXMutex TH_mutex;
  <directory name="Src">
   <!--${Src::philo.cpp}-->
   <file name="philo.cpp">
-   <text>#include &quot;qpcpp.hpp&quot;             // QP/C++ real-time embedded framework
+   <text>#include &quot;qpcpp.hpp&quot;             // QP/C++ real-time event framework
 #include &quot;dpp.hpp&quot;               // DPP Application interface
 #include &quot;bsp.hpp&quot;               // Board Support Package
 
@@ -484,7 +484,7 @@ $define ${AOs::Philo}</text>
   </file>
   <!--${Src::table.cpp}-->
   <file name="table.cpp">
-   <text>#include &quot;qpcpp.hpp&quot;             // QP/C++ real-time embedded framework
+   <text>#include &quot;qpcpp.hpp&quot;             // QP/C++ real-time event framework
 #include &quot;dpp.hpp&quot;               // DPP Application interface
 #include &quot;bsp.hpp&quot;               // Board Support Package
 

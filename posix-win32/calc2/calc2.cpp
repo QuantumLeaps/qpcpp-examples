@@ -74,16 +74,17 @@ public:
 protected:
     Q_STATE_DECL(initial);
     Q_STATE_DECL(on);
-    Q_STATE_DECL(ready);
-    Q_STATE_DECL(begin);
-    Q_STATE_DECL(result);
-    Q_STATE_DECL(operand1);
-    Q_STATE_DECL(zero1);
-    Q_STATE_DECL(int1);
-    Q_STATE_DECL(frac1);
-    Q_STATE_DECL(negated1);
-    Q_STATE_DECL(opEntered);
+    // Error state after evaluation of an expression.
     Q_STATE_DECL(error);
+    Q_STATE_DECL(ready);
+    Q_STATE_DECL(result);
+    Q_STATE_DECL(begin);
+    Q_STATE_DECL(operand);
+    Q_STATE_DECL(zero);
+    Q_STATE_DECL(intg);
+    Q_STATE_DECL(frac);
+    Q_STATE_DECL(neg);
+    Q_STATE_DECL(opEntered);
     Q_STATE_DECL(final);
 }; // class Calc
 //$enddecl${SMs::Calc} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -208,22 +209,7 @@ bool Calc::eval(
 //${SMs::Calc::SM} ...........................................................
 Q_STATE_DEF(Calc, initial) {
     //${SMs::Calc::SM::initial}
-    BSP_clear();
-    (void)e; /* unused parameter */
-
-    QS_FUN_DICTIONARY(&Calc::on);
-    QS_FUN_DICTIONARY(&Calc::ready);
-    QS_FUN_DICTIONARY(&Calc::begin);
-    QS_FUN_DICTIONARY(&Calc::result);
-    QS_FUN_DICTIONARY(&Calc::operand1);
-    QS_FUN_DICTIONARY(&Calc::zero1);
-    QS_FUN_DICTIONARY(&Calc::int1);
-    QS_FUN_DICTIONARY(&Calc::frac1);
-    QS_FUN_DICTIONARY(&Calc::negated1);
-    QS_FUN_DICTIONARY(&Calc::opEntered);
-    QS_FUN_DICTIONARY(&Calc::error);
-    QS_FUN_DICTIONARY(&Calc::final);
-
+    Q_UNUSED_PAR(e);
     return tran(&on);
 }
 
@@ -246,12 +232,12 @@ Q_STATE_DEF(Calc, on) {
         //${SMs::Calc::SM::on::initial}
         case Q_INIT_SIG: {
             BSP_message("on-INIT;");
+            BSP_clear();
             status_ = tran(&ready);
             break;
         }
         //${SMs::Calc::SM::on::C}
         case C_SIG: {
-            BSP_clear();
             status_ = tran(&on);
             break;
         }
@@ -262,6 +248,30 @@ Q_STATE_DEF(Calc, on) {
         }
         default: {
             status_ = super(&top);
+            break;
+        }
+    }
+    return status_;
+}
+
+//${SMs::Calc::SM::on::error} ................................................
+Q_STATE_DEF(Calc, error) {
+    QP::QState status_;
+    switch (e->sig) {
+        //${SMs::Calc::SM::on::error}
+        case Q_ENTRY_SIG: {
+            BSP_message("error-ENTRY;");
+            status_ = Q_RET_HANDLED;
+            break;
+        }
+        //${SMs::Calc::SM::on::error}
+        case Q_EXIT_SIG: {
+            BSP_message("error-EXIT;");
+            status_ = Q_RET_HANDLED;
+            break;
+        }
+        default: {
+            status_ = super(&on);
             break;
         }
     }
@@ -295,14 +305,14 @@ Q_STATE_DEF(Calc, ready) {
         //${SMs::Calc::SM::on::ready::DIGIT_0}
         case DIGIT_0_SIG: {
             BSP_clear();
-            status_ = tran(&zero1);
+            status_ = tran(&zero);
             break;
         }
         //${SMs::Calc::SM::on::ready::DIGIT_1_9}
         case DIGIT_1_9_SIG: {
             BSP_clear();
             BSP_insert(Q_EVT_CAST(CalcEvt)->key_code);
-            status_ = tran(&int1);
+            status_ = tran(&intg);
             break;
         }
         //${SMs::Calc::SM::on::ready::POINT}
@@ -310,54 +320,18 @@ Q_STATE_DEF(Calc, ready) {
             BSP_clear();
             BSP_insert((int)'0');
             BSP_insert((int)'.');
-            status_ = tran(&frac1);
+            status_ = tran(&frac);
             break;
         }
         //${SMs::Calc::SM::on::ready::OPER}
         case OPER_SIG: {
-            m_op1  = BSP_get_value();
+            m_op1 = BSP_get_value();
             m_oper1 = Q_EVT_CAST(CalcEvt)->key_code;
             status_ = tran(&opEntered);
             break;
         }
         default: {
             status_ = super(&on);
-            break;
-        }
-    }
-    return status_;
-}
-
-//${SMs::Calc::SM::on::ready::begin} .........................................
-Q_STATE_DEF(Calc, begin) {
-    QP::QState status_;
-    switch (e->sig) {
-        //${SMs::Calc::SM::on::ready::begin}
-        case Q_ENTRY_SIG: {
-            BSP_message("begin-ENTRY;");
-            status_ = Q_RET_HANDLED;
-            break;
-        }
-        //${SMs::Calc::SM::on::ready::begin}
-        case Q_EXIT_SIG: {
-            BSP_message("begin-EXIT;");
-            status_ = Q_RET_HANDLED;
-            break;
-        }
-        //${SMs::Calc::SM::on::ready::begin::OPER}
-        case OPER_SIG: {
-            //${SMs::Calc::SM::on::ready::begin::OPER::[e->key=='-']}
-            if (Q_EVT_CAST(CalcEvt)->key_code == KEY_MINUS) {
-                status_ = tran(&negated1);
-            }
-            //${SMs::Calc::SM::on::ready::begin::OPER::[else]}
-            else {
-                status_ = Q_RET_HANDLED;
-            }
-            break;
-        }
-        default: {
-            status_ = super(&ready);
             break;
         }
     }
@@ -388,50 +362,104 @@ Q_STATE_DEF(Calc, result) {
     return status_;
 }
 
-//${SMs::Calc::SM::on::operand1} .............................................
-Q_STATE_DEF(Calc, operand1) {
+//${SMs::Calc::SM::on::ready::begin} .........................................
+Q_STATE_DEF(Calc, begin) {
     QP::QState status_;
     switch (e->sig) {
-        //${SMs::Calc::SM::on::operand1}
+        //${SMs::Calc::SM::on::ready::begin}
+        case Q_ENTRY_SIG: {
+            BSP_message("begin-ENTRY;");
+            status_ = Q_RET_HANDLED;
+            break;
+        }
+        //${SMs::Calc::SM::on::ready::begin}
+        case Q_EXIT_SIG: {
+            BSP_message("begin-EXIT;");
+            status_ = Q_RET_HANDLED;
+            break;
+        }
+        //${SMs::Calc::SM::on::ready::begin::OPER}
+        case OPER_SIG: {
+            //${SMs::Calc::SM::on::ready::begin::OPER::[e->key=='-']}
+            if (Q_EVT_CAST(CalcEvt)->key_code == KEY_MINUS) {
+                status_ = tran(&neg);
+            }
+            //${SMs::Calc::SM::on::ready::begin::OPER::[else]}
+            else {
+                status_ = Q_RET_HANDLED;
+            }
+            break;
+        }
+        default: {
+            status_ = super(&ready);
+            break;
+        }
+    }
+    return status_;
+}
+
+//${SMs::Calc::SM::on::operand} ..............................................
+Q_STATE_DEF(Calc, operand) {
+    QP::QState status_;
+    switch (e->sig) {
+        //${SMs::Calc::SM::on::operand}
         case Q_ENTRY_SIG: {
             BSP_message("operand1-ENTRY;");
             status_ = Q_RET_HANDLED;
             break;
         }
-        //${SMs::Calc::SM::on::operand1}
+        //${SMs::Calc::SM::on::operand}
         case Q_EXIT_SIG: {
             BSP_message("operand1-EXIT;");
             status_ = Q_RET_HANDLED;
             break;
         }
-        //${SMs::Calc::SM::on::operand1::CE}
+        //${SMs::Calc::SM::on::operand::CE}
         case CE_SIG: {
             BSP_clear();
             status_ = tran(&ready);
             break;
         }
-        //${SMs::Calc::SM::on::operand1::OPER}
-        case OPER_SIG: {
-            //${SMs::Calc::SM::on::operand1::OPER::[eval()]}
-            if (eval(BSP_get_value(), Q_EVT_CAST(CalcEvt)->key_code)) {
-                status_ = tran(&opEntered);
+        //${SMs::Calc::SM::on::operand::EQUALS}
+        case EQUALS_SIG: {
+            //${SMs::Calc::SM::on::operand::EQUALS::[Calc_eval()]}
+            if (eval(BSP_get_value(), KEY_NULL)) {
+                status_ = tran(&result);
             }
-            //${SMs::Calc::SM::on::operand1::OPER::[else]}
+            //${SMs::Calc::SM::on::operand::EQUALS::[else]}
             else {
                 status_ = tran(&error);
             }
             break;
         }
-        //${SMs::Calc::SM::on::operand1::EQUALS}
-        case EQUALS_SIG: {
-            //${SMs::Calc::SM::on::operand1::EQUALS::[eval()]}
-            if (eval(BSP_get_value(), KEY_NULL)) {
-                status_ = tran(&result);
+        //${SMs::Calc::SM::on::operand::OPER}
+        case OPER_SIG: {
+            //${SMs::Calc::SM::on::operand::OPER::[Calc_eval()]}
+            if (eval(BSP_get_value(), Q_EVT_CAST(CalcEvt)->key_code)) {
+                status_ = tran(&opEntered);
             }
-            //${SMs::Calc::SM::on::operand1::EQUALS::[else]}
+            //${SMs::Calc::SM::on::operand::OPER::[else]}
             else {
                 status_ = tran(&error);
             }
+            break;
+        }
+        //${SMs::Calc::SM::on::operand::POINT}
+        case POINT_SIG: {
+            BSP_insert(Q_EVT_CAST(CalcEvt)->key_code);
+            status_ = tran(&frac);
+            break;
+        }
+        //${SMs::Calc::SM::on::operand::DIGIT_0}
+        case DIGIT_0_SIG: {
+            BSP_insert(Q_EVT_CAST(CalcEvt)->key_code);
+            status_ = tran(&zero);
+            break;
+        }
+        //${SMs::Calc::SM::on::operand::DIGIT_1_9}
+        case DIGIT_1_9_SIG: {
+            BSP_insert(Q_EVT_CAST(CalcEvt)->key_code);
+            status_ = tran(&intg);
             break;
         }
         default: {
@@ -442,72 +470,65 @@ Q_STATE_DEF(Calc, operand1) {
     return status_;
 }
 
-//${SMs::Calc::SM::on::operand1::zero1} ......................................
-Q_STATE_DEF(Calc, zero1) {
+//${SMs::Calc::SM::on::operand::zero} ........................................
+Q_STATE_DEF(Calc, zero) {
     QP::QState status_;
     switch (e->sig) {
-        //${SMs::Calc::SM::on::operand1::zero1}
+        //${SMs::Calc::SM::on::operand::zero}
         case Q_ENTRY_SIG: {
-            BSP_message("zero1-ENTRY;");
+            BSP_message("zero-ENTRY;");
             status_ = Q_RET_HANDLED;
             break;
         }
-        //${SMs::Calc::SM::on::operand1::zero1}
+        //${SMs::Calc::SM::on::operand::zero}
         case Q_EXIT_SIG: {
-            BSP_message("zero1-EXIT;");
+            BSP_message("zero-EXIT;");
             status_ = Q_RET_HANDLED;
             break;
         }
-        //${SMs::Calc::SM::on::operand1::zero1::DIGIT_0}
+        //${SMs::Calc::SM::on::operand::zero::DIGIT_0}
         case DIGIT_0_SIG: {
             ;
             status_ = Q_RET_HANDLED;
             break;
         }
-        //${SMs::Calc::SM::on::operand1::zero1::DIGIT_1_9}
+        //${SMs::Calc::SM::on::operand::zero::DIGIT_1_9}
         case DIGIT_1_9_SIG: {
             BSP_insert(Q_EVT_CAST(CalcEvt)->key_code);
-            status_ = tran(&int1);
-            break;
-        }
-        //${SMs::Calc::SM::on::operand1::zero1::POINT}
-        case POINT_SIG: {
-            BSP_insert((int)'0');
-            BSP_insert((int)'.');
-            status_ = tran(&frac1);
+            status_ = tran(&intg);
             break;
         }
         default: {
-            status_ = super(&operand1);
+            status_ = super(&operand);
             break;
         }
     }
     return status_;
 }
 
-//${SMs::Calc::SM::on::operand1::int1} .......................................
-Q_STATE_DEF(Calc, int1) {
+//${SMs::Calc::SM::on::operand::intg} ........................................
+Q_STATE_DEF(Calc, intg) {
     QP::QState status_;
     switch (e->sig) {
-        //${SMs::Calc::SM::on::operand1::int1}
+        //${SMs::Calc::SM::on::operand::intg}
         case Q_ENTRY_SIG: {
-            BSP_message("int1-ENTRY;");
+            BSP_message("intg-ENTRY;");
             status_ = Q_RET_HANDLED;
             break;
         }
-        //${SMs::Calc::SM::on::operand1::int1}
+        //${SMs::Calc::SM::on::operand::intg}
         case Q_EXIT_SIG: {
-            BSP_message("int1-EXIT;");
+            BSP_message("intg-EXIT;");
             status_ = Q_RET_HANDLED;
             break;
         }
-        //${SMs::Calc::SM::on::operand1::int1::POINT}
+        //${SMs::Calc::SM::on::operand::intg::POINT}
         case POINT_SIG: {
             BSP_insert((int)'.');
-            status_ = tran(&frac1);
+            status_ = tran(&frac);
             break;
         }
-        //${SMs::Calc::SM::on::operand1::int1::DIGIT_0, DIGIT_1_9}
+        //${SMs::Calc::SM::on::operand::intg::DIGIT_0, DIGIT_1_9}
         case DIGIT_0_SIG: // intentionally fall through
         case DIGIT_1_9_SIG: {
             BSP_insert(Q_EVT_CAST(CalcEvt)->key_code);
@@ -515,36 +536,36 @@ Q_STATE_DEF(Calc, int1) {
             break;
         }
         default: {
-            status_ = super(&operand1);
+            status_ = super(&operand);
             break;
         }
     }
     return status_;
 }
 
-//${SMs::Calc::SM::on::operand1::frac1} ......................................
-Q_STATE_DEF(Calc, frac1) {
+//${SMs::Calc::SM::on::operand::frac} ........................................
+Q_STATE_DEF(Calc, frac) {
     QP::QState status_;
     switch (e->sig) {
-        //${SMs::Calc::SM::on::operand1::frac1}
+        //${SMs::Calc::SM::on::operand::frac}
         case Q_ENTRY_SIG: {
-            BSP_message("frac1-ENTRY;");
+            BSP_message("frac-ENTRY;");
             status_ = Q_RET_HANDLED;
             break;
         }
-        //${SMs::Calc::SM::on::operand1::frac1}
+        //${SMs::Calc::SM::on::operand::frac}
         case Q_EXIT_SIG: {
-            BSP_message("frac1-EXIT;");
+            BSP_message("frac-EXIT;");
             status_ = Q_RET_HANDLED;
             break;
         }
-        //${SMs::Calc::SM::on::operand1::frac1::POINT}
+        //${SMs::Calc::SM::on::operand::frac::POINT}
         case POINT_SIG: {
             ;
             status_ = Q_RET_HANDLED;
             break;
         }
-        //${SMs::Calc::SM::on::operand1::frac1::DIGIT_0, DIGIT_1_9}
+        //${SMs::Calc::SM::on::operand::frac::DIGIT_0, DIGIT_1_9}
         case DIGIT_0_SIG: // intentionally fall through
         case DIGIT_1_9_SIG: {
             BSP_insert(Q_EVT_CAST(CalcEvt)->key_code);
@@ -552,63 +573,45 @@ Q_STATE_DEF(Calc, frac1) {
             break;
         }
         default: {
-            status_ = super(&operand1);
+            status_ = super(&operand);
             break;
         }
     }
     return status_;
 }
 
-//${SMs::Calc::SM::on::operand1::negated1} ...................................
-Q_STATE_DEF(Calc, negated1) {
+//${SMs::Calc::SM::on::operand::neg} .........................................
+Q_STATE_DEF(Calc, neg) {
     QP::QState status_;
     switch (e->sig) {
-        //${SMs::Calc::SM::on::operand1::negated1}
+        //${SMs::Calc::SM::on::operand::neg}
         case Q_ENTRY_SIG: {
-            BSP_message("negated1-ENTRY;");
+            BSP_message("neg-ENTRY;");
             BSP_negate();
             status_ = Q_RET_HANDLED;
             break;
         }
-        //${SMs::Calc::SM::on::operand1::negated1}
+        //${SMs::Calc::SM::on::operand::neg}
         case Q_EXIT_SIG: {
-            BSP_message("negated1-EXIT;");
+            BSP_message("neg-EXIT;");
             status_ = Q_RET_HANDLED;
             break;
         }
-        //${SMs::Calc::SM::on::operand1::negated1::DIGIT_0}
-        case DIGIT_0_SIG: {
-            BSP_insert(Q_EVT_CAST(CalcEvt)->key_code);
-            status_ = tran(&zero1);
-            break;
-        }
-        //${SMs::Calc::SM::on::operand1::negated1::DIGIT_1_9}
-        case DIGIT_1_9_SIG: {
-            BSP_insert(Q_EVT_CAST(CalcEvt)->key_code);
-            status_ = tran(&int1);
-            break;
-        }
-        //${SMs::Calc::SM::on::operand1::negated1::POINT}
-        case POINT_SIG: {
-            BSP_insert(Q_EVT_CAST(CalcEvt)->key_code);
-            status_ = tran(&frac1);
-            break;
-        }
-        //${SMs::Calc::SM::on::operand1::negated1::OPER}
+        //${SMs::Calc::SM::on::operand::neg::OPER}
         case OPER_SIG: {
-            //${SMs::Calc::SM::on::operand1::negated1::OPER::[e->key=='-']}
+            //${SMs::Calc::SM::on::operand::neg::OPER::[e->key=='-']}
             if (Q_EVT_CAST(CalcEvt)->key_code == KEY_MINUS) {
                 ;
                 status_ = Q_RET_HANDLED;
             }
-            //${SMs::Calc::SM::on::operand1::negated1::OPER::[else]}
+            //${SMs::Calc::SM::on::operand::neg::OPER::[else]}
             else {
                 status_ = Q_RET_HANDLED;
             }
             break;
         }
         default: {
-            status_ = super(&operand1);
+            status_ = super(&operand);
             break;
         }
     }
@@ -634,14 +637,14 @@ Q_STATE_DEF(Calc, opEntered) {
         //${SMs::Calc::SM::on::opEntered::DIGIT_0}
         case DIGIT_0_SIG: {
             BSP_clear();
-            status_ = tran(&zero1);
+            status_ = tran(&zero);
             break;
         }
         //${SMs::Calc::SM::on::opEntered::DIGIT_1_9}
         case DIGIT_1_9_SIG: {
             BSP_clear();
             BSP_insert(Q_EVT_CAST(CalcEvt)->key_code);
-            status_ = tran(&int1);
+            status_ = tran(&intg);
             break;
         }
         //${SMs::Calc::SM::on::opEntered::POINT}
@@ -649,43 +652,19 @@ Q_STATE_DEF(Calc, opEntered) {
             BSP_clear();
             BSP_insert((int)'0');
             BSP_insert((int)'.');
-            status_ = tran(&frac1);
+            status_ = tran(&frac);
             break;
         }
         //${SMs::Calc::SM::on::opEntered::OPER}
         case OPER_SIG: {
             //${SMs::Calc::SM::on::opEntered::OPER::[e->key=='-']}
             if (Q_EVT_CAST(CalcEvt)->key_code == KEY_MINUS) {
-                status_ = tran(&negated1);
+                status_ = tran(&neg);
             }
             //${SMs::Calc::SM::on::opEntered::OPER::[else]}
             else {
                 status_ = Q_RET_HANDLED;
             }
-            break;
-        }
-        default: {
-            status_ = super(&on);
-            break;
-        }
-    }
-    return status_;
-}
-
-//${SMs::Calc::SM::on::error} ................................................
-Q_STATE_DEF(Calc, error) {
-    QP::QState status_;
-    switch (e->sig) {
-        //${SMs::Calc::SM::on::error}
-        case Q_ENTRY_SIG: {
-            BSP_message("error-ENTRY;");
-            status_ = Q_RET_HANDLED;
-            break;
-        }
-        //${SMs::Calc::SM::on::error}
-        case Q_EXIT_SIG: {
-            BSP_message("error-EXIT;");
-            status_ = Q_RET_HANDLED;
             break;
         }
         default: {
