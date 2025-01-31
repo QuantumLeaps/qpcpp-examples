@@ -35,12 +35,12 @@
 // <info@state-machine.com>
 //
 //$endhead${.::sporadic2.cpp} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-#include "qpcpp.hpp"           // QP/C++ real-time embedded framework
+#include "qpcpp.hpp"           // QP/C++ real-time event framework
 #include "bsp.hpp"             // Board Support Package
 #include "app.hpp"             // Application interface
 
 namespace {
-Q_DEFINE_THIS_MODULE("sporadic2")
+//Q_DEFINE_THIS_MODULE("sporadic2")
 }
 
 //$declare${AOs::Sporadic2} vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv

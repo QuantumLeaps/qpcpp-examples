@@ -99,7 +99,7 @@ Q_STATE_DEF(AlarmClock, initial) {
     m_current_time = 0U;
 
     // (!) trigger the initial transition in the component
-    m_alarm.init(m_prio);
+    m_alarm.init(getPrio());
 
     QS_FUN_DICTIONARY(&AlarmClock::timekeeping);
     QS_FUN_DICTIONARY(&AlarmClock::mode24h);
@@ -152,7 +152,7 @@ Q_STATE_DEF(AlarmClock, timekeeping) {
         case ALARM_ON_SIG: // intentionally fall through
         case ALARM_OFF_SIG: {
             // (!) synchronously dispatch to the orthogonal component
-            m_alarm.dispatch(e, m_prio);
+            m_alarm.dispatch(e, getPrio());
             status_ = Q_RET_HANDLED;
             break;
         }
@@ -192,7 +192,7 @@ Q_STATE_DEF(AlarmClock, mode24h) {
             TimeEvt const pe(TIME_SIG, m_current_time);
 
             // (!) synchronously dispatch to the orthogonal component
-            m_alarm.dispatch(&pe, m_prio);
+            m_alarm.dispatch(&pe, getPrio());
             status_ = Q_RET_HANDLED;
             break;
         }
@@ -226,7 +226,7 @@ Q_STATE_DEF(AlarmClock, mode12h) {
             TimeEvt const pe(TIME_SIG, m_current_time);
 
             // (!) synchronously dispatch to the orthogonal component
-            m_alarm.dispatch(&pe, m_prio);
+            m_alarm.dispatch(&pe, getPrio());
             status_ = Q_RET_HANDLED;
             break;
         }

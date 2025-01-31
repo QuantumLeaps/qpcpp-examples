@@ -103,7 +103,7 @@ extern QP::QXThread * const XT_thr; // global opaque pointer
  <directory name="Src">
   <!--${Src::blinky.cpp}-->
   <file name="blinky.cpp">
-   <text>#include &quot;qpcpp.hpp&quot;        // QP/C++ real-time embedded framework
+   <text>#include &quot;qpcpp.hpp&quot;        // QP/C++ real-time event framework
 #include &quot;blinky.hpp&quot;       // Blinky Application interface
 #include &quot;bsp.hpp&quot;          // Board Support Package
 

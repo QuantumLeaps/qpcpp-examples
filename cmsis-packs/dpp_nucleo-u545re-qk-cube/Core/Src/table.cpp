@@ -35,7 +35,7 @@
 // <info@state-machine.com>
 //
 //$endhead${Src::table.cpp} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-#include "qpcpp.hpp"             // QP/C++ real-time embedded framework
+#include "qpcpp.hpp"             // QP/C++ real-time event framework
 #include "dpp.hpp"               // DPP Application interface
 #include "bsp.hpp"               // Board Support Package
 

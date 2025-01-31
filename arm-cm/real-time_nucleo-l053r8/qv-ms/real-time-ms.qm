@@ -318,7 +318,7 @@ $declare ${Shared}
 #endif // APP_HPP_</text>
   </file>
   <file name="periodic1.cpp">
-   <text>#include &quot;qpcpp.hpp&quot;           // QP/C++ real-time embedded framework
+   <text>#include &quot;qpcpp.hpp&quot;           // QP/C++ real-time event framework
 #include &quot;bsp.hpp&quot;             // Board Support Package
 #include &quot;app.hpp&quot;             // Application interface
 
@@ -332,7 +332,7 @@ $define ${Shared::AO_Periodic1}
 $define ${AOs::Periodic1}</text>
   </file>
   <file name="periodic4.cpp">
-   <text>#include &quot;qpcpp.hpp&quot;           // QP/C++ real-time embedded framework
+   <text>#include &quot;qpcpp.hpp&quot;           // QP/C++ real-time event framework
 #include &quot;bsp.hpp&quot;             // Board Support Package
 #include &quot;app.hpp&quot;             // Application interface
 
@@ -346,7 +346,7 @@ $define ${Shared::AO_Periodic4}
 $define ${AOs::Periodic4}</text>
   </file>
   <file name="sporadic2.cpp">
-   <text>#include &quot;qpcpp.hpp&quot;           // QP/C++ real-time embedded framework
+   <text>#include &quot;qpcpp.hpp&quot;           // QP/C++ real-time event framework
 #include &quot;bsp.hpp&quot;             // Board Support Package
 #include &quot;app.hpp&quot;             // Application interface
 
@@ -360,7 +360,7 @@ $define ${Shared::AO_Sporadic2}
 $define ${AOs::Sporadic2}</text>
   </file>
   <file name="sporadic3.cpp">
-   <text>#include &quot;qpcpp.hpp&quot;           // QP/C++ real-time embedded framework
+   <text>#include &quot;qpcpp.hpp&quot;           // QP/C++ real-time event framework
 #include &quot;bsp.hpp&quot;             // Board Support Package
 #include &quot;app.hpp&quot;             // Application interface
 

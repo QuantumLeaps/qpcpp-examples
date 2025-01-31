@@ -53,7 +53,8 @@ INCLUDES := -I. \
 
 C_SRCS :=
 
-CPP_SRCS :=
+CPP_SRCS := \
+	test_qutest.cpp
 
 DEFINES  :=
 

@@ -28,8 +28,6 @@
 //============================================================================
 #include "qpcpp.hpp" // for QUTEST
 
-using namespace QP;
-
 Q_DEFINE_THIS_MODULE("test_qutest")
 
 //----------------------------------------------------------------------------
@@ -37,7 +35,7 @@ static uint8_t buffer[100];
 static uint32_t myFun(void);
 
 enum UsrEnum {
-    FIXTURE_SETUP = QS_USER,
+    FIXTURE_SETUP = QP::QS_USER,
     FIXTURE_TEARDOWN,
     COMMAND,
 };
@@ -52,7 +50,7 @@ enum CmdEnum {
 };
 
 enum UsrSig {
-    MYSIG_SIG = Q_USER_SIG,
+    MYSIG_SIG = QP::Q_USER_SIG,
 };
 
 //----------------------------------------------------------------------------
@@ -63,7 +61,7 @@ int main(int argc, char *argv[])
 int main(void)
 #endif
 {
-    QF::init();  // initialize the framework
+    QP::QF::init();  // initialize the framework
 
     // initialize the QS software tracing
 #ifdef Q_HOST
@@ -94,8 +92,11 @@ int main(void)
     QS_ENUM_DICTIONARY(CMD_Y, QS_CMD);
     QS_ENUM_DICTIONARY(CMD_Z, QS_CMD);
 
-    return QF::run(); // run the tests
+    return QP::QF::run(); // run the tests
 }
+
+//============================================================================
+namespace QP {
 
 //............................................................................
 void QS::onTestSetup(void) {
@@ -210,6 +211,8 @@ void QS::onTestPost(void const *sender, QActive *recipient,
     Q_UNUSED_PAR(e);
     Q_UNUSED_PAR(status);
 }
+
+} // namespace QP
 
 //----------------------------------------------------------------------------
 static uint32_t myFun(void) {
