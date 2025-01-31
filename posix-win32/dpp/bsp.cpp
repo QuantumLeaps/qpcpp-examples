@@ -1,7 +1,5 @@
 //============================================================================
 // Product: BSP for DPP example (console)
-// Last updated for version 8.0.0
-// Last updated on  2024-09-19
 //
 //                   Q u a n t u m  L e a P s
 //                   ------------------------
@@ -198,7 +196,8 @@ void QF::onStartup() {
 }
 //............................................................................
 void QF::onCleanup() {
-    PRINTF_S("\n%s\n", "Bye! Bye!");
+    PRINTF_S("\nBye! QTable queue-min=%d\n",
+             QActive::getQueueMin(APP::N_PHILO + 7U));
     consoleCleanup();
 }
 //............................................................................

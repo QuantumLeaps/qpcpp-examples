@@ -105,7 +105,7 @@ Q_STATE_DEF(Gizmo, initialize) {
         }
         //${AOs::Gizmo::SM::initialize::START}
         case START_SIG: {
-            QS_BEGIN_ID(QP::QS_USER1, m_prio)
+            QS_BEGIN_ID(QP::QS_USER1, getPrio())
                QS_STR("START");
             QS_END()
             //${AOs::Gizmo::SM::initialize::START::[BSP:getStatus()]}
