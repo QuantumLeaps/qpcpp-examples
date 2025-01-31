@@ -154,7 +154,7 @@ APP_alarmClock-&gt;POST(Q_NEW(QEvt, ALARM_SIG), this);</action>
 m_current_time = 0U;
 
 // (!) trigger the initial transition in the component
-m_alarm.init(m_prio);</action>
+m_alarm.init(getPrio());</action>
      <initial_glyph conn="2,4,5,1,44,6,-2">
       <action box="0,-2,6,2"/>
      </initial_glyph>
@@ -192,7 +192,7 @@ m_timeEvt.armX(BSP_TICKS_PER_SEC, BSP_TICKS_PER_SEC);</entry>
      <!--${Components::AlarmClock::SM::timekeeping::ALARM_SET, ALARM_ON, ALARM_OFF}-->
      <tran trig="ALARM_SET, ALARM_ON, ALARM_OFF">
       <action>// (!) synchronously dispatch to the orthogonal component
-m_alarm.dispatch(e, m_prio);</action>
+m_alarm.dispatch(e, getPrio());</action>
       <tran_glyph conn="2,24,3,-1,18">
        <action box="0,-2,11,6"/>
       </tran_glyph>
@@ -219,7 +219,7 @@ BSP_showTime24H(&quot;&quot;, m_current_time, 60U);
 TimeEvt const pe(TIME_SIG, m_current_time);
 
 // (!) synchronously dispatch to the orthogonal component
-m_alarm.dispatch(&amp;pe, m_prio);</action>
+m_alarm.dispatch(&amp;pe, getPrio());</action>
        <tran_glyph conn="4,46,3,-1,16">
         <action box="0,-2,8,2"/>
        </tran_glyph>
@@ -243,7 +243,7 @@ BSP_showTime12H(&quot;&quot;, m_current_time, 60U);
 TimeEvt const pe(TIME_SIG, m_current_time);
 
 // (!) synchronously dispatch to the orthogonal component
-m_alarm.dispatch(&amp;pe, m_prio);</action>
+m_alarm.dispatch(&amp;pe, getPrio());</action>
        <tran_glyph conn="4,60,3,-1,16">
         <action box="0,-2,8,2"/>
        </tran_glyph>
