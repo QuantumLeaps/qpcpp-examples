@@ -14,16 +14,16 @@
       <uAC6>1</uAC6>
       <TargetOption>
         <TargetCommonOption>
-          <Device>STM32L053R8Tx</Device>
+          <Device>STM32C031C6Tx</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32L0xx_DFP.2.2.0</PackID>
-          <PackURL>http://www.keil.com/pack/</PackURL>
-          <Cpu>IRAM(0x20000000,0x00002000) IROM(0x08000000,0x00010000) CPUTYPE("Cortex-M0+") CLOCK(12000000) ELITTLE</Cpu>
+          <PackID>Keil.STM32C0xx_DFP.1.0.0</PackID>
+          <PackURL>https://www.keil.com/pack/</PackURL>
+          <Cpu>IRAM(0x20000000,0x00003000) IROM(0x08000000,0x00008000) CPUTYPE("Cortex-M0+") CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
           <StartupFile></StartupFile>
-          <FlashDriverDll>UL2CM3(-S0 -C0 -P0 -FD20000000 -FC1000 -FN1 -FF0STM32L0xx_64 -FS08000000 -FL010000 -FP0($$Device:STM32L053R8Tx$Flash\STM32L0xx_64.FLM))</FlashDriverDll>
+          <FlashDriverDll>UL2CM3(-S0 -C0 -P0 -FD20000000 -FC1000 -FN1 -FF0STM32C0x_32 -FS08000000 -FL08000 -FP0($$Device:STM32C031C6Tx$CMSIS\Flash\STM32C0x_32.FLM))</FlashDriverDll>
           <DeviceId>0</DeviceId>
-          <RegisterFile>$$Device:STM32L053R8Tx$Device\Include\stm32l0xx.h</RegisterFile>
+          <RegisterFile>$$Device:STM32C031C6Tx$Drivers\CMSIS\Device\ST\STM32C0xx\Include\stm32c0xx.h</RegisterFile>
           <MemoryEnv></MemoryEnv>
           <Cmp></Cmp>
           <Asm></Asm>
@@ -33,7 +33,7 @@
           <SLE66CMisc></SLE66CMisc>
           <SLE66AMisc></SLE66AMisc>
           <SLE66LinkerMisc></SLE66LinkerMisc>
-          <SFDFile>$$Device:STM32L053R8Tx$SVD\STM32L053x.svd</SFDFile>
+          <SFDFile>$$Device:STM32C031C6Tx$CMSIS\SVD\STM32C031.svd</SFDFile>
           <bCustSvd>0</bCustSvd>
           <UseEnv>0</UseEnv>
           <BinPath></BinPath>
@@ -49,7 +49,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\dbg\</OutputDirectory>
-          <OutputName>rt-qv</OutputName>
+          <OutputName>rt-qv-tt</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>0</CreateHexFile>
@@ -82,7 +82,7 @@
           <AfterMake>
             <RunUserProg1>1</RunUserProg1>
             <RunUserProg2>0</RunUserProg2>
-            <UserProg1Name>fromelf --bin --output .\dbg\rt-qv.bin .\dbg\rt-qv.axf</UserProg1Name>
+            <UserProg1Name>fromelf --bin --output .\dbg\rt-qv-tt.bin .\dbg\rt-qv-tt.axf</UserProg1Name>
             <UserProg2Name></UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
@@ -110,11 +110,11 @@
         </CommonProperty>
         <DllOption>
           <SimDllName>SARMCM3.DLL</SimDllName>
-          <SimDllArguments> -REMAP </SimDllArguments>
+          <SimDllArguments> -REMAP-MPU </SimDllArguments>
           <SimDlgDll>DARMCM1.DLL</SimDlgDll>
           <SimDlgDllArguments>-pCM0+</SimDlgDllArguments>
           <TargetDllName>SARMCM3.DLL</TargetDllName>
-          <TargetDllArguments> </TargetDllArguments>
+          <TargetDllArguments>-MPU </TargetDllArguments>
           <TargetDlgDll>TARMCM1.DLL</TargetDlgDll>
           <TargetDlgDllArguments>-pCM0+</TargetDlgDllArguments>
         </DllOption>
@@ -247,12 +247,12 @@
               <IRAM>
                 <Type>0</Type>
                 <StartAddress>0x20000000</StartAddress>
-                <Size>0x2000</Size>
+                <Size>0x3000</Size>
               </IRAM>
               <IROM>
                 <Type>1</Type>
                 <StartAddress>0x8000000</StartAddress>
-                <Size>0x10000</Size>
+                <Size>0x8000</Size>
               </IROM>
               <XRAM>
                 <Type>0</Type>
@@ -277,7 +277,7 @@
               <OCR_RVCT4>
                 <Type>1</Type>
                 <StartAddress>0x8000000</StartAddress>
-                <Size>0x10000</Size>
+                <Size>0x8000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
                 <Type>1</Type>
@@ -302,7 +302,7 @@
               <OCR_RVCT9>
                 <Type>0</Type>
                 <StartAddress>0x20000000</StartAddress>
-                <Size>0x2000</Size>
+                <Size>0x3000</Size>
               </OCR_RVCT9>
               <OCR_RVCT10>
                 <Type>0</Type>
@@ -323,13 +323,13 @@
             <PlainCh>0</PlainCh>
             <Ropi>0</Ropi>
             <Rwpi>0</Rwpi>
-            <wLevel>3</wLevel>
+            <wLevel>2</wLevel>
             <uThumb>0</uThumb>
             <uSurpInc>0</uSurpInc>
             <uC99>0</uC99>
             <uGnu>0</uGnu>
             <useXO>0</useXO>
-            <v6Lang>3</v6Lang>
+            <v6Lang>5</v6Lang>
             <v6LangP>3</v6LangP>
             <vShortEn>0</vShortEn>
             <vShortWch>0</vShortWch>
@@ -338,9 +338,9 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>USE_SCHED_DISABLE</Define>
+              <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..;..\..\..\..\..\include;..\..\..\..\..\ports\arm-cm\qv\armclang;..\..\..\..\..\3rd_party\CMSIS\Include;..\..\..\..\..\3rd_party\nucleo-l053r8</IncludePath>
+              <IncludePath>..;..\..\..\..\..\include;..\..\..\..\..\ports\arm-cm\qv\armclang;..\..\..\..\..\3rd_party\CMSIS\Include;..\..\..\..\..\3rd_party\nucleo-c031c6</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -371,7 +371,7 @@
             <TextAddressRange>0x00000000</TextAddressRange>
             <DataAddressRange>0x20000000</DataAddressRange>
             <pXoBase></pXoBase>
-            <ScatterFile>rt-qv.sct</ScatterFile>
+            <ScatterFile>rt-qv-tt.sct</ScatterFile>
             <IncludeLibs></IncludeLibs>
             <IncludeLibsPath></IncludeLibsPath>
             <Misc>--entry Reset_Handler</Misc>
@@ -424,35 +424,40 @@
               <FileType>8</FileType>
               <FilePath>..\sporadic3.cpp</FilePath>
             </File>
+            <File>
+              <FileName>ttsched.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\ttsched.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
-          <GroupName>nucleo-l053r8</GroupName>
+          <GroupName>nucleo-c031c6</GroupName>
           <Files>
             <File>
-              <FileName>stm32l0xx.h</FileName>
+              <FileName>stm32c0xx.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\..\..\..\..\3rd_party\nucleo-l053r8\stm32l0xx.h</FilePath>
+              <FilePath>..\..\..\..\..\3rd_party\nucleo-c031c6\stm32c0xx.h</FilePath>
             </File>
             <File>
-              <FileName>stm32l053xx.h</FileName>
+              <FileName>stm32c031xx.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\..\..\..\..\3rd_party\nucleo-l053r8\stm32l053xx.h</FilePath>
+              <FilePath>..\..\..\..\..\3rd_party\nucleo-c031c6\stm32c031xx.h</FilePath>
             </File>
             <File>
-              <FileName>system_stm32l0xx.c</FileName>
+              <FileName>system_stm32c0xx.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\..\3rd_party\nucleo-l053r8\system_stm32l0xx.c</FilePath>
+              <FilePath>..\..\..\..\..\3rd_party\nucleo-c031c6\system_stm32c0xx.c</FilePath>
             </File>
             <File>
-              <FileName>system_stm32l0xx.h</FileName>
+              <FileName>system_stm32c0xx.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\..\..\..\..\3rd_party\nucleo-l053r8\system_stm32l0xx.h</FilePath>
+              <FilePath>..\..\..\..\..\3rd_party\nucleo-c031c6\system_stm32c0xx.h</FilePath>
             </File>
             <File>
-              <FileName>startup_stm32l053xx.s</FileName>
+              <FileName>startup_stm32c031xx.s</FileName>
               <FileType>2</FileType>
-              <FilePath>..\..\..\..\..\3rd_party\nucleo-l053r8\arm\startup_stm32l053xx.s</FilePath>
+              <FilePath>..\..\..\..\..\3rd_party\nucleo-c031c6\arm\startup_stm32c031xx.s</FilePath>
             </File>
           </Files>
         </Group>
@@ -641,20 +646,20 @@
       <TargetName>rt-rel</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>6160000::V6.16::ARMCLANG</pCCUsed>
+      <pCCUsed>6220000::V6.22::ARMCLANG</pCCUsed>
       <uAC6>1</uAC6>
       <TargetOption>
         <TargetCommonOption>
-          <Device>STM32L053R8Tx</Device>
+          <Device>STM32C031C6Tx</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32L0xx_DFP.2.2.0</PackID>
-          <PackURL>http://www.keil.com/pack/</PackURL>
-          <Cpu>IRAM(0x20000000,0x00002000) IROM(0x08000000,0x00010000) CPUTYPE("Cortex-M0+") CLOCK(12000000) ELITTLE</Cpu>
+          <PackID>Keil.STM32C0xx_DFP.1.0.0</PackID>
+          <PackURL>https://www.keil.com/pack/</PackURL>
+          <Cpu>IRAM(0x20000000,0x00003000) IROM(0x08000000,0x00008000) CPUTYPE("Cortex-M0+") CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
           <StartupFile></StartupFile>
-          <FlashDriverDll>UL2CM3(-S0 -C0 -P0 -FD20000000 -FC1000 -FN1 -FF0STM32L0xx_64 -FS08000000 -FL010000 -FP0($$Device:STM32L053R8Tx$Flash\STM32L0xx_64.FLM))</FlashDriverDll>
+          <FlashDriverDll>UL2CM3(-S0 -C0 -P0 -FD20000000 -FC1000 -FN1 -FF0STM32C0x_32 -FS08000000 -FL08000 -FP0($$Device:STM32C031C6Tx$CMSIS\Flash\STM32C0x_32.FLM))</FlashDriverDll>
           <DeviceId>0</DeviceId>
-          <RegisterFile>$$Device:STM32L053R8Tx$Device\Include\stm32l0xx.h</RegisterFile>
+          <RegisterFile>$$Device:STM32C031C6Tx$Drivers\CMSIS\Device\ST\STM32C0xx\Include\stm32c0xx.h</RegisterFile>
           <MemoryEnv></MemoryEnv>
           <Cmp></Cmp>
           <Asm></Asm>
@@ -664,7 +669,7 @@
           <SLE66CMisc></SLE66CMisc>
           <SLE66AMisc></SLE66AMisc>
           <SLE66LinkerMisc></SLE66LinkerMisc>
-          <SFDFile>$$Device:STM32L053R8Tx$SVD\STM32L053x.svd</SFDFile>
+          <SFDFile>$$Device:STM32C031C6Tx$CMSIS\SVD\STM32C031.svd</SFDFile>
           <bCustSvd>0</bCustSvd>
           <UseEnv>0</UseEnv>
           <BinPath></BinPath>
@@ -680,7 +685,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\rel\</OutputDirectory>
-          <OutputName>rt-qv</OutputName>
+          <OutputName>rt-qv-tt</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>0</CreateHexFile>
@@ -713,7 +718,7 @@
           <AfterMake>
             <RunUserProg1>1</RunUserProg1>
             <RunUserProg2>0</RunUserProg2>
-            <UserProg1Name>fromelf --bin --output .\rel\rt-qv.bin .\rel\rt-qv.axf</UserProg1Name>
+            <UserProg1Name>fromelf --bin --output .\rel\rt-qv-tt.bin .\rel\rt-qv-tt.axf</UserProg1Name>
             <UserProg2Name></UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
@@ -741,11 +746,11 @@
         </CommonProperty>
         <DllOption>
           <SimDllName>SARMCM3.DLL</SimDllName>
-          <SimDllArguments> -REMAP </SimDllArguments>
+          <SimDllArguments> -REMAP-MPU </SimDllArguments>
           <SimDlgDll>DARMCM1.DLL</SimDlgDll>
           <SimDlgDllArguments>-pCM0+</SimDlgDllArguments>
           <TargetDllName>SARMCM3.DLL</TargetDllName>
-          <TargetDllArguments> </TargetDllArguments>
+          <TargetDllArguments>-MPU </TargetDllArguments>
           <TargetDlgDll>TARMCM1.DLL</TargetDlgDll>
           <TargetDlgDllArguments>-pCM0+</TargetDlgDllArguments>
         </DllOption>
@@ -878,12 +883,12 @@
               <IRAM>
                 <Type>0</Type>
                 <StartAddress>0x20000000</StartAddress>
-                <Size>0x2000</Size>
+                <Size>0x3000</Size>
               </IRAM>
               <IROM>
                 <Type>1</Type>
                 <StartAddress>0x8000000</StartAddress>
-                <Size>0x10000</Size>
+                <Size>0x8000</Size>
               </IROM>
               <XRAM>
                 <Type>0</Type>
@@ -908,7 +913,7 @@
               <OCR_RVCT4>
                 <Type>1</Type>
                 <StartAddress>0x8000000</StartAddress>
-                <Size>0x10000</Size>
+                <Size>0x8000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
                 <Type>1</Type>
@@ -933,7 +938,7 @@
               <OCR_RVCT9>
                 <Type>0</Type>
                 <StartAddress>0x20000000</StartAddress>
-                <Size>0x2000</Size>
+                <Size>0x3000</Size>
               </OCR_RVCT9>
               <OCR_RVCT10>
                 <Type>0</Type>
@@ -954,13 +959,13 @@
             <PlainCh>0</PlainCh>
             <Ropi>0</Ropi>
             <Rwpi>0</Rwpi>
-            <wLevel>3</wLevel>
+            <wLevel>2</wLevel>
             <uThumb>0</uThumb>
             <uSurpInc>1</uSurpInc>
             <uC99>0</uC99>
             <uGnu>0</uGnu>
             <useXO>0</useXO>
-            <v6Lang>3</v6Lang>
+            <v6Lang>5</v6Lang>
             <v6LangP>3</v6LangP>
             <vShortEn>0</vShortEn>
             <vShortWch>0</vShortWch>
@@ -969,9 +974,9 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>NDEBUG,USE_SCHED_DISABLE</Define>
+              <Define>NDEBUG</Define>
               <Undefine></Undefine>
-              <IncludePath>..;..\..\..\..\..\include;..\..\..\..\..\ports\arm-cm\qv\armclang;..\..\..\..\..\3rd_party\CMSIS\Include;..\..\..\..\..\3rd_party\nucleo-l053r8</IncludePath>
+              <IncludePath>..;..\..\..\..\..\include;..\..\..\..\..\ports\arm-cm\qv\armclang;..\..\..\..\..\3rd_party\CMSIS\Include;..\..\..\..\..\3rd_party\nucleo-c031c6</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -1002,7 +1007,7 @@
             <TextAddressRange>0x00000000</TextAddressRange>
             <DataAddressRange>0x20000000</DataAddressRange>
             <pXoBase></pXoBase>
-            <ScatterFile>rt-qv.sct</ScatterFile>
+            <ScatterFile>rt-qv-tt.sct</ScatterFile>
             <IncludeLibs></IncludeLibs>
             <IncludeLibsPath></IncludeLibsPath>
             <Misc>--entry Reset_Handler</Misc>
@@ -1055,35 +1060,40 @@
               <FileType>8</FileType>
               <FilePath>..\sporadic3.cpp</FilePath>
             </File>
+            <File>
+              <FileName>ttsched.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\ttsched.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
-          <GroupName>nucleo-l053r8</GroupName>
+          <GroupName>nucleo-c031c6</GroupName>
           <Files>
             <File>
-              <FileName>stm32l0xx.h</FileName>
+              <FileName>stm32c0xx.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\..\..\..\..\3rd_party\nucleo-l053r8\stm32l0xx.h</FilePath>
+              <FilePath>..\..\..\..\..\3rd_party\nucleo-c031c6\stm32c0xx.h</FilePath>
             </File>
             <File>
-              <FileName>stm32l053xx.h</FileName>
+              <FileName>stm32c031xx.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\..\..\..\..\3rd_party\nucleo-l053r8\stm32l053xx.h</FilePath>
+              <FilePath>..\..\..\..\..\3rd_party\nucleo-c031c6\stm32c031xx.h</FilePath>
             </File>
             <File>
-              <FileName>system_stm32l0xx.c</FileName>
+              <FileName>system_stm32c0xx.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\..\3rd_party\nucleo-l053r8\system_stm32l0xx.c</FilePath>
+              <FilePath>..\..\..\..\..\3rd_party\nucleo-c031c6\system_stm32c0xx.c</FilePath>
             </File>
             <File>
-              <FileName>system_stm32l0xx.h</FileName>
+              <FileName>system_stm32c0xx.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\..\..\..\..\3rd_party\nucleo-l053r8\system_stm32l0xx.h</FilePath>
+              <FilePath>..\..\..\..\..\3rd_party\nucleo-c031c6\system_stm32c0xx.h</FilePath>
             </File>
             <File>
-              <FileName>startup_stm32l053xx.s</FileName>
+              <FileName>startup_stm32c031xx.s</FileName>
               <FileType>2</FileType>
-              <FilePath>..\..\..\..\..\3rd_party\nucleo-l053r8\arm\startup_stm32l053xx.s</FilePath>
+              <FilePath>..\..\..\..\..\3rd_party\nucleo-c031c6\arm\startup_stm32c031xx.s</FilePath>
             </File>
           </Files>
         </Group>
@@ -1276,16 +1286,16 @@
       <uAC6>1</uAC6>
       <TargetOption>
         <TargetCommonOption>
-          <Device>STM32L053R8Tx</Device>
+          <Device>STM32C031C6Tx</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32L0xx_DFP.2.2.0</PackID>
-          <PackURL>http://www.keil.com/pack/</PackURL>
-          <Cpu>IRAM(0x20000000,0x00002000) IROM(0x08000000,0x00010000) CPUTYPE("Cortex-M0+") CLOCK(12000000) ELITTLE</Cpu>
+          <PackID>Keil.STM32C0xx_DFP.1.0.0</PackID>
+          <PackURL>https://www.keil.com/pack/</PackURL>
+          <Cpu>IRAM(0x20000000,0x00003000) IROM(0x08000000,0x00008000) CPUTYPE("Cortex-M0+") CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
           <StartupFile></StartupFile>
-          <FlashDriverDll>UL2CM3(-S0 -C0 -P0 -FD20000000 -FC1000 -FN1 -FF0STM32L0xx_64 -FS08000000 -FL010000 -FP0($$Device:STM32L053R8Tx$Flash\STM32L0xx_64.FLM))</FlashDriverDll>
+          <FlashDriverDll>UL2CM3(-S0 -C0 -P0 -FD20000000 -FC1000 -FN1 -FF0STM32C0x_32 -FS08000000 -FL08000 -FP0($$Device:STM32C031C6Tx$CMSIS\Flash\STM32C0x_32.FLM))</FlashDriverDll>
           <DeviceId>0</DeviceId>
-          <RegisterFile>$$Device:STM32L053R8Tx$Device\Include\stm32l0xx.h</RegisterFile>
+          <RegisterFile>$$Device:STM32C031C6Tx$Drivers\CMSIS\Device\ST\STM32C0xx\Include\stm32c0xx.h</RegisterFile>
           <MemoryEnv></MemoryEnv>
           <Cmp></Cmp>
           <Asm></Asm>
@@ -1295,7 +1305,7 @@
           <SLE66CMisc></SLE66CMisc>
           <SLE66AMisc></SLE66AMisc>
           <SLE66LinkerMisc></SLE66LinkerMisc>
-          <SFDFile>$$Device:STM32L053R8Tx$SVD\STM32L053x.svd</SFDFile>
+          <SFDFile>$$Device:STM32C031C6Tx$CMSIS\SVD\STM32C031.svd</SFDFile>
           <bCustSvd>0</bCustSvd>
           <UseEnv>0</UseEnv>
           <BinPath></BinPath>
@@ -1311,7 +1321,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\spy\</OutputDirectory>
-          <OutputName>rt-qv</OutputName>
+          <OutputName>rt-qv-tt</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>0</CreateHexFile>
@@ -1344,7 +1354,7 @@
           <AfterMake>
             <RunUserProg1>1</RunUserProg1>
             <RunUserProg2>0</RunUserProg2>
-            <UserProg1Name>fromelf --bin --output .\spy\rt-qv.bin .\spy\rt-qv.axf</UserProg1Name>
+            <UserProg1Name>fromelf --bin --output .\spy\rt-qv-tt.bin .\spy\rt-qv-tt.axf</UserProg1Name>
             <UserProg2Name></UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
@@ -1372,11 +1382,11 @@
         </CommonProperty>
         <DllOption>
           <SimDllName>SARMCM3.DLL</SimDllName>
-          <SimDllArguments> -REMAP </SimDllArguments>
+          <SimDllArguments> -REMAP-MPU </SimDllArguments>
           <SimDlgDll>DARMCM1.DLL</SimDlgDll>
           <SimDlgDllArguments>-pCM0+</SimDlgDllArguments>
           <TargetDllName>SARMCM3.DLL</TargetDllName>
-          <TargetDllArguments> </TargetDllArguments>
+          <TargetDllArguments>-MPU </TargetDllArguments>
           <TargetDlgDll>TARMCM1.DLL</TargetDlgDll>
           <TargetDlgDllArguments>-pCM0+</TargetDlgDllArguments>
         </DllOption>
@@ -1509,12 +1519,12 @@
               <IRAM>
                 <Type>0</Type>
                 <StartAddress>0x20000000</StartAddress>
-                <Size>0x2000</Size>
+                <Size>0x3000</Size>
               </IRAM>
               <IROM>
                 <Type>1</Type>
                 <StartAddress>0x8000000</StartAddress>
-                <Size>0x10000</Size>
+                <Size>0x8000</Size>
               </IROM>
               <XRAM>
                 <Type>0</Type>
@@ -1539,7 +1549,7 @@
               <OCR_RVCT4>
                 <Type>1</Type>
                 <StartAddress>0x8000000</StartAddress>
-                <Size>0x10000</Size>
+                <Size>0x8000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
                 <Type>1</Type>
@@ -1564,7 +1574,7 @@
               <OCR_RVCT9>
                 <Type>0</Type>
                 <StartAddress>0x20000000</StartAddress>
-                <Size>0x2000</Size>
+                <Size>0x3000</Size>
               </OCR_RVCT9>
               <OCR_RVCT10>
                 <Type>0</Type>
@@ -1585,13 +1595,13 @@
             <PlainCh>0</PlainCh>
             <Ropi>0</Ropi>
             <Rwpi>0</Rwpi>
-            <wLevel>3</wLevel>
+            <wLevel>2</wLevel>
             <uThumb>0</uThumb>
             <uSurpInc>1</uSurpInc>
             <uC99>0</uC99>
             <uGnu>0</uGnu>
             <useXO>0</useXO>
-            <v6Lang>3</v6Lang>
+            <v6Lang>5</v6Lang>
             <v6LangP>3</v6LangP>
             <vShortEn>0</vShortEn>
             <vShortWch>0</vShortWch>
@@ -1600,9 +1610,9 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>Q_SPY,USE_SCHED_DISABLE</Define>
+              <Define>Q_SPY</Define>
               <Undefine></Undefine>
-              <IncludePath>..;..\..\..\..\..\include;..\..\..\..\..\ports\arm-cm\qv\armclang;..\..\..\..\..\3rd_party\CMSIS\Include;..\..\..\..\..\3rd_party\nucleo-l053r8</IncludePath>
+              <IncludePath>..;..\..\..\..\..\include;..\..\..\..\..\ports\arm-cm\qv\armclang;..\..\..\..\..\3rd_party\CMSIS\Include;..\..\..\..\..\3rd_party\nucleo-c031c6</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -1633,7 +1643,7 @@
             <TextAddressRange>0x00000000</TextAddressRange>
             <DataAddressRange>0x20000000</DataAddressRange>
             <pXoBase></pXoBase>
-            <ScatterFile>rt-qv.sct</ScatterFile>
+            <ScatterFile>rt-qv-tt.sct</ScatterFile>
             <IncludeLibs></IncludeLibs>
             <IncludeLibsPath></IncludeLibsPath>
             <Misc>--entry Reset_Handler</Misc>
@@ -1686,35 +1696,40 @@
               <FileType>8</FileType>
               <FilePath>..\sporadic3.cpp</FilePath>
             </File>
+            <File>
+              <FileName>ttsched.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\ttsched.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
-          <GroupName>nucleo-l053r8</GroupName>
+          <GroupName>nucleo-c031c6</GroupName>
           <Files>
             <File>
-              <FileName>stm32l0xx.h</FileName>
+              <FileName>stm32c0xx.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\..\..\..\..\3rd_party\nucleo-l053r8\stm32l0xx.h</FilePath>
+              <FilePath>..\..\..\..\..\3rd_party\nucleo-c031c6\stm32c0xx.h</FilePath>
             </File>
             <File>
-              <FileName>stm32l053xx.h</FileName>
+              <FileName>stm32c031xx.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\..\..\..\..\3rd_party\nucleo-l053r8\stm32l053xx.h</FilePath>
+              <FilePath>..\..\..\..\..\3rd_party\nucleo-c031c6\stm32c031xx.h</FilePath>
             </File>
             <File>
-              <FileName>system_stm32l0xx.c</FileName>
+              <FileName>system_stm32c0xx.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\..\3rd_party\nucleo-l053r8\system_stm32l0xx.c</FilePath>
+              <FilePath>..\..\..\..\..\3rd_party\nucleo-c031c6\system_stm32c0xx.c</FilePath>
             </File>
             <File>
-              <FileName>system_stm32l0xx.h</FileName>
+              <FileName>system_stm32c0xx.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\..\..\..\..\3rd_party\nucleo-l053r8\system_stm32l0xx.h</FilePath>
+              <FilePath>..\..\..\..\..\3rd_party\nucleo-c031c6\system_stm32c0xx.h</FilePath>
             </File>
             <File>
-              <FileName>startup_stm32l053xx.s</FileName>
+              <FileName>startup_stm32c031xx.s</FileName>
               <FileType>2</FileType>
-              <FilePath>..\..\..\..\..\3rd_party\nucleo-l053r8\arm\startup_stm32l053xx.s</FilePath>
+              <FilePath>..\..\..\..\..\3rd_party\nucleo-c031c6\arm\startup_stm32c031xx.s</FilePath>
             </File>
           </Files>
         </Group>
