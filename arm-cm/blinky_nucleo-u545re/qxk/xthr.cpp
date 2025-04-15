@@ -34,12 +34,12 @@
 // 1. This is an example of a an eXtened thread (with blocking) for the
 //    QXK kernel.
 // 2. The QXK dual-mode kernel component is NOT provided in the open-source
-//    QP/C distribution. Please contact Quantum Leaps for free evaluation
+//    QP/C++ distribution. Please contact Quantum Leaps for free evaluation
 //    of the QXK kernel.
 // 3. The QS software tracing instrumentation is active only in the
 //    "spy" build configuration (Q_SPY macro defined). This build
 //    configuration requires QS component, which is NOT provided in
-//    the open source QP/C distribution. Please contact Quantum Leaps
+//    the open source QP/C++ distribution. Please contact Quantum Leaps
 //    for free evaluation of the softare tracing component.
 
 //----------------------------------------------------------------------------

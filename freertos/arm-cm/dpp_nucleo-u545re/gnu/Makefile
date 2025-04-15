@@ -9,16 +9,16 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 #
-# The QP/C software is dual-licensed under the terms of the open-source GNU
-# General Public License (GPL) or under the terms of one of the closed-
-# source Quantum Leaps commercial licenses.
+# The QP/C software is dual-licensed under the terms of the open-source
+# GNU General Public License (GPL) or under the terms of one of the
+# closed-source Quantum Leaps commercial licenses.
 #
 # Redistributions in source code must retain this top-level comment block.
 # Plagiarizing this software to sidestep the license obligations is illegal.
 #
 # NOTE:
 # The GPL (see <www.gnu.org/licenses/gpl-3.0>) does NOT permit the
-# incorporation of the QP/C software into proprietary programs. Please
+# incorporation of the QP software into proprietary programs. Please
 # contact Quantum Leaps for commercial licensing options, which expressly
 # supersede the GPL and are designed explicitly for licensees interested
 # in using QP/C in closed-source proprietary applications.
@@ -42,6 +42,7 @@
 # To use this Makefile on Windows, you will need the GNU make utility, which
 # is included in the QTools collection for Windows, see:
 #    https://github.com/QuantumLeaps/qtools
+#
 
 #-----------------------------------------------------------------------------
 # project name
@@ -53,38 +54,38 @@ PROJECT     := dpp
 #
 
 # location of the QP/C++ framework (if not provided in an environment var.)
-ifeq ($(QPCPP),)
-QPCPP := ../../../../..
+ifeq ($(QP),)
+QP := ../../../../..
 endif
 
 # location of the FREERTOS (if not provided in an environment var.)
 ifeq ($(FREERTOS),)
-FREERTOS := $(QPCPP)/3rd_party/FreeRTOS-Kernel
+FREERTOS := $(QP)/3rd_party/FreeRTOS-Kernel
 endif
 
 # QP port used in this project
-QP_PORT_DIR := $(QPCPP)/ports/freertos
+QP_PORT_DIR := $(QP)/ports/freertos
 
 # list of all source directories used by this project
 VPATH = \
 	.. \
-	$(QPCPP)/src/qf \
-	$(QPCPP)/src/qs \
+	$(QP)/src/qf \
+	$(QP)/src/qs \
 	$(QP_PORT_DIR) \
 	$(FREERTOS) \
 	$(FREERTOS)/portable/GCC/ARM_CM33_NTZ/non_secure \
-	$(QPCPP)/3rd_party/nucleo-u545re \
-	$(QPCPP)/3rd_party/nucleo-u545re/gnu
+	$(QP)/3rd_party/nucleo-u545re \
+	$(QP)/3rd_party/nucleo-u545re/gnu
 
 # list of all include directories needed by this project
 INCLUDES  = \
 	-I.. \
-	-I$(QPCPP)/include \
+	-I$(QP)/include \
 	-I$(QP_PORT_DIR) \
 	-I$(FREERTOS)/include \
 	-I$(FREERTOS)/portable/GCC/ARM_CM33_NTZ/non_secure \
-	-I$(QPCPP)/3rd_party/CMSIS/Include \
-	-I$(QPCPP)/3rd_party/nucleo-u545re
+	-I$(QP)/3rd_party/CMSIS/Include \
+	-I$(QP)/3rd_party/nucleo-u545re
 
 #-----------------------------------------------------------------------------
 # files
@@ -169,6 +170,7 @@ AS    := $(GNU_ARM)/bin/arm-none-eabi-as
 LINK  := $(GNU_ARM)/bin/arm-none-eabi-g++
 BIN   := $(GNU_ARM)/bin/arm-none-eabi-objcopy
 
+
 ##############################################################################
 # Typically you should not need to change anything below this line
 
@@ -179,12 +181,13 @@ MKDIR := mkdir
 RM    := rm
 
 #-----------------------------------------------------------------------------
-# build options for various configurations for ARM Cortex-M
+# build options for various configurations
 #
 
 # combine all the sources...
 CPP_SRCS += $(QP_SRCS)
 C_SRCS   += $(RTOS_SRCS)
+C_SRCS   += syscalls.c
 
 ifeq (rel, $(CONF)) # Release configuration ..................................
 
@@ -271,7 +274,7 @@ $(TARGET_BIN): $(TARGET_ELF)
 	$(BIN) -O binary $< $@
 
 $(TARGET_ELF) : $(ASM_OBJS_EXT) $(C_OBJS_EXT) $(CPP_OBJS_EXT)
-	$(CPP) $(CPPFLAGS) $(QPCPP)/src/qs/qstamp.cpp -o $(BIN_DIR)/qstamp.o
+	$(CPP) $(CPPFLAGS) $(QP)/src/qs/qstamp.cpp -o $(BIN_DIR)/qstamp.o
 	$(LINK) $(LINKFLAGS) -o $@ $^ $(BIN_DIR)/qstamp.o $(LIBS)
 
 $(BIN_DIR)/%.d : %.c

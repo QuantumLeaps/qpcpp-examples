@@ -46,7 +46,7 @@
 //   <691=>691 (QP 6.9.1 or newer)
 //   <700=>700 (QP 7.0.0 or newer)
 //   <9999=>9999 (Latest only)
-// <i>QP API backwards compatibility with the QP/C API version.
+// <i>QP API backwards compatibility with the QP/C++ API version.
 // <i>Lower QP_API_VERSION values enable backwards compatibility
 // <i>with lower (older) QP API versions.
 // <i>For example, QP_API_VERSION==691 will enable the compatibility

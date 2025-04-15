@@ -52,31 +52,31 @@ PROJECT     := blinky-qk
 #
 
 # location of the QP/C++ framework (if not provided in an environment var.)
-ifeq ($(QPCPP),)
-QPCPP := ../../../../..
+ifeq ($(QP),)
+QP := ../../../../..
 endif
 
 # QP port used in this project
-QP_PORT_DIR := $(QPCPP)/ports/arm-cm/qk/gnu
+QP_PORT_DIR := $(QP)/ports/arm-cm/qk/gnu
 
 # list of all source directories used by this project
 VPATH = \
 	.. \
 	../.. \
-	$(QPCPP)/src/qf \
-	$(QPCPP)/src/qk \
-	$(QPCPP)/src/qs \
+	$(QP)/src/qf \
+	$(QP)/src/qk \
+	$(QP)/src/qs \
 	$(QP_PORT_DIR) \
-	$(QPCPP)/3rd_party/nucleo-u545re \
-	$(QPCPP)/3rd_party/nucleo-u545re/gnu
+	$(QP)/3rd_party/nucleo-u545re \
+	$(QP)/3rd_party/nucleo-u545re/gnu
 
 # list of all include directories needed by this project
 INCLUDES  = \
 	-I../.. \
-	-I$(QPCPP)/include \
+	-I$(QP)/include \
 	-I$(QP_PORT_DIR) \
-	-I$(QPCPP)/3rd_party/CMSIS/Include \
-	-I$(QPCPP)/3rd_party/nucleo-u545re
+	-I$(QP)/3rd_party/CMSIS/Include \
+	-I$(QP)/3rd_party/nucleo-u545re
 
 #-----------------------------------------------------------------------------
 # files
@@ -172,6 +172,7 @@ RM    := rm
 
 # combine all the sources...
 CPP_SRCS += $(QP_SRCS)
+C_SRCS   += syscalls.c
 ASM_SRCS += $(QP_ASMS)
 
 ifeq (rel, $(CONF)) # Release configuration ..................................
@@ -259,7 +260,7 @@ $(TARGET_BIN): $(TARGET_ELF)
 	$(BIN) -O binary $< $@
 
 $(TARGET_ELF) : $(ASM_OBJS_EXT) $(C_OBJS_EXT) $(CPP_OBJS_EXT)
-	$(CPP) $(CPPFLAGS) $(QPCPP)/src/qs/qstamp.cpp -o $(BIN_DIR)/qstamp.o
+	$(CPP) $(CPPFLAGS) $(QP)/src/qs/qstamp.cpp -o $(BIN_DIR)/qstamp.o
 	$(LINK) $(LINKFLAGS) -o $@ $^ $(BIN_DIR)/qstamp.o $(LIBS)
 
 $(BIN_DIR)/%.d : %.c

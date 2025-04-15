@@ -58,12 +58,12 @@ PROJECT     := dpp
 #
 
 # location of the QP/C++ framework (if not provided in an environment var.)
-ifeq ($(QPCPP),)
-QPCPP := ../../../../..
+ifeq ($(QP),)
+QP := ../../../../..
 endif
 
 # QP port used in this project
-QP_PORT_DIR := $(QPCPP)/ports/embos
+QP_PORT_DIR := $(QP)/ports/embos
 
 # list of all source directories used by this project
 VPATH = \
@@ -71,26 +71,26 @@ VPATH = \
 	Setup \
 	.. \
 	../.. \
-	$(QPCPP)/src/qf \
-	$(QPCPP)/src/qs \
+	$(QP)/src/qf \
+	$(QP)/src/qs \
 	$(QP_PORT_DIR) \
-	$(QPCPP)/3rd_party/STM32CubeH7/nucleo-h743zi/gnu \
-	$(QPCPP)/3rd_party/STM32CubeH7/Drivers/BSP/STM32H7xx_Nucleo_144 \
-	$(QPCPP)/3rd_party/STM32CubeH7/Drivers/STM32H7xx_HAL_Driver/Src \
-	$(QPCPP)/3rd_party/STM32CubeH7/Drivers/CMSIS/Device/ST/STM32H7xx/Source/Templates
+	$(QP)/3rd_party/STM32CubeH7/nucleo-h743zi/gnu \
+	$(QP)/3rd_party/STM32CubeH7/Drivers/BSP/STM32H7xx_Nucleo_144 \
+	$(QP)/3rd_party/STM32CubeH7/Drivers/STM32H7xx_HAL_Driver/Src \
+	$(QP)/3rd_party/STM32CubeH7/Drivers/CMSIS/Device/ST/STM32H7xx/Source/Templates
 
 # list of all include directories needed by this project
 INCLUDES  = \
 	-I.. \
 	-I../.. \
 	-ISEGGER \
-	-I$(QPCPP)/include \
+	-I$(QP)/include \
 	-I$(QP_PORT_DIR) \
-	-I$(QPCPP)/3rd_party/embOS-gnu/Start/Inc \
-	-I$(QPCPP)/3rd_party/CMSIS/Include \
-	-I$(QPCPP)/3rd_party/STM32CubeH7/Drivers/CMSIS/Device/ST/STM32H7xx/Include \
-	-I$(QPCPP)/3rd_party/STM32CubeH7/Drivers/BSP/STM32H7xx_Nucleo_144 \
-	-I$(QPCPP)/3rd_party/STM32CubeH7/Drivers/STM32H7xx_HAL_Driver/Inc
+	-I$(QP)/3rd_party/embOS-gnu/Start/Inc \
+	-I$(QP)/3rd_party/CMSIS/Include \
+	-I$(QP)/3rd_party/STM32CubeH7/Drivers/CMSIS/Device/ST/STM32H7xx/Include \
+	-I$(QP)/3rd_party/STM32CubeH7/Drivers/BSP/STM32H7xx_Nucleo_144 \
+	-I$(QP)/3rd_party/STM32CubeH7/Drivers/STM32H7xx_HAL_Driver/Inc
 
 #-----------------------------------------------------------------------------
 # files
@@ -148,7 +148,7 @@ QS_SRCS := \
 	qs_rx.cpp \
 	qs_fp.cpp
 
-LIB_DIRS  := -L$(QPCPP)\3rd_party\embOS-gnu\Start\Lib
+LIB_DIRS  := -L$(QP)\3rd_party\embOS-gnu\Start\Lib
 LIBS      := -losT7VLR
 
 # defines
@@ -186,8 +186,8 @@ BIN   := $(GNU_ARM)/bin/arm-none-eabi-objcopy
 ##############################################################################
 # Typically, you should not need to change anything below this line
 
-# basic utilities (included in Qtools for Windows), see:
-#    http://sourceforge.net/projects/qpc/files/Qtools
+# basic utilities (included in QTools for Windows), see:
+#     https://www.state-machine.com/qtools
 
 MKDIR := mkdir
 RM    := rm
@@ -198,6 +198,7 @@ RM    := rm
 
 # combine all the sources...
 CPP_SRCS += $(QP_SRCS)
+C_SRCS   += syscalls.c
 ASM_SRCS += $(QP_ASMS)
 
 ifeq (rel, $(CONF)) # Release configuration ..................................
@@ -280,7 +281,7 @@ $(TARGET_BIN): $(TARGET_ELF)
 	$(BIN) -O binary $< $@
 
 $(TARGET_ELF) : $(ASM_OBJS_EXT) $(C_OBJS_EXT) $(CPP_OBJS_EXT)
-	$(CPP) $(CPPFLAGS) $(QPCPP)/src/qs/qstamp.cpp -o $(BIN_DIR)/qstamp.o
+	$(CPP) $(CPPFLAGS) $(QP)/src/qs/qstamp.cpp -o $(BIN_DIR)/qstamp.o
 	$(LINK) $(LINKFLAGS) -o $@ $^ $(BIN_DIR)/qstamp.o $(LIBS)
 
 $(BIN_DIR)/%.d : %.c

@@ -81,29 +81,29 @@ BIN_DIR := build_$(TARGET)
 #
 
 # location of the QP/C++ framework (if not provided in an env. variable)
-ifeq ($(QPCPP),)
-QPCPP := ../../../..
+ifeq ($(QP),)
+QP := ../../../..
 endif
 
 ifeq ($(OS),Windows_NT)
 
-QP_PORT_DIR := $(QPCPP)/ports/win32-qutest
+QP_PORT_DIR := $(QP)/ports/win32-qutest
 LIBS += -lws2_32
 
 else
 
-QP_PORT_DIR := $(QPCPP)/ports/posix-qutest
-#QP_PORT_DIR := $(QPCPP)/ports/posix
+QP_PORT_DIR := $(QP)/ports/posix-qutest
+#QP_PORT_DIR := $(QP)/ports/posix
 LIBS += -lpthread
 
 endif
 
 VPATH += \
-	$(QPCPP)/src/qs \
+	$(QP)/src/qs \
 	$(QP_PORT_DIR)
 
 INCLUDES += \
-	-I$(QPCPP)/include \
+	-I$(QP)/include \
 	-I$(QP_PORT_DIR)
 
 #-----------------------------------------------------------------------------
@@ -130,11 +130,11 @@ QP_SRCS := \
 	qutest_port.cpp
 
 VPATH += \
-	$(QPCPP)/src/qf \
-	$(QPCPP)/src/qs $(QP_PORT_DIR)
+	$(QP)/src/qf \
+	$(QP)/src/qs $(QP_PORT_DIR)
 
 INCLUDES += \
-	-I$(QPCPP)/include \
+	-I$(QP)/include \
 	-I$(QP_PORT_DIR)
 
 # add the QP sources to the build
@@ -234,7 +234,7 @@ all : $(TARGET_EXE) run
 endif
 
 $(TARGET_EXE) : $(C_OBJS_EXT) $(CPP_OBJS_EXT)
-	$(CPP) $(CPPFLAGS) $(QPCPP)/src/qs/qstamp.cpp -o $(BIN_DIR)/qstamp.o
+	$(CPP) $(CPPFLAGS) $(QP)/src/qs/qstamp.cpp -o $(BIN_DIR)/qstamp.o
 	$(LINK) $(LINKFLAGS) $(LIB_DIRS) -o $@ $^ $(BIN_DIR)/qstamp.o $(LIBS)
 
 run : $(TARGET_EXE)
