@@ -1,7 +1,5 @@
 ##############################################################################
 # Product: Makefile for QP/C++ on NUCLEO-U545RE-Q, QXK kernel, GNU-ARM
-# Last Updated for Version: 7.4.0
-# Date of the Last Update:  2024-06-23
 #
 #                    Q u a n t u m  L e a P s
 #                    ------------------------
@@ -182,6 +180,7 @@ RM    := rm
 #
 
 # combine all the sources...
+C_SRCS   += syscalls.c
 CPP_SRCS += $(QP_SRCS)
 ASM_SRCS += $(QP_ASMS)
 

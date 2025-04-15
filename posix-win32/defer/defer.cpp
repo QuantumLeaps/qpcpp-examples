@@ -215,7 +215,6 @@ Q_STATE_DEF(TServer, busy) {
                     Q_ERROR(); // now it must succeed
                 }
             }
-
             status_ = Q_RET_HANDLED;
             break;
         }
