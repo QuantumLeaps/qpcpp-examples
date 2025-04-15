@@ -106,20 +106,20 @@ FLASH2 = $(SLEEP) 4
 #
 
 # location of the QP/C framework (if not provided in an env. variable)
-ifeq ($(QPCPP),)
-QPCPP := ../../../..
+ifeq ($(QP),)
+QP := ../../../..
 endif
 
 # QP port used in this project
-QP_PORT_DIR := $(QPCPP)/ports/arm-cm/qxk/gnu
+QP_PORT_DIR := $(QP)/ports/arm-cm/qxk/gnu
 
 VPATH += \
-	$(QPCPP)/src/qxk \
-	$(QPCPP)/src/qs \
+	$(QP)/src/qxk \
+	$(QP)/src/qs \
 	$(QP_PORT_DIR)
 
 INCLUDES += \
-	-I$(QPCPP)/include \
+	-I$(QP)/include \
 	-I$(QP_PORT_DIR)
 
 #-----------------------------------------------------------------------------
@@ -151,16 +151,17 @@ QP_SRCS := \
 	qutest_cpp.cpp
 
 VPATH += \
-	$(QPCPP)/src/qf \
-	$(QPCPP)/src/qs \
+	$(QP)/src/qf \
+	$(QP)/src/qs \
 	$(QP_PORT_DIR)
 
 INCLUDES += \
-	-I$(QPCPP)/include \
+	-I$(QP)/include \
 	-I$(QP_PORT_DIR)
 
 # add the QP sources to the build
 CPP_SRCS += $(QP_SRCS)
+C_SRCS   += syscalls.c
 
 #-----------------------------------------------------------------------------
 # GNU toolset:
@@ -293,7 +294,7 @@ debug :
 	$(QUTEST) -edebug -q$(QSPY) -l$(LOG) -o$(OPT) -- $(TESTS)
 
 $(TARGET_ELF) : $(C_OBJS_EXT) $(CPP_OBJS_EXT)
-	$(CPP) $(CPPFLAGS) $(QPCPP)/src/qs/qstamp.cpp -o $(BIN_DIR)/qstamp.o
+	$(CPP) $(CPPFLAGS) $(QP)/src/qs/qstamp.cpp -o $(BIN_DIR)/qstamp.o
 	$(LINK) $(LINKFLAGS) -o $@ $^ $(BIN_DIR)/qstamp.o $(LIBS)
 
 $(BIN_DIR)/%.d : %.c

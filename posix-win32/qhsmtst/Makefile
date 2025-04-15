@@ -76,11 +76,11 @@ BIN_DIR := build_$(TARGET)
 #
 
 # location of the QP/C++ framework (if not provided in an env. variable)
-ifeq ($(QPCPP),)
-QPCPP := ../../..
+ifeq ($(QP),)
+QP := ../../..
 endif
 
-QP_PORT_DIR := $(QPCPP)/ports/qep-only
+QP_PORT_DIR := $(QP)/ports/qep-only
 
 VPATH += \
 	$(QP_PORT_DIR)
@@ -103,18 +103,18 @@ QS_SRCS := \
 	qs_port.cpp
 
 VPATH += \
-	$(QPCPP)/src/qf \
+	$(QP)/src/qf \
 	$(QP_PORT_DIR)
 
 INCLUDES += \
-	-I$(QPCPP)/include \
+	-I$(QP)/include \
 	-I$(QP_PORT_DIR)
 
 # add the QP sources to the build
 CPP_SRCS += $(QP_SRCS)
 
 ifeq (spy, $(CONF))  # Spy configuration
-VPATH  += $(QPCPP)/src/qs
+VPATH  += $(QP)/src/qs
 CPP_SRCS += $(QS_SRCS)
 endif
 
@@ -228,7 +228,7 @@ all: $(TARGET_EXE)
 ifeq (spy, $(CONF))
 
 $(TARGET_EXE) : $(C_OBJS_EXT) $(CPP_OBJS_EXT)
-	$(CPP) $(CPPFLAGS) $(QPCPP)/src/qs/qstamp.cpp -o $(BIN_DIR)/qstamp.o
+	$(CPP) $(CPPFLAGS) $(QP)/src/qs/qstamp.cpp -o $(BIN_DIR)/qstamp.o
 	$(LINK) $(LINKFLAGS) $(LIB_DIRS) -o $@ $^ $(BIN_DIR)/qstamp.o $(LIBS)
 
 else

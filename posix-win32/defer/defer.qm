@@ -129,8 +129,7 @@ else { // deferred queue full
     if (!defer(&amp;m_requestQueue, e)) {
         Q_ERROR(); // now it must succeed
     }
-}
-</action>
+}</action>
       <tran_glyph conn="2,40,3,-1,26">
        <action box="0,-2,24,2"/>
       </tran_glyph>
@@ -182,14 +181,14 @@ m_authorizedEvt.armX(2U*BSP_TICKS_PER_SEC, 0U);</entry>
       </state_glyph>
      </state>
      <state_glyph color="2" node="2,30,54,54">
-      <exit box="1,2,6,2"/>
+      <exit box="0,3,6,2"/>
      </state_glyph>
     </state>
     <!--${Components::TServer::SM::final}-->
     <state name="final">
      <entry brief="stop">PRINTF_S(&quot;%s\n&quot;, &quot;final-ENTRY;&quot;);
          QP::QF::stop(); // terminate the application</entry>
-     <state_glyph node="2,88,30,10">
+     <state_glyph color="3" node="2,88,30,10">
       <entry box="0,3,6,2"/>
      </state_glyph>
     </state>

@@ -53,34 +53,34 @@ PROJECT     := dpp
 #
 
 # location of the QP/C++ framework (if not provided in an environment var.)
-ifeq ($(QPCPP),)
-QPCPP := ../../../../..
+ifeq ($(QP),)
+QP := ../../../../..
 endif
 
 # QP port used in this project
-QP_PORT_DIR := $(QPCPP)/ports/uc-os2
+QP_PORT_DIR := $(QP)/ports/uc-os2
 
 # list of all source directories used by this project
 VPATH = \
 	.. \
-	$(QPCPP)/src/qf \
-	$(QPCPP)/src/qs \
+	$(QP)/src/qf \
+	$(QP)/src/qs \
 	$(QP_PORT_DIR) \
-	$(QPCPP)/3rd_party/uC-OS2/Source \
-	$(QPCPP)/3rd_party/uC-OS2/Ports/ARM-Cortex-M/ARMv7-M \
-	$(QPCPP)/3rd_party/uC-OS2/Ports/ARM-Cortex-M/ARMv7-M/GNU \
-	$(QPCPP)/3rd_party/nucleo-u545re \
-	$(QPCPP)/3rd_party/nucleo-u545re/gnu
+	$(QP)/3rd_party/uC-OS2/Source \
+	$(QP)/3rd_party/uC-OS2/Ports/ARM-Cortex-M/ARMv7-M \
+	$(QP)/3rd_party/uC-OS2/Ports/ARM-Cortex-M/ARMv7-M/GNU \
+	$(QP)/3rd_party/nucleo-u545re \
+	$(QP)/3rd_party/nucleo-u545re/gnu
 
 # list of all include directories needed by this project
 INCLUDES  = \
 	-I.. \
-	-I$(QPCPP)/include \
+	-I$(QP)/include \
 	-I$(QP_PORT_DIR) \
-	-I$(QPCPP)/3rd_party/uC-OS2/Source \
-	-I$(QPCPP)/3rd_party/uC-OS2/Ports/ARM-Cortex-M/ARMv7-M/GNU \
-	-I$(QPCPP)/3rd_party/CMSIS/Include \
-	-I$(QPCPP)/3rd_party/nucleo-u545re
+	-I$(QP)/3rd_party/uC-OS2/Source \
+	-I$(QP)/3rd_party/uC-OS2/Ports/ARM-Cortex-M/ARMv7-M/GNU \
+	-I$(QP)/3rd_party/CMSIS/Include \
+	-I$(QP)/3rd_party/nucleo-u545re
 
 #-----------------------------------------------------------------------------
 # files
@@ -278,7 +278,7 @@ $(TARGET_BIN): $(TARGET_ELF)
 	$(BIN) -O binary $< $@
 
 $(TARGET_ELF) : $(ASM_OBJS_EXT) $(C_OBJS_EXT) $(CPP_OBJS_EXT)
-	$(CPP) $(CPPFLAGS) $(QPCPP)/src/qs/qstamp.cpp -o $(BIN_DIR)/qstamp.o
+	$(CPP) $(CPPFLAGS) $(QP)/src/qs/qstamp.cpp -o $(BIN_DIR)/qstamp.o
 	$(LINK) $(LINKFLAGS) -o $@ $^ $(BIN_DIR)/qstamp.o $(LIBS)
 
 $(BIN_DIR)/%.d : %.c
