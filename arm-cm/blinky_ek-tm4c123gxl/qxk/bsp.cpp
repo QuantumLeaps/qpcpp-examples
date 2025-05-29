@@ -272,10 +272,9 @@ void QXK::onIdle() {
 //============================================================================
 // QS callbacks...
 #ifdef Q_SPY
-namespace QS {
 
 //............................................................................
-bool onStartup(void const *arg) {
+bool QS::onStartup(void const *arg) {
     Q_UNUSED_PAR(arg);
 
     static std::uint8_t qsTxBuf[2*1024]; // buffer for QS-TX channel
@@ -328,17 +327,17 @@ bool onStartup(void const *arg) {
     return true; // return success
 }
 //............................................................................
-void onCleanup() {
+void QS::onCleanup() {
 }
 //............................................................................
-QSTimeCtr onGetTime() { // NOTE: invoked with interrupts DISABLED
+QSTimeCtr QS::onGetTime() { // NOTE: invoked with interrupts DISABLED
     return TIMER5->TAV;
 }
 //............................................................................
 // NOTE:
 // No critical section in QS::onFlush() to avoid nesting of critical sections
 // in case QS::onFlush() is called from Q_onError().
-void onFlush() {
+void QS::onFlush() {
     for (;;) {
         std::uint16_t b = getByte();
         if (b != QS_EOD) {
@@ -352,12 +351,12 @@ void onFlush() {
     }
 }
 //............................................................................
-void onReset() {
+void QS::onReset() {
     NVIC_SystemReset();
 }
 //............................................................................
-void onCommand(std::uint8_t cmdId, std::uint32_t param1,
-               std::uint32_t param2, std::uint32_t param3)
+void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
+                   std::uint32_t param2, std::uint32_t param3)
 {
     Q_UNUSED_PAR(cmdId);
     Q_UNUSED_PAR(param1);
@@ -365,13 +364,12 @@ void onCommand(std::uint8_t cmdId, std::uint32_t param1,
     Q_UNUSED_PAR(param3);
 }
 
-} // namespace QS
-
 #endif // Q_SPY
+//----------------------------------------------------------------------------
 
 } // namespace QP
 
-//----------------------------------------------------------------------------
+//............................................................................
 #ifdef Q_SPY
 
 extern "C" {

@@ -1,42 +1,39 @@
 //============================================================================
 // Product: DPP example, EK-TM4C123GXL board, FreeRTOS kernel
-// Last updated for version 7.3.2
-// Last updated on  2023-12-13
 //
-//                   Q u a n t u m  L e a P s
-//                   ------------------------
-//                   Modern Embedded Software
+// Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 //
-// Copyright (C) 2005 Quantum Leaps, LLC. <state-machine.com>
+//                    Q u a n t u m  L e a P s
+//                    ------------------------
+//                    Modern Embedded Software
 //
 // SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 //
-// This software is dual-licensed under the terms of the open source GNU
-// General Public License version 3 (or any later version), or alternatively,
-// under the terms of one of the closed source Quantum Leaps commercial
-// licenses.
-//
-// The terms of the open source GNU General Public License version 3
-// can be found at: <www.gnu.org/licenses/gpl-3.0>
-//
-// The terms of the closed source Quantum Leaps commercial licenses
-// can be found at: <www.state-machine.com/licensing>
+// This software is dual-licensed under the terms of the open-source GNU
+// General Public License (GPL) or under the terms of one of the closed-
+// source Quantum Leaps commercial licenses.
 //
 // Redistributions in source code must retain this top-level comment block.
 // Plagiarizing this software to sidestep the license obligations is illegal.
 //
-// Contact information:
+// NOTE:
+// The GPL does NOT permit the incorporation of this code into proprietary
+// programs. Please contact Quantum Leaps for commercial licensing options,
+// which expressly supersede the GPL and are designed explicitly for
+// closed-source distribution.
+//
+// Quantum Leaps contact information:
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"             // QP/C++ real-time event framework
-#include "dpp.hpp"               // DPP Application interface
-#include "bsp.hpp"               // Board Support Package
+#include "qpcpp.hpp"      // QP/C++ real-time event framework
+#include "dpp.hpp"        // DPP Application interface
+#include "bsp.hpp"        // Board Support Package
 
-#include "TM4C123GH6PM.h"        // the device specific header (TI)
-#include "rom.h"                 // the built-in ROM functions (TI)
-#include "sysctl.h"              // system control driver (TI)
-#include "gpio.h"                // GPIO driver (TI)
+#include "TM4C123GH6PM.h"  // the device specific header (TI)
+#include "rom.h"           // the built-in ROM functions (TI)
+#include "sysctl.h"        // system control driver (TI)
+#include "gpio.h"          // GPIO driver (TI)
 // add other drivers if necessary...
 
 //============================================================================
@@ -82,7 +79,7 @@ static std::uint32_t l_rndSeed;
 // Error handler
 extern "C" {
 
-Q_NORETURN Q_onError(char const * const module, int const id) {
+Q_NORETURN Q_onError(char const * const module, int_t const id) {
     // NOTE: this implementation of the error handler is intended only
     // for debugging and MUST be changed for deployment of the application
     // (assuming that you ship your production code with assertions enabled).
@@ -96,15 +93,14 @@ Q_NORETURN Q_onError(char const * const module, int const id) {
     // for debugging, hang on in an endless loop...
     for (;;) {
     }
-#else
+#endif
     NVIC_SystemReset();
     for (;;) { // explicitly "no-return"
     }
-#endif
 }
 //............................................................................
-void assert_failed(char const * const module, int const id); // prototype
-void assert_failed(char const * const module, int const id) {
+void assert_failed(char const * const module, int_t const id); // prototype
+void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
 }
 
@@ -142,7 +138,6 @@ void UART0_IRQHandler(void) {
         QP::QS::rxPut(b);
     }
 }
-
 #endif // Q_SPY
 
 // Application hooks used in this project ====================================
@@ -199,6 +194,7 @@ void vApplicationIdleHook(void) {
     // Some floating point code is to exercise the VFP...
     float volatile x = 1.73205F;
     x = x * 1.73205F;
+    Q_ASSERT(2.999F < x);
 
 #ifdef Q_SPY
     QP::QS::rxParse();  // parse all the received bytes
@@ -343,7 +339,7 @@ void start() {
     static StackType_t philoStack[APP::N_PHILO][configMINIMAL_STACK_SIZE];
     for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
         APP::AO_Philo[n]->start(
-            n + 3U,                  // QP prio. of the AO
+            Q_PRIO(n + 3U, 3U),      // QP prio., FreeRTOS prio.
             philoQueueSto[n],        // event queue storage
             Q_DIM(philoQueueSto[n]), // queue length [events]
             philoStack[n],           // stack storage
@@ -353,7 +349,7 @@ void start() {
     static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
     static StackType_t tableStack[configMINIMAL_STACK_SIZE];
     APP::AO_Table->start(
-        APP::N_PHILO + 7U,           // QP prio. of the AO
+        Q_PRIO(APP::N_PHILO + 7U, 7U), // QP prio., FreeRTOS prio.
         tableQueueSto,               // event queue storage
         Q_DIM(tableQueueSto),        // queue length [events]
         tableStack,                  // stack storage
@@ -397,7 +393,11 @@ std::uint32_t random() { // a very cheap pseudo-random-number generator
     l_rndSeed = rnd; // set for the next time
     xTaskResumeAll(); // unlock the FreeRTOS scheduler
 
-    return (rnd >> 8);
+    return (rnd >> 8U);
+}
+//............................................................................
+void terminate(std::int16_t result) {
+    Q_UNUSED_PAR(result);
 }
 //............................................................................
 void ledOn() {
@@ -407,18 +407,13 @@ void ledOn() {
 void ledOff() {
     GPIOF_AHB->DATA_Bits[LED_RED] = 0x00U;
 }
-//............................................................................
-void terminate(int16_t result) {
-    Q_UNUSED_PAR(result);
-}
 
 } // namespace BSP
 
 //============================================================================
-
 namespace QP {
 
-// QF callbacks --------------------------------------------------------------
+// QF callbacks...
 
 void QF::onStartup() {
     // set up the SysTick timer to fire at BSP::TICKS_PER_SEC rate
@@ -444,12 +439,12 @@ void QF::onStartup() {
 void QF::onCleanup() {
 }
 
-// QS callbacks --------------------------------------------------------------
+//============================================================================
+// QS callbacks...
 #ifdef Q_SPY
-namespace QS {
 
 //............................................................................
-bool onStartup(void const *arg) {
+bool QS::onStartup(void const *arg) {
     Q_UNUSED_PAR(arg);
 
     static std::uint8_t qsTxBuf[2*1024]; // buffer for QS-TX channel
@@ -502,17 +497,17 @@ bool onStartup(void const *arg) {
     return true; // return success
 }
 //............................................................................
-void onCleanup() {
+void QS::onCleanup() {
 }
 //............................................................................
-QSTimeCtr onGetTime() { // NOTE: invoked with interrupts DISABLED
+QSTimeCtr QS::onGetTime() { // NOTE: invoked with interrupts DISABLED
     return TIMER5->TAV;
 }
 //............................................................................
 // NOTE:
 // No critical section in QS::onFlush() to avoid nesting of critical sections
 // in case QS::onFlush() is called from Q_onError().
-void onFlush() {
+void QS::onFlush() {
     for (;;) {
         std::uint16_t b = getByte();
         if (b != QS_EOD) { // NOT end-of-data
@@ -528,11 +523,11 @@ void onFlush() {
     }
 }
 //............................................................................
-void onReset() {
+void QS::onReset() {
     NVIC_SystemReset();
 }
 //............................................................................
-void onCommand(std::uint8_t cmdId, std::uint32_t param1,
+void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
                std::uint32_t param2, std::uint32_t param3)
 {
     Q_UNUSED_PAR(cmdId);
@@ -541,9 +536,7 @@ void onCommand(std::uint8_t cmdId, std::uint32_t param1,
     Q_UNUSED_PAR(param3);
 }
 
-} // namespace QS
 #endif // Q_SPY
-//----------------------------------------------------------------------------
 
 } // namespace QP
 

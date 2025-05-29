@@ -1,37 +1,34 @@
 //============================================================================
 // Product: "Fly 'n' Shoot" game example, EFM32-SLSTK3401A board, QK kernel
-// Last updated for: @qpcpp_7_3_2
-// Last updated on  2023-12-13
 //
-//                   Q u a n t u m  L e a P s
-//                   ------------------------
-//                   Modern Embedded Software
+// Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 //
-// Copyright (C) 2005 Quantum Leaps, LLC. <state-machine.com>
+//                    Q u a n t u m  L e a P s
+//                    ------------------------
+//                    Modern Embedded Software
 //
 // SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 //
-// This software is dual-licensed under the terms of the open source GNU
-// General Public License version 3 (or any later version), or alternatively,
-// under the terms of one of the closed source Quantum Leaps commercial
-// licenses.
-//
-// The terms of the open source GNU General Public License version 3
-// can be found at: <www.gnu.org/licenses/gpl-3.0>
-//
-// The terms of the closed source Quantum Leaps commercial licenses
-// can be found at: <www.state-machine.com/licensing>
+// This software is dual-licensed under the terms of the open-source GNU
+// General Public License (GPL) or under the terms of one of the closed-
+// source Quantum Leaps commercial licenses.
 //
 // Redistributions in source code must retain this top-level comment block.
 // Plagiarizing this software to sidestep the license obligations is illegal.
 //
-// Contact information:
+// NOTE:
+// The GPL does NOT permit the incorporation of this code into proprietary
+// programs. Please contact Quantum Leaps for commercial licensing options,
+// which expressly supersede the GPL and are designed explicitly for
+// closed-source distribution.
+//
+// Quantum Leaps contact information:
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"             // QP/C++ real-time event framework
-#include "game.hpp"              // Game Application interface
-#include "bsp.hpp"               // Board Support Package
+#include "qpcpp.hpp"      // QP/C++ real-time event framework
+#include "game.hpp"       // Game Application interface
+#include "bsp.hpp"        // Board Support Package
 
 #include "em_device.h"  // the device specific header (SiLabs)
 #include "em_cmu.h"     // Clock Management Unit (SiLabs)
@@ -95,7 +92,7 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
     // (assuming that you ship your production code with assertions enabled).
     Q_UNUSED_PAR(module);
     Q_UNUSED_PAR(id);
-    QS_ASSERTION(module, id, 10000U);
+    QS_ASSERTION(module, id, 10000U); // report assertion to QS
 
 #ifndef NDEBUG
     // light up both LEDs
@@ -103,11 +100,10 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
     // for debugging, hang on in an endless loop...
     for (;;) {
     }
-#else
+#endif
     NVIC_SystemReset();
     for (;;) { // explicitly "no-return"
     }
-#endif
 }
 //............................................................................
 void assert_failed(char const * const module, int_t const id); // prototype
@@ -116,7 +112,6 @@ void assert_failed(char const * const module, int_t const id) {
 }
 
 // ISRs used in the application ==============================================
-
 void SysTick_Handler(void); // prototype
 void SysTick_Handler(void) {
     QK_ISR_ENTRY();   // inform QK about entering an ISR
@@ -191,7 +186,6 @@ void QF_onContextSw(QP::QActive *prev, QP::QActive *next) {
 
 } // extern "C"
 
-
 //============================================================================
 namespace BSP {
 
@@ -236,7 +230,6 @@ void init() {
     BSP::randomSeed(1234U);
 
     // Initialize the DISPLAY driver
-    //Q_ALLEGE(Display_init()); // deprecated
     if (!Display_init()) {
         Q_ERROR();
     }
@@ -610,7 +603,7 @@ bool doBitmapsOverlap(uint8_t bmp_id1, uint8_t x1, uint8_t y1,
     return false; // the bitmaps do not overlap
 }
 //..........................................................................*/
-bool isWallHit(uint8_t bmp_id, uint8_t x, uint8_t y) {
+bool isWallHit(std::uint8_t bmp_id, uint8_t x, uint8_t y) {
     Bitmap const *bmp = &l_bitmap[bmp_id];
     uint32_t shift = (x & 0x1FU);
     uint32_t *walls = &l_walls[y][x >> 5];
@@ -628,7 +621,7 @@ bool isWallHit(uint8_t bmp_id, uint8_t x, uint8_t y) {
 }
 
 //..........................................................................*/
-void updateScore(uint16_t score) {
+void updateScore(std::uint16_t score) {
     uint8_t seg[5];
     char str[5];
 
@@ -650,15 +643,15 @@ void updateScore(uint16_t score) {
     paintString(6U*6U, SCREEN_HEIGHT - 8U, str);
 }
 //............................................................................
-void displayOn(void) {
+void displayOn() {
     Display_enable(true);
 }
 //............................................................................
-void displayOff(void) {
+void displayOff() {
     Display_enable(false);
 }
 //............................................................................
-uint32_t random(void) { // a very cheap pseudo-random-number generator
+uint32_t random() { // a very cheap pseudo-random-number generator
     // some floating point code is to exercise the FPU
     float volatile x = 3.1415926F;
     x = x + 2.7182818F;
@@ -716,14 +709,13 @@ static void paintBitsClear(uint8_t x, uint8_t y,
 
 } // unnamed local namespace
 
-
-//============================================================================
 namespace QP {
 
 // QF callbacks --------------------------------------------------------------
 
 void QF::onStartup() {
     // set up the SysTick timer to fire at BSP::TICKS_PER_SEC rate
+    SystemCoreClockUpdate();
     SysTick_Config(SystemCoreClock / BSP::TICKS_PER_SEC);
 
     // assign all priority bits for preemption-prio. and none to sub-prio.
@@ -769,7 +761,6 @@ void QK::onIdle() {
     // Put the CPU and peripherals to the low-power mode.
     // you might need to customize the clock management for your application,
     // see the datasheet for your particular Cortex-M MCU.
-    //
     __WFI(); // Wait-For-Interrupt
 #endif
 }
@@ -777,10 +768,9 @@ void QK::onIdle() {
 //============================================================================
 // QS callbacks...
 #ifdef Q_SPY
-namespace QS {
 
 //............................................................................
-bool onStartup(void const *arg) {
+bool QS::onStartup(void const *arg) {
     Q_UNUSED_PAR(arg);
 
     static std::uint8_t qsTxBuf[2*1024]; // buffer for QS-TX channel
@@ -845,10 +835,10 @@ bool onStartup(void const *arg) {
     return true; // return success
 }
 //............................................................................
-void onCleanup() {
+void QS::onCleanup() {
 }
 //............................................................................
-QSTimeCtr onGetTime() { // NOTE: invoked with interrupts DISABLED
+QSTimeCtr QS::onGetTime() { // NOTE: invoked with interrupts DISABLED
     if ((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) == 0U) { // not set?
         return QS_tickTime_ - (QSTimeCtr)SysTick->VAL;
     }
@@ -858,7 +848,7 @@ QSTimeCtr onGetTime() { // NOTE: invoked with interrupts DISABLED
 }
 //............................................................................
 //! callback function to execute a user command
-void onFlush() {
+void QS::onFlush() {
     for (;;) {
         std::uint16_t b = getByte();
         if (b != QS_EOD) {
@@ -872,11 +862,11 @@ void onFlush() {
     }
 }
 //............................................................................
-void onReset() {
+void QS::onReset() {
     NVIC_SystemReset();
 }
 //............................................................................
-void onCommand(std::uint8_t cmdId, std::uint32_t param1,
+void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
                std::uint32_t param2, std::uint32_t param3)
 {
     Q_UNUSED_PAR(cmdId);
@@ -885,9 +875,7 @@ void onCommand(std::uint8_t cmdId, std::uint32_t param1,
     Q_UNUSED_PAR(param3);
 }
 
-} // namespace QS
 #endif // Q_SPY
-//----------------------------------------------------------------------------
 
 } // namespace QP
 

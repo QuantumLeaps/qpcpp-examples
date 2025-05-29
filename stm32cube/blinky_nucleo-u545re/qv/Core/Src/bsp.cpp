@@ -322,12 +322,15 @@ void QV::onIdle() { // NOTE: this function is called with interrupts DISABLED
 //============================================================================
 // QS callbacks...
 #ifdef Q_SPY
-namespace QS {
 
 //............................................................................
 static std::uint16_t const QS_UARTPrescTable[12] = {
     1U, 2U, 4U, 6U, 8U, 10U, 12U, 16U, 32U, 64U, 128U, 256U
 };
+
+// USART1 pins PA.9 and PA.10
+constexpr std::uint32_t USART1_TX_PIN {9U};
+constexpr std::uint32_t USART1_RX_PIN {10U};
 
 #define __LL_USART_DIV_SAMPLING16(__PERIPHCLK__, __PRESCALER__, __BAUDRATE__) \
   ((((__PERIPHCLK__)/(USART_PRESCALER_TAB[(__PRESCALER__)]))\
@@ -337,12 +340,8 @@ static std::uint16_t const QS_UARTPrescTable[12] = {
   ((((__PCLK__)/QS_UARTPrescTable[(__CLOCKPRESCALER__)]) \
   + ((__BAUD__)/2U)) / (__BAUD__))
 
-// USART1 pins PA.9 and PA.10
-constexpr std::uint32_t USART1_TX_PIN {9U};
-constexpr std::uint32_t USART1_RX_PIN {10U};
-
 //............................................................................
-bool onStartup(void const *arg) {
+bool QS::onStartup(void const *arg) {
     Q_UNUSED_PAR(arg);
 
     static std::uint8_t qsTxBuf[2*1024]; // buffer for QS-TX channel
@@ -455,17 +454,17 @@ bool onStartup(void const *arg) {
     return true; // return success
 }
 //............................................................................
-void onCleanup() {
+void QS::onCleanup() {
 }
 //............................................................................
-QSTimeCtr onGetTime() { // NOTE: invoked with interrupts DISABLED
+QSTimeCtr QS::onGetTime() { // NOTE: invoked with interrupts DISABLED
     return TIM5->CNT; // 32-bit Timer5 count
 }
 //............................................................................
 // NOTE:
 // No critical section in QS::onFlush() to avoid nesting of critical sections
 // in case QS::onFlush() is called from Q_onError().
-void onFlush() {
+void QS::onFlush() {
     for (;;) {
         std::uint16_t b = getByte();
         if (b != QS_EOD) {
@@ -479,11 +478,11 @@ void onFlush() {
     }
 }
 //............................................................................
-void onReset() {
+void QS::onReset() {
     NVIC_SystemReset();
 }
 //............................................................................
-void onCommand(std::uint8_t cmdId, std::uint32_t param1,
+void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
                std::uint32_t param2, std::uint32_t param3)
 {
     Q_UNUSED_PAR(cmdId);
@@ -491,8 +490,6 @@ void onCommand(std::uint8_t cmdId, std::uint32_t param1,
     Q_UNUSED_PAR(param2);
     Q_UNUSED_PAR(param3);
 }
-
-} // namespace QS
 
 #endif // Q_SPY
 
@@ -505,8 +502,7 @@ extern "C" {
 //............................................................................
 // ISR for receiving bytes from the QSPY Back-End
 // NOTE: This ISR is "QF-unaware" meaning that it does not interact with
-// the QF/QXK and is not disabled. Such ISRs don't need to call
-// QXK_ISR_ENTRY/QXK_ISR_EXIT and they cannot post or publish events.
+// the QF/QV and is not disabled.
 
 void USART1_IRQHandler(void); // prototype
 void USART1_IRQHandler(void) { // used in QS-RX (kernel UNAWARE interrupt)

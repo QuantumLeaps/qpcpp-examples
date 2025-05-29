@@ -1,42 +1,39 @@
 //============================================================================
 // DPP example, EK-TM4C123GXL board, ThreadX RTOS
-// Last updated for version 7.3.2
-// Last updated on  2023-12-13
 //
-//                   Q u a n t u m  L e a P s
-//                   ------------------------
-//                   Modern Embedded Software
+// Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 //
-// Copyright (C) 2005 Quantum Leaps, LLC. <state-machine.com>
+//                    Q u a n t u m  L e a P s
+//                    ------------------------
+//                    Modern Embedded Software
 //
 // SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 //
-// This software is dual-licensed under the terms of the open source GNU
-// General Public License version 3 (or any later version), or alternatively,
-// under the terms of one of the closed source Quantum Leaps commercial
-// licenses.
-//
-// The terms of the open source GNU General Public License version 3
-// can be found at: <www.gnu.org/licenses/gpl-3.0>
-//
-// The terms of the closed source Quantum Leaps commercial licenses
-// can be found at: <www.state-machine.com/licensing>
+// This software is dual-licensed under the terms of the open-source GNU
+// General Public License (GPL) or under the terms of one of the closed-
+// source Quantum Leaps commercial licenses.
 //
 // Redistributions in source code must retain this top-level comment block.
 // Plagiarizing this software to sidestep the license obligations is illegal.
 //
-// Contact information:
+// NOTE:
+// The GPL does NOT permit the incorporation of this code into proprietary
+// programs. Please contact Quantum Leaps for commercial licensing options,
+// which expressly supersede the GPL and are designed explicitly for
+// closed-source distribution.
+//
+// Quantum Leaps contact information:
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"             // QP/C++ real-time event framework
-#include "dpp.hpp"               // DPP Application interface
-#include "bsp.hpp"               // Board Support Package
+#include "qpcpp.hpp"      // QP/C++ real-time event framework
+#include "dpp.hpp"        // DPP Application interface
+#include "bsp.hpp"        // Board Support Package
 
-#include "TM4C123GH6PM.h"        // the device specific header (TI)
-#include "rom.h"                 // the built-in ROM functions (TI)
-#include "sysctl.h"              // system control driver (TI)
-#include "gpio.h"                // GPIO driver (TI)
+#include "TM4C123GH6PM.h"  // the device specific header (TI)
+#include "rom.h"           // the built-in ROM functions (TI)
+#include "sysctl.h"        // system control driver (TI)
+#include "gpio.h"          // GPIO driver (TI)
 // add other drivers if necessary...
 
 //============================================================================
@@ -87,7 +84,7 @@ static VOID timer_expiration(ULONG id) {
 // Error handler
 extern "C" {
 
-Q_NORETURN Q_onError(char const * const module, int const id) {
+Q_NORETURN Q_onError(char const * const module, int_t const id) {
     // NOTE: this implementation of the error handler is intended only
     // for debugging and MUST be changed for deployment of the application
     // (assuming that you ship your production code with assertions enabled).
@@ -98,22 +95,20 @@ Q_NORETURN Q_onError(char const * const module, int const id) {
 #ifndef NDEBUG
     // light up all LEDs
     GPIOF_AHB->DATA_Bits[LED_GREEN | LED_RED | LED_BLUE] = 0xFFU;
-    // for debugging, hang on in an endless loop...
-    for (;;) {
+    for (;;) { // for debugging, hang on in an endless loop...
     }
-#else
+#endif
     NVIC_SystemReset();
     for (;;) { // explicitly "no-return"
     }
-#endif
 }
 //............................................................................
-void assert_failed(char const * const module, int const id); // prototype
-void assert_failed(char const * const module, int const id) {
+void assert_failed(char const * const module, int_t const id); // prototype
+void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
 }
 
-// ISRs and ThreadX IRS callbacks used in the application ====================
+// ISRs used in the application ==============================================
 
 //............................................................................
 #ifdef Q_SPY
@@ -145,8 +140,7 @@ static void idle_thread_fun(ULONG /*thread_input*/) { // see NOTE1
 //............................................................................
 // ISR for receiving bytes from the QSPY Back-End
 // NOTE: This ISR is "kernel-unaware" meaning that it does not interact with
-// the  or QP and is not disabled. Such ISRs don't cannot call any
-// ThreadX or QP APIs.
+// QP and is not disabled. Such ISRs don't cannot call any ThreadX or QP APIs.
 void UART0_IRQHandler(void); // prototype
 void UART0_IRQHandler(void) {
     uint32_t status = UART0->RIS; // get the raw interrupt status
@@ -157,13 +151,13 @@ void UART0_IRQHandler(void) {
         QP::QS::rxPut(b);
     }
 }
-
 #endif // Q_SPY
-
 
 } // extern "C"
 
-// BSP functions =============================================================
+//============================================================================
+// BSP functions...
+
 namespace BSP {
 
 void init() {
@@ -213,7 +207,6 @@ void init() {
     *(uint32_t volatile *)&GPIOF_AHB->CR = 0x00U;
     GPIOF_AHB->LOCK = 0x0; // lock GPIOCR register for SW2
 
-    // seed the random number generator
     BSP::randomSeed(1234U);
 
     // initialize the QS software tracing...
@@ -272,6 +265,10 @@ std::uint32_t random() { // a very cheap pseudo-random-number generator
     return (rnd >> 8);
 }
 //............................................................................
+void terminate(std::int16_t result) {
+    Q_UNUSED_PAR(result);
+}
+//............................................................................
 void ledOn() {
     GPIOF_AHB->DATA_Bits[LED_RED] = 0xFFU;
 }
@@ -279,18 +276,13 @@ void ledOn() {
 void ledOff() {
     GPIOF_AHB->DATA_Bits[LED_RED] = 0x00U;
 }
-//............................................................................
-void terminate(int16_t result) {
-    Q_UNUSED_PAR(result);
-}
 
 } // namespace BSP
 
 //============================================================================
-
 namespace QP {
 
-// QF callbacks --------------------------------------------------------------
+// QF callbacks...
 
 void QF::onStartup() {
     // NOTE:
@@ -333,12 +325,12 @@ void QF::onStartup() {
 void QF::onCleanup() {
 }
 
-// QS callbacks --------------------------------------------------------------
+//============================================================================
+// QS callbacks...
 #ifdef Q_SPY
-namespace QS {
 
 //............................................................................
-bool onStartup(void const *arg) {
+bool QS::onStartup(void const *arg) {
     Q_UNUSED_PAR(arg);
 
     static std::uint8_t qsTxBuf[2*1024]; // buffer for QS-TX channel
@@ -391,25 +383,24 @@ bool onStartup(void const *arg) {
     return true; // return success
 }
 //............................................................................
-void onCleanup() {
+void QS::onCleanup() {
 }
 //............................................................................
-QSTimeCtr onGetTime() { // NOTE: invoked with interrupts DISABLED
+QSTimeCtr QS::onGetTime() { // NOTE: invoked with interrupts DISABLED
     return TIMER5->TAV;
 }
 //............................................................................
 // NOTE:
 // No critical section in QS::onFlush() to avoid nesting of critical sections
 // in case QS::onFlush() is called from Q_onError().
-void onFlush() {
+void QS::onFlush() {
     for (;;) {
         std::uint16_t b = getByte();
         if (b != QS_EOD) { // NOT end-of-data
-            // busy-wait as long as TXE not set
+            // busy-wait as long as TXF has data to transmit
             while ((UART0->FR & UART_FR_TXFE) == 0U) {
             }
-            // place the byte in the UART DR register
-            UART0->DR = b;
+            UART0->DR = b; // put into the DR register
         }
         else {
             break; // break out of the loop
@@ -417,11 +408,11 @@ void onFlush() {
     }
 }
 //............................................................................
-void onReset() {
+void QS::onReset() {
     NVIC_SystemReset();
 }
 //............................................................................
-void onCommand(std::uint8_t cmdId, std::uint32_t param1,
+void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
                std::uint32_t param2, std::uint32_t param3)
 {
     Q_UNUSED_PAR(cmdId);
@@ -430,9 +421,7 @@ void onCommand(std::uint8_t cmdId, std::uint32_t param1,
     Q_UNUSED_PAR(param3);
 }
 
-} // namespace QS
 #endif // Q_SPY
-//----------------------------------------------------------------------------
 
 } // namespace QP
 

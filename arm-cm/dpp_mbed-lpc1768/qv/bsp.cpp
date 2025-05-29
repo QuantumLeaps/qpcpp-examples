@@ -1,7 +1,5 @@
 //============================================================================
-// Product: DPP example, NXP mbed-LPC1768  board, QV kernel
-// Last updated for version 7.3.2
-// Last updated on  2023-12-13
+// Product: DPP example, NXP mbed-LPC1768 board, QV kernel
 //
 //                   Q u a n t u m  L e a P s
 //                   ------------------------
@@ -64,7 +62,6 @@ static std::uint32_t l_rndSeed;
     constexpr std::uint32_t UART_BAUD_RATE      {115200U};
     constexpr std::uint32_t UART_FR_TXFE        {0x80U};
     constexpr std::uint32_t UART_TXFIFO_DEPTH   {16U};
-
 
     enum AppRecords { // application-specific trace records
         PHILO_STAT = QP::QS_USER,
@@ -409,12 +406,10 @@ void QV::onIdle() { // CATION: called with interrupts DISABLED, see NOTE0
 // QS callbacks...
 #ifdef Q_SPY
 
-namespace QS {
-
 static void UART0_setBaudrate(std::uint32_t baud);  // helper function
 
 //............................................................................
-bool onStartup(void const *arg) {
+bool QS::onStartup(void const *arg) {
     Q_UNUSED_PAR(arg);
 
     static std::uint8_t qsTxBuf[2*1024]; // buffer for QS-TX channel
@@ -467,10 +462,10 @@ bool onStartup(void const *arg) {
     return true; // return success
 }
 //............................................................................
-void onCleanup() {
+void QS::onCleanup() {
 }
 //............................................................................
-QSTimeCtr onGetTime() {  // NOTE: invoked with interrupts DISABLED
+QSTimeCtr QS::onGetTime() {  // NOTE: invoked with interrupts DISABLED
     if ((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) == 0) { // not set?
         return QS_tickTime_ - (QSTimeCtr)SysTick->VAL;
     }
@@ -482,7 +477,7 @@ QSTimeCtr onGetTime() {  // NOTE: invoked with interrupts DISABLED
 // NOTE:
 // No critical section in QS::onFlush() to avoid nesting of critical sections
 // in case QS::onFlush() is called from Q_onError().
-void onFlush() {
+void QS::onFlush() {
     for (;;) {
         std::uint16_t b = getByte();
         if (b != QS_EOD) {
@@ -496,13 +491,11 @@ void onFlush() {
     }
 }
 //............................................................................
-//! callback function to reset the target (to be implemented in the BSP)
-void onReset() {
+void QS::onReset() {
     NVIC_SystemReset();
 }
 //............................................................................
-// callback function to execute a user command
-void onCommand(std::uint8_t cmdId, std::uint32_t param1,
+void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
                std::uint32_t param2, std::uint32_t param3)
 {
     Q_UNUSED_PAR(cmdId);
@@ -602,9 +595,7 @@ static void UART0_setBaudrate(std::uint32_t baud) {
     LPC_UART0->LCR &= ~(1U << 7);
 }
 
-} // namespace QS
 #endif // Q_SPY
-//----------------------------------------------------------------------------
 
 } // namespace QP
 

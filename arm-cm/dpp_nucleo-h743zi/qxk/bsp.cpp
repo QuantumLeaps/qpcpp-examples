@@ -1,7 +1,5 @@
 //============================================================================
 // Product: DPP example, NUCLEO-H743ZI board, QXK kernel
-// Last updated for version 7.3.2
-// Last updated on  2023-12-13
 //
 //                   Q u a n t u m  L e a P s
 //                   ------------------------
@@ -9,31 +7,29 @@
 //
 // Copyright (C) 2005 Quantum Leaps, LLC. <state-machine.com>
 //
-// This program is open source software: you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as published
-// by the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 //
-// Alternatively, this program may be distributed and modified under the
-// terms of Quantum Leaps commercial licenses, which expressly supersede
-// the GNU General Public License and are specifically designed for
-// licensees interested in retaining the proprietary status of their code.
+// This software is dual-licensed under the terms of the open source GNU
+// General Public License version 3 (or any later version), or alternatively,
+// under the terms of one of the closed source Quantum Leaps commercial
+// licenses.
 //
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
+// The terms of the open source GNU General Public License version 3
+// can be found at: <www.gnu.org/licenses/gpl-3.0>
 //
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <www.gnu.org/licenses/>.
+// The terms of the closed source Quantum Leaps commercial licenses
+// can be found at: <www.state-machine.com/licensing>
+//
+// Redistributions in source code must retain this top-level comment block.
+// Plagiarizing this software to sidestep the license obligations is illegal.
 //
 // Contact information:
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"             // QP/C++ real-time event framework
-#include "dpp.hpp"               // DPP Application interface
-#include "bsp.hpp"               // Board Support Package
+#include "qpcpp.hpp"      // QP/C++ real-time event framework
+#include "dpp.hpp"        // DPP Application interface
+#include "bsp.hpp"        // Board Support Package
 
 // STM32CubeH7 include files
 #include "stm32h7xx_hal.h"
@@ -73,12 +69,12 @@ static std::uint32_t l_rndSeed;
 extern "C" {
 
 Q_NORETURN Q_onError(char const * const module, int_t const id) {
-    // NOTE: this implementation of the assertion handler is intended only
+    // NOTE: this implementation of the error handler is intended only
     // for debugging and MUST be changed for deployment of the application
     // (assuming that you ship your production code with assertions enabled).
     Q_UNUSED_PAR(module);
     Q_UNUSED_PAR(id);
-    QS_ASSERTION(module, id, 10000U);
+    QS_ASSERTION(module, id, 10000U); // report assertion to QS
 
 #ifndef NDEBUG
     // light all LEDs
@@ -98,8 +94,7 @@ void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
 }
 
-// ISRs used in the application ============================================
-
+// ISRs used in the application ==============================================
 void SysTick_Handler(void); // prototype
 void SysTick_Handler(void) {
     QXK_ISR_ENTRY();   // inform QXK about entering an ISR
@@ -124,17 +119,17 @@ void SysTick_Handler(void) {
 
     if (tmp != 0U) { // debounced User button state changed?
         if (current != 0U) { // is User button depressed?
-            static QP::QEvt const pauseEvt(APP::PAUSE_SIG);
+            static QP::QEvt const pauseEvt { APP::PAUSE_SIG };
             QP::QActive::PUBLISH(&pauseEvt, &l_SysTick_Handler);
         }
         else { // the button is released
-            static QP::QEvt const serveEvt(APP::SERVE_SIG);
+            static QP::QEvt const serveEvt { APP::SERVE_SIG };
             QP::QActive::PUBLISH(&serveEvt, &l_SysTick_Handler);
         }
     }
 
 #ifdef Q_SPY
-    tmp = SysTick->CTRL; // clear SysTick_CTRL_COUNTFLAG
+    tmp = SysTick->CTRL; // clear CTRL_COUNTFLAG
     QS_tickTime_ += QS_tickPeriod_; // account for the clock rollover
 #endif
 
@@ -194,10 +189,6 @@ void init() {
     // enable the MemManage_Handler for MPU exception
     SCB->SHCSR |= SCB_SHCSR_MEMFAULTENA_Msk;
 
-    // NOTE: SystemInit() has been already called from the startup code
-    // but SystemCoreClock needs to be updated
-    SystemCoreClockUpdate();
-
     SCB_EnableICache(); // Enable I-Cache
     SCB_EnableDCache(); // Enable D-Cache
 
@@ -214,7 +205,7 @@ void init() {
     // Configure the User Button in GPIO Mode
     BSP_PB_Init(BUTTON_USER, BUTTON_MODE_GPIO);
 
-    BSP::randomSeed(1234U);
+    BSP::randomSeed(1234U); // seed the random number generator
 
     // initialize the QS software tracing...
     if (!QS_INIT(nullptr)) {
@@ -296,8 +287,7 @@ void displayPhilStat(uint8_t n, char const *stat) {
     QS_END()
 }
 //............................................................................
-void displayPaused(uint8_t const paused) {
-    // not enough LEDs to implement this feature
+void displayPaused(std::uint8_t const paused) {
     if (paused != 0U) {
         BSP_LED_On(LED2);
     }
@@ -311,11 +301,15 @@ void displayPaused(uint8_t const paused) {
     QS_END()
 }
 //............................................................................
-void randomSeed(uint32_t seed) {
+void randomSeed(std::uint32_t seed) {
     l_rndSeed = seed;
 }
 //............................................................................
 std::uint32_t random() { // a very cheap pseudo-random-number generator
+
+    // Some flating point code is to exercise the VFP...
+    double volatile x = 3.1415926;
+    x = x + 2.7182818;
 
     QP::QSchedStatus lockStat = QP::QXK::schedLock(APP::N_PHILO);
     // "Super-Duper" Linear Congruential Generator (LCG)
@@ -328,6 +322,10 @@ std::uint32_t random() { // a very cheap pseudo-random-number generator
     return (rnd >> 8U);
 }
 //............................................................................
+void terminate(std::int16_t result) {
+    Q_UNUSED_PAR(result);
+}
+//............................................................................
 void ledOn() {
     BSP_LED_On(LED1);
 }
@@ -335,20 +333,16 @@ void ledOn() {
 void ledOff() {
     BSP_LED_Off(LED1);
 }
-//............................................................................
-void terminate(int16_t result) {
-    Q_UNUSED_PAR(result);
-}
 
 } // namespace BSP
 
 //============================================================================
-// namespace QP
 namespace QP {
 
 // QF callbacks...
 void QF::onStartup() {
     // set up the SysTick timer to fire at BSP::TICKS_PER_SEC rate
+    SystemCoreClockUpdate();
     SysTick_Config(SystemCoreClock / BSP::TICKS_PER_SEC);
 
     // assign all priority bits for preemption-prio. and none to sub-prio.
@@ -357,7 +351,7 @@ void QF::onStartup() {
 
     // set priorities of ALL ISRs used in the system, see NOTE1
     NVIC_SetPriority(USART3_IRQn,    0U); // kernel UNAWARE interrupt
-    NVIC_SetPriority(SysTick_IRQn,   QF_AWARE_ISR_CMSIS_PRI + 1U);
+    NVIC_SetPriority(SysTick_IRQn,   QF_AWARE_ISR_CMSIS_PRI + 0U);
     // ...
 
     // enable IRQs...
@@ -403,16 +397,15 @@ void QXK::onIdle() {
 //============================================================================
 // QS callbacks...
 #ifdef Q_SPY
-namespace QS {
 
 //............................................................................
-bool onStartup(void const *arg) {
+bool QS::onStartup(void const *arg) {
     Q_UNUSED_PAR(arg);
 
-    static std::uint8_t qsTxBuf[2*1024]; // buffer for QS transmit channel
+    static std::uint8_t qsTxBuf[2*1024]; // buffer for QS-TX channel
     initBuf(qsTxBuf, sizeof(qsTxBuf));
 
-    static std::uint8_t qsRxBuf[100];    // buffer for QS receive channel
+    static std::uint8_t qsRxBuf[100];    // buffer for QS-RX channel
     rxInitBuf(qsRxBuf, sizeof(qsRxBuf));
 
     l_uartHandle.Instance        = USART3;
@@ -424,7 +417,7 @@ bool onStartup(void const *arg) {
     l_uartHandle.Init.Mode       = UART_MODE_TX_RX;
     l_uartHandle.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
     if (HAL_UART_Init(&l_uartHandle) != HAL_OK) {
-        return 0U; // return failure
+        return 0U; // failure
     }
 
     // Set UART to receive 1 byte at a time via interrupt
@@ -436,10 +429,10 @@ bool onStartup(void const *arg) {
     return true; // return success
 }
 //............................................................................
-void onCleanup() {
+void QS::onCleanup() {
 }
 //............................................................................
-QSTimeCtr onGetTime() {  // NOTE: invoked with interrupts DISABLED
+QSTimeCtr QS::onGetTime() { // NOTE: invoked with interrupts DISABLED
     if ((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) == 0) { // not set?
         return QS_tickTime_ - (QSTimeCtr)SysTick->VAL;
     }
@@ -451,7 +444,7 @@ QSTimeCtr onGetTime() {  // NOTE: invoked with interrupts DISABLED
 // NOTE:
 // No critical section in QS::onFlush() to avoid nesting of critical sections
 // in case QS::onFlush() is called from Q_onError().
-void onFlush() {
+void QS::onFlush() {
     for (;;) {
         std::uint16_t b = getByte();
         if (b != QS_EOD) {
@@ -465,11 +458,11 @@ void onFlush() {
     }
 }
 //............................................................................
-void onReset() {
+void QS::onReset() {
     NVIC_SystemReset();
 }
 //............................................................................
-void onCommand(std::uint8_t cmdId, std::uint32_t param1,
+void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
                std::uint32_t param2, std::uint32_t param3)
 {
     Q_UNUSED_PAR(cmdId);
@@ -478,14 +471,12 @@ void onCommand(std::uint8_t cmdId, std::uint32_t param1,
     Q_UNUSED_PAR(param3);
 }
 
-} // namespace QS
 #endif // Q_SPY
-//----------------------------------------------------------------------------
 
 } // namespace QP
 
 //============================================================================
-// NOTE1:
+// NOTE0:
 // The QF_AWARE_ISR_CMSIS_PRI constant from the QF port specifies the highest
 // ISR priority that is disabled by the QF framework. The value is suitable
 // for the NVIC_SetPriority() CMSIS function.

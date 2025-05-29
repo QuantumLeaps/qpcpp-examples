@@ -88,6 +88,7 @@ int main() {
     QS_OBJ_DICTIONARY(the_TstSM1);
     QS_OBJ_DICTIONARY(the_TstSM2);
     QS_OBJ_DICTIONARY(the_TstSM3);
+    QS_OBJ_DICTIONARY(the_TstSM4);
     QS_OBJ_DICTIONARY(the_TstSM5);
 
     QS_SIG_DICTIONARY(A_SIG, nullptr);
@@ -181,11 +182,9 @@ void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
             break;
         }
         case DISP_CORR_EVT_CMD: {
-        /*
             static QEvt corr_evt(A_SIG);
-            corr_evt.refCtr_dis = 0U;
+            //corr_evt.refCtr_dis = 0U;
             the_TstSM5->dispatch(&corr_evt, 0U);
-        */
             break;
         }
         default:

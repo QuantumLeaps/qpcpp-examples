@@ -26,9 +26,9 @@
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"             // QP/C++ real-time event framework
-#include "dpp.hpp"               // DPP Application interface
-#include "bsp.hpp"               // Board Support Package
+#include "qpcpp.hpp"      // QP/C++ real-time event framework
+#include "dpp.hpp"        // DPP Application interface
+#include "bsp.hpp"        // Board Support Package
 
 #include "stm32u545xx.h"  // CMSIS-compliant header file for the MCU used
 // add other drivers if necessary...
@@ -72,8 +72,7 @@ static std::uint32_t l_rndSeed;
     WRITE_REG((REG), ((READ_REG(REG) & (~(CLEARMASK))) | (SETMASK)))
 
 //============================================================================
-// Error handler and ISRs...
-
+// Error handler
 extern "C" {
 
 Q_NORETURN Q_onError(char const * const module, int_t const id) {
@@ -96,7 +95,6 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
     }
 }
 //............................................................................
-// assertion failure handler for the STM32 library, including the startup code
 void assert_failed(char const * const module, int_t const id); // prototype
 void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
@@ -104,6 +102,7 @@ void assert_failed(char const * const module, int_t const id) {
 
 // ISRs used in the application ==============================================
 
+//............................................................................
 void App_TimeTickHook(void) {
 
     QP::QTimeEvt::TICK_X(0U, &l_tickHook); // time events at rate 0
@@ -293,7 +292,6 @@ void init() {
                GPIO_MODER_MODE0 << (B1_PIN * GPIO_MODER_MODE1_Pos),
                0U << (B1_PIN * GPIO_MODER_MODE1_Pos)); // MODE_0
 
-    // seed the random number generator
     BSP::randomSeed(1234U);
 
     // initialize the QS software tracing...
@@ -417,6 +415,7 @@ void terminate(int16_t result) {
 namespace QP {
 
 // QF callbacks...
+
 void QF::onStartup() {
     // set up the SysTick timer to fire at BSP::TICKS_PER_SEC rate
     // NOTE: do NOT call OS_CPU_SysTickInit() from uC/OS-II
@@ -443,9 +442,9 @@ void QF::onStartup() {
 void QF::onCleanup() {
 }
 
-// QS callbacks --------------------------------------------------------------
+//============================================================================
+// QS callbacks...
 #ifdef Q_SPY
-namespace QS {
 
 //............................................................................
 static std::uint16_t const QS_UARTPrescTable[12] = {
@@ -465,7 +464,7 @@ constexpr std::uint32_t USART1_TX_PIN {9U};
 constexpr std::uint32_t USART1_RX_PIN {10U};
 
 //............................................................................
-bool onStartup(void const *arg) {
+bool QS::onStartup(void const *arg) {
     Q_UNUSED_PAR(arg);
 
     static std::uint8_t qsTxBuf[2*1024]; // buffer for QS-TX channel
@@ -578,17 +577,17 @@ bool onStartup(void const *arg) {
     return true; // return success
 }
 //............................................................................
-void onCleanup() {
+void QS::onCleanup() {
 }
 //............................................................................
-QSTimeCtr onGetTime() { // NOTE: invoked with interrupts DISABLED
+QSTimeCtr QS::onGetTime() { // NOTE: invoked with interrupts DISABLED
     return TIM5->CNT; // 32-bit Timer5 count
 }
 //............................................................................
 // NOTE:
 // No critical section in QS::onFlush() to avoid nesting of critical sections
 // in case QS::onFlush() is called from Q_onError().
-void onFlush() {
+void QS::onFlush() {
     for (;;) {
         std::uint16_t b = getByte();
         if (b != QS_EOD) {
@@ -602,11 +601,11 @@ void onFlush() {
     }
 }
 //............................................................................
-void onReset() {
+void QS::onReset() {
     NVIC_SystemReset();
 }
 //............................................................................
-void onCommand(std::uint8_t cmdId, std::uint32_t param1,
+void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
                std::uint32_t param2, std::uint32_t param3)
 {
     Q_UNUSED_PAR(cmdId);
@@ -614,8 +613,6 @@ void onCommand(std::uint8_t cmdId, std::uint32_t param1,
     Q_UNUSED_PAR(param2);
     Q_UNUSED_PAR(param3);
 }
-
-} // namespace QS
 
 #endif // Q_SPY
 

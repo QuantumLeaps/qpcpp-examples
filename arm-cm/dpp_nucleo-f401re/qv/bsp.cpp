@@ -89,13 +89,12 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
     NVIC_SystemReset();
 }
 //............................................................................
-// assertion failure handler for the STM32 library, including the startup code
 void assert_failed(char const * const module, int_t const id); // prototype
 void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
 }
 
-// ISRs used in the application ==========================================
+// ISRs used in the application ==============================================
 void SysTick_Handler(void); // prototype
 void SysTick_Handler(void) {
 
@@ -136,7 +135,6 @@ void SysTick_Handler(void) {
 
 //............................................................................
 #ifdef Q_SPY
-//............................................................................
 // ISR for receiving bytes from the QSPY Back-End
 // NOTE: This ISR is "QF-unaware" meaning that it does not interact with
 // the QF/QK and is not disabled. Such ISRs don't need to call
@@ -254,7 +252,7 @@ void start() {
         nullptr, 0U);                // no stack storage
 }
 //............................................................................
-void displayPhilStat(uint8_t n, char const *stat) {
+void displayPhilStat(std::uint8_t n, char const *stat) {
     Q_UNUSED_PAR(n);
 
     if (stat[0] == 'e') {
@@ -271,7 +269,8 @@ void displayPhilStat(uint8_t n, char const *stat) {
     QS_END()
 }
 //............................................................................
-void displayPaused(uint8_t const paused) {
+void displayPaused(std::uint8_t const paused) {
+    // not enough LEDs to implement this feature
     if (paused) {
         // no more LEDs
     }
@@ -375,7 +374,6 @@ void QV::onIdle() { // CAUTION: called with interrupts DISABLED, see NOTE0
 //============================================================================
 // QS callbacks...
 #ifdef Q_SPY
-namespace QS {
 
 //............................................................................
 #define __DIV(__PCLK, __BAUD)       (((__PCLK / 4) *25)/(__BAUD))
@@ -391,7 +389,7 @@ namespace QS {
 #define USART2_RX_PIN 3U
 
 //............................................................................
-bool onStartup(void const *arg) {
+bool QS::onStartup(void const *arg) {
     Q_UNUSED_PAR(arg);
 
     static std::uint8_t qsTxBuf[2*1024]; // buffer for QS transmit channel
@@ -426,10 +424,10 @@ bool onStartup(void const *arg) {
     return true; // return success
 }
 //............................................................................
-void onCleanup() {
+void QS::onCleanup() {
 }
 //............................................................................
-QSTimeCtr onGetTime() { // NOTE: invoked with interrupts DISABLED
+QSTimeCtr QS::onGetTime() { // NOTE: invoked with interrupts DISABLED
     if ((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) == 0U) { // not set?
         return QS_tickTime_ - (QSTimeCtr)SysTick->VAL;
     }
@@ -441,7 +439,7 @@ QSTimeCtr onGetTime() { // NOTE: invoked with interrupts DISABLED
 // NOTE:
 // No critical section in QS::onFlush() to avoid nesting of critical sections
 // in case QS::onFlush() is called from Q_onError().
-void onFlush() {
+void QS::onFlush() {
     for (;;) {
         std::uint16_t b = getByte();
         if (b != QS_EOD) {
@@ -455,11 +453,11 @@ void onFlush() {
     }
 }
 //............................................................................
-void onReset() {
+void QS::onReset() {
     NVIC_SystemReset();
 }
 //............................................................................
-void onCommand(std::uint8_t cmdId, std::uint32_t param1,
+void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
                std::uint32_t param2, std::uint32_t param3)
 {
     Q_UNUSED_PAR(cmdId);
@@ -468,9 +466,7 @@ void onCommand(std::uint8_t cmdId, std::uint32_t param1,
     Q_UNUSED_PAR(param3);
 }
 
-} // namespace QS
 #endif // Q_SPY
-//----------------------------------------------------------------------------
 
 } // namespace QP
 

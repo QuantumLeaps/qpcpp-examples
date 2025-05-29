@@ -1,37 +1,34 @@
 //============================================================================
 // DPP example on MSP-EXP430F5529LP board, preemptive QK kernel
-// Last updated for version 7.3.2
-// Last updated on  2023-12-13
 //
-//                   Q u a n t u m  L e a P s
-//                   ------------------------
-//                   Modern Embedded Software
+// Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 //
-// Copyright (C) 2005 Quantum Leaps, LLC. <state-machine.com>
+//                    Q u a n t u m  L e a P s
+//                    ------------------------
+//                    Modern Embedded Software
 //
 // SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 //
-// This software is dual-licensed under the terms of the open source GNU
-// General Public License version 3 (or any later version), or alternatively,
-// under the terms of one of the closed source Quantum Leaps commercial
-// licenses.
-//
-// The terms of the open source GNU General Public License version 3
-// can be found at: <www.gnu.org/licenses/gpl-3.0>
-//
-// The terms of the closed source Quantum Leaps commercial licenses
-// can be found at: <www.state-machine.com/licensing>
+// This software is dual-licensed under the terms of the open-source GNU
+// General Public License (GPL) or under the terms of one of the closed-
+// source Quantum Leaps commercial licenses.
 //
 // Redistributions in source code must retain this top-level comment block.
 // Plagiarizing this software to sidestep the license obligations is illegal.
 //
-// Contact information:
+// NOTE:
+// The GPL does NOT permit the incorporation of this code into proprietary
+// programs. Please contact Quantum Leaps for commercial licensing options,
+// which expressly supersede the GPL and are designed explicitly for
+// closed-source distribution.
+//
+// Quantum Leaps contact information:
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"             // QP/C++ real-time event framework
-#include "dpp.hpp"               // DPP Application interface
-#include "bsp.hpp"               // Board Support Package
+#include "qpcpp.hpp"      // QP/C++ real-time event framework
+#include "dpp.hpp"        // DPP Application interface
+#include "bsp.hpp"        // Board Support Package
 
 #include <msp430f5529.h>  // MSP430 variant used
 // add other drivers if necessary...
@@ -76,7 +73,7 @@ static std::uint32_t l_rndSeed;
 // Error handler and ISRs...
 extern "C" {
 
-Q_NORETURN Q_onError(char const * const module, int const id) {
+Q_NORETURN Q_onError(char const * const module, int_t const id) {
     // NOTE: this implementation of the error handler is intended only
     // for debugging and MUST be changed for deployment of the application
     // (assuming that you ship your production code with assertions enabled).
@@ -89,15 +86,14 @@ Q_NORETURN Q_onError(char const * const module, int const id) {
     // for debugging, hang on in an endless loop...
     for (;;) {
     }
-#else
+#endif
     WDTCTL = 0xDEAD;
     for (;;) { // explicitly "no-return"
     }
-#endif
 }
 //............................................................................
-void assert_failed(char const * const module, int const id); // prototype
-void assert_failed(char const * const module, int const id) {
+void assert_failed(char const * const module, int_t const id); // prototype
+void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
 }
 
@@ -144,7 +140,6 @@ void assert_failed(char const * const module, int const id) {
         QP::QS::rxPut(b);
     }
 }
-
 #endif // Q_SPY
 
 //............................................................................
@@ -161,6 +156,8 @@ void QF_onContextSw(QP::QActive *prev, QP::QActive *next) {
 } // extern "C"
 
 //============================================================================
+// BSP functions...
+
 namespace BSP {
 
 void init() {
@@ -255,11 +252,11 @@ void displayPaused(std::uint8_t const paused) {
     QS_END()
 }
 //............................................................................
-void randomSeed(uint32_t const seed) {
+void randomSeed(std::uint32_t const seed) {
     l_rndSeed = seed;
 }
 //............................................................................
-std::uint32_t random() { // a very cheap pseudo-random-number generator
+std::uint32_t random() { // a cheap pseudo-random-number generator
 
     // "Super-Duper" Linear Congruential Generator (LCG)
     // LCG(2^32, 3*7*11*13*23, 0, seed)
@@ -269,6 +266,10 @@ std::uint32_t random() { // a very cheap pseudo-random-number generator
     return (rnd >> 8U);
 }
 //............................................................................
+void terminate(std::int16_t result) {
+    Q_UNUSED_PAR(result);
+}
+//............................................................................
 void ledOn() {
     //P1OUT |=  LED1;
 }
@@ -276,18 +277,14 @@ void ledOn() {
 void ledOff() {
     //P1OUT &= ~LED1;
 }
-//............................................................................
-void terminate(int16_t result) {
-    Q_UNUSED_PAR(result);
-}
 
 } // namespace BSP
 
 //============================================================================
-// namespace QP
 namespace QP {
 
 // QF callbacks...
+
 void QF::onStartup() {
     TA0CCTL0 = CCIE;  // CCR0 interrupt enabled
     TA0CCR0 = BSP_MCK / BSP::TICKS_PER_SEC;
@@ -329,10 +326,9 @@ void QV::onIdle() { // CAUTION: called with interrupts DISABLED, see NOTE1
 //============================================================================
 // QS callbacks...
 #ifdef Q_SPY
-namespace QS {
 
 //............................................................................
-bool onStartup(void const *arg) {
+bool QS::onStartup(void const *arg) {
     Q_UNUSED_PAR(arg);
 
     static std::uint8_t qsTxBuf[256]; // buffer for QS-TX channel
@@ -361,10 +357,10 @@ bool onStartup(void const *arg) {
     return true; // return success
 }
 //............................................................................
-void onCleanup() {
+void QS::onCleanup() {
 }
 //............................................................................
-QSTimeCtr onGetTime() { // NOTE: invoked with interrupts DISABLED
+QSTimeCtr QS::onGetTime() { // NOTE: invoked with interrupts DISABLED
     if ((TA0CTL & TAIFG) == 0U) {  /* interrupt not pending? */
         return QS_tickTime_ + TA0R;
     }
@@ -379,7 +375,7 @@ QSTimeCtr onGetTime() { // NOTE: invoked with interrupts DISABLED
 // NOTE:
 // No critical section in QS::onFlush() to avoid nesting of critical sections
 // in case QS::onFlush() is called from Q_onError().
-void onFlush() {
+void QS::onFlush() {
     for (;;) {
         std::uint16_t b = getByte();
         if (b != QS_EOD) {
@@ -393,11 +389,11 @@ void onFlush() {
     }
 }
 //............................................................................
-void onReset() {
+void QS::onReset() {
     WDTCTL = 0xDEAD;
 }
 //............................................................................
-void onCommand(std::uint8_t cmdId, std::uint32_t param1,
+void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
                std::uint32_t param2, std::uint32_t param3)
 {
     Q_UNUSED_PAR(cmdId);
@@ -406,9 +402,7 @@ void onCommand(std::uint8_t cmdId, std::uint32_t param1,
     Q_UNUSED_PAR(param3);
 }
 
-} // namespace QS
 #endif // Q_SPY
-//----------------------------------------------------------------------------
 
 } // namespace QP
 

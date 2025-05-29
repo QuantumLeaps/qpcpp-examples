@@ -1,39 +1,34 @@
 //============================================================================
 // Product: "DPP" on LAUCHXL2-TMS570LS12 board, preemptive QK kernel
-// Last updated for version 8.0.0
-// Last updated on  2024-06-07
 //
-//                   Q u a n t u m  L e a P s
-//                   ------------------------
-//                   Modern Embedded Software
+// Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 //
-// Copyright (C) 2005 Quantum Leaps, LLC. <state-machine.com>
+//                    Q u a n t u m  L e a P s
+//                    ------------------------
+//                    Modern Embedded Software
 //
-// This program is open source software: you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as published
-// by the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 //
-// Alternatively, this program may be distributed and modified under the
-// terms of Quantum Leaps commercial licenses, which expressly supersede
-// the GNU General Public License and are specifically designed for
-// licensees interested in retaining the proprietary status of their code.
+// This software is dual-licensed under the terms of the open-source GNU
+// General Public License (GPL) or under the terms of one of the closed-
+// source Quantum Leaps commercial licenses.
 //
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
+// Redistributions in source code must retain this top-level comment block.
+// Plagiarizing this software to sidestep the license obligations is illegal.
 //
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <www.gnu.org/licenses/>.
+// NOTE:
+// The GPL does NOT permit the incorporation of this code into proprietary
+// programs. Please contact Quantum Leaps for commercial licensing options,
+// which expressly supersede the GPL and are designed explicitly for
+// closed-source distribution.
 //
-// Contact information:
+// Quantum Leaps contact information:
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"             // QP/C++ real-time event framework
-#include "dpp.hpp"               // DPP Application interface
-#include "bsp.hpp"               // Board Support Package
+#include "qpcpp.hpp"      // QP/C++ real-time event framework
+#include "dpp.hpp"        // DPP Application interface
+#include "bsp.hpp"        // Board Support Package
 
 #include "sys_common.h"
 #include "sys_core.h"
@@ -90,25 +85,22 @@ static std::uint32_t   l_rndSeed;
 // Error handler and ISRs...
 extern "C" {
 
-//............................................................................
 Q_NORETURN Q_onError(char const * const module, int_t const id) {
     // NOTE: this implementation of the error handler is intended only
     // for debugging and MUST be changed for deployment of the application
     // (assuming that you ship your production code with assertions enabled).
     Q_UNUSED_PAR(module);
     Q_UNUSED_PAR(id);
-
     QS_ASSERTION(module, id, 10000U); // report assertion to QS
 
 #ifndef NDEBUG
     // for debugging, hang on in an endless loop...
     for (;;) {
     }
-#else
+#endif
     systemREG1->SYSECR = 0; // perform system reset
     for (;;) { // explicitly "no-return"
     }
-#endif
 }
 //............................................................................
 void assert_failed(char const * const module, int_t const id); // prototype
@@ -116,7 +108,7 @@ void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
 }
 
-// ISRs used in this project ===============================================
+// ISRs used in the application ==============================================
 // CAUTION: ISRs MUST be both __stackless and __arm!
 QK_IRQ_BEGIN(rtiCompare0)
 
@@ -196,7 +188,6 @@ void QF_onContextSw(QP::QActive *prev, QP::QActive *next) {
 
 } // extern "C"
 
-
 //============================================================================
 namespace BSP {
 
@@ -231,7 +222,6 @@ void init() {
     QS_GLB_FILTER(-QP::QS_QF_TICK);      // exclude the clock tick
     QS_LOC_FILTER(-(APP::N_PHILO + 3U)); // exclude prio. of AO_Ticker0
 }
-
 //............................................................................
 void start() {
     // initialize event pools
@@ -284,6 +274,7 @@ void displayPhilStat(std::uint8_t n, char const *stat) {
 }
 //............................................................................
 void displayPaused(std::uint8_t const paused) {
+    // not enough LEDs to implement this feature
     if (paused != 0U) {
         //LED2_PORT->DSET = (1U << LED2_PIN);
     }
@@ -297,7 +288,7 @@ void displayPaused(std::uint8_t const paused) {
     QS_END()
 }
 //............................................................................
-void randomSeed(uint32_t seed) {
+void randomSeed(std::uint32_t seed) {
     l_rndSeed = seed;
 }
 //............................................................................
@@ -325,7 +316,6 @@ void terminate(int16_t result) {
 } // namespace BSP
 
 //============================================================================
-// namespace QP
 namespace QP {
 
 // QF callbacks...
@@ -382,10 +372,9 @@ void QK::onIdle() {
 //============================================================================
 // QS callbacks...
 #ifdef Q_SPY
-namespace QS {
 
 //............................................................................
-bool onStartup(void const *arg) {
+bool QS::onStartup(void const *arg) {
     Q_UNUSED_PAR(arg);
 
     static std::uint8_t qsTxBuf[2*1024]; // buffer for QS-TX channel
@@ -402,15 +391,14 @@ bool onStartup(void const *arg) {
     return 1U; // return success
 }
 //............................................................................
-void onCleanup() {
+void QS::onCleanup() {
 }
 //............................................................................
-QSTimeCtr onGetTime() { // NOTE: invoked with interrupts DISABLED
+QSTimeCtr QS::onGetTime() { // NOTE: invoked with interrupts DISABLED
     return rtiREG1->CNT[0].FRCx; // free running RTI counter0
 }
 //............................................................................
-//! callback function to execute a user command
-void onFlush() {
+void QS::onFlush() {
     for (;;) {
         std::uint16_t b = getByte();
         if (b != QS_EOD) {
@@ -424,11 +412,11 @@ void onFlush() {
     }
 }
 //............................................................................
-void onReset() {
+void QS::onReset() {
     systemREG1->SYSECR = 0U; // perform system reset
 }
 //............................................................................
-void onCommand(std::uint8_t cmdId, std::uint32_t param1,
+void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
                std::uint32_t param2, std::uint32_t param3)
 {
     Q_UNUSED_PAR(cmdId);
@@ -437,9 +425,7 @@ void onCommand(std::uint8_t cmdId, std::uint32_t param1,
     Q_UNUSED_PAR(param3);
 }
 
-} // namespace QS
 #endif // Q_SPY
-//----------------------------------------------------------------------------
 
 } // namespace QP
 

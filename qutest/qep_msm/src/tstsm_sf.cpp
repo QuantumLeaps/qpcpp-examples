@@ -103,6 +103,21 @@ public:
 protected:
     QM_STATE_DECL( initial);
     QM_STATE_DECL( s1);
+}; // class TstSM3
+
+//${SFs::TstSM4} .............................................................
+class TstSM4 : public QP::QMsm {
+public:
+    static TstSM4 inst;
+
+public:
+    TstSM4()
+     : QP::QMsm(Q_STATE_CAST(&TstSM4::initial))
+    {}
+
+protected:
+    QM_STATE_DECL( initial);
+    QM_STATE_DECL( s1);
     QM_ACTION_DECL(s1_e);
     QM_ACTION_DECL(s1_x);
     QM_ACTION_DECL(s1_i);
@@ -133,7 +148,7 @@ protected:
     QM_STATE_DECL( s8);
     QM_ACTION_DECL(s8_e);
     QM_ACTION_DECL(s8_x);
-}; // class TstSM3
+}; // class TstSM4
 
 //${SFs::TstSM5} .............................................................
 class TstSM5 : public QP::QMsm {
@@ -162,6 +177,7 @@ protected:
     QM_STATE_DECL( s3);
     QM_ACTION_DECL(s3_e);
     QM_ACTION_DECL(s3_x);
+    QM_ACTION_DECL(s3_i);
     QM_STATE_DECL( s4);
     QM_ACTION_DECL(s4_e);
     QM_ACTION_DECL(s4_x);
@@ -237,6 +253,9 @@ QP::QAsm * const the_TstSM2 = &TstSM2::inst;
 
 //${Shared_SF::the_TstSM3} ...................................................
 QP::QAsm * const the_TstSM3 = &TstSM3::inst;
+
+//${Shared_SF::the_TstSM4} ...................................................
+QP::QAsm * const the_TstSM4 = &TstSM4::inst;
 
 //${Shared_SF::the_TstSM5} ...................................................
 QP::QAsm * const the_TstSM5 = &TstSM5::inst;
@@ -374,15 +393,54 @@ TstSM3 TstSM3::inst;
 QM_STATE_DEF(TstSM3, initial) {
     //${SFs::TstSM3::SM::initial}
     Q_UNUSED_PAR(e);
+    return qm_tran_init(nullptr); // NULL tran. table
 
     QS_FUN_DICTIONARY(&TstSM3::s1);
-    QS_FUN_DICTIONARY(&TstSM3::s2);
-    QS_FUN_DICTIONARY(&TstSM3::s3);
-    QS_FUN_DICTIONARY(&TstSM3::s4);
-    QS_FUN_DICTIONARY(&TstSM3::s5);
-    QS_FUN_DICTIONARY(&TstSM3::s6);
-    QS_FUN_DICTIONARY(&TstSM3::s7);
-    QS_FUN_DICTIONARY(&TstSM3::s8);
+    static QP::QMTranActTable const tatbl_ = { // tran-action table
+        &s1_s, // target state
+        {
+            Q_ACTION_NULL // zero terminator
+        }
+    };
+    return qm_tran_init(&tatbl_);
+}
+
+//${SFs::TstSM3::SM::s1} .....................................................
+QP::QMState const TstSM3::s1_s = {
+    QM_STATE_NULL, // superstate (top)
+    &TstSM3::s1,
+    Q_ACTION_NULL, // no entry action
+    Q_ACTION_NULL, // no exit action
+    Q_ACTION_NULL  // no initial tran.
+};
+//${SFs::TstSM3::SM::s1}
+QM_STATE_DEF(TstSM3, s1) {
+    QP::QState status_;
+    switch (e->sig) {
+        default: {
+            status_ = Q_RET_SUPER;
+            break;
+        }
+    }
+    return status_;
+}
+
+//${SFs::TstSM4} .............................................................
+TstSM4 TstSM4::inst;
+
+//${SFs::TstSM4::SM} .........................................................
+QM_STATE_DEF(TstSM4, initial) {
+    //${SFs::TstSM4::SM::initial}
+    Q_UNUSED_PAR(e);
+
+    QS_FUN_DICTIONARY(&TstSM4::s1);
+    QS_FUN_DICTIONARY(&TstSM4::s2);
+    QS_FUN_DICTIONARY(&TstSM4::s3);
+    QS_FUN_DICTIONARY(&TstSM4::s4);
+    QS_FUN_DICTIONARY(&TstSM4::s5);
+    QS_FUN_DICTIONARY(&TstSM4::s6);
+    QS_FUN_DICTIONARY(&TstSM4::s7);
+    QS_FUN_DICTIONARY(&TstSM4::s8);
 
     static struct {
         QP::QMState const *target;
@@ -398,27 +456,27 @@ QM_STATE_DEF(TstSM3, initial) {
     return qm_tran_init(&tatbl_);
 }
 
-//${SFs::TstSM3::SM::s1} .....................................................
-QP::QMState const TstSM3::s1_s = {
+//${SFs::TstSM4::SM::s1} .....................................................
+QP::QMState const TstSM4::s1_s = {
     QM_STATE_NULL, // superstate (top)
-    &TstSM3::s1,
-    &TstSM3::s1_e,
-    &TstSM3::s1_x,
-    &TstSM3::s1_i
+    &TstSM4::s1,
+    &TstSM4::s1_e,
+    &TstSM4::s1_x,
+    &TstSM4::s1_i
 };
-//${SFs::TstSM3::SM::s1}
-QM_ACTION_DEF(TstSM3, s1_e) {
+//${SFs::TstSM4::SM::s1}
+QM_ACTION_DEF(TstSM4, s1_e) {
     //
     return qm_entry(&s1_s);
 }
-//${SFs::TstSM3::SM::s1}
-QM_ACTION_DEF(TstSM3, s1_x) {
+//${SFs::TstSM4::SM::s1}
+QM_ACTION_DEF(TstSM4, s1_x) {
     //
     return qm_exit(&s1_s);
 }
-//${SFs::TstSM3::SM::s1::initial}
-QM_ACTION_DEF(TstSM3, s1_i) {
-    //${SFs::TstSM3::SM::s1::initial}
+//${SFs::TstSM4::SM::s1::initial}
+QM_ACTION_DEF(TstSM4, s1_i) {
+    //${SFs::TstSM4::SM::s1::initial}
 
     static struct {
         QP::QMState const *target;
@@ -433,8 +491,8 @@ QM_ACTION_DEF(TstSM3, s1_i) {
     };
     return qm_tran_init(&tatbl_);
 }
-//${SFs::TstSM3::SM::s1}
-QM_STATE_DEF(TstSM3, s1) {
+//${SFs::TstSM4::SM::s1}
+QM_STATE_DEF(TstSM4, s1) {
     QP::QState status_;
     switch (e->sig) {
         default: {
@@ -445,27 +503,27 @@ QM_STATE_DEF(TstSM3, s1) {
     return status_;
 }
 
-//${SFs::TstSM3::SM::s1::s2} .................................................
-QP::QMState const TstSM3::s2_s = {
-    &TstSM3::s1_s, // superstate
-    &TstSM3::s2,
-    &TstSM3::s2_e,
-    &TstSM3::s2_x,
-    &TstSM3::s2_i
+//${SFs::TstSM4::SM::s1::s2} .................................................
+QP::QMState const TstSM4::s2_s = {
+    &TstSM4::s1_s, // superstate
+    &TstSM4::s2,
+    &TstSM4::s2_e,
+    &TstSM4::s2_x,
+    &TstSM4::s2_i
 };
-//${SFs::TstSM3::SM::s1::s2}
-QM_ACTION_DEF(TstSM3, s2_e) {
+//${SFs::TstSM4::SM::s1::s2}
+QM_ACTION_DEF(TstSM4, s2_e) {
     //
     return qm_entry(&s2_s);
 }
-//${SFs::TstSM3::SM::s1::s2}
-QM_ACTION_DEF(TstSM3, s2_x) {
+//${SFs::TstSM4::SM::s1::s2}
+QM_ACTION_DEF(TstSM4, s2_x) {
     //
     return qm_exit(&s2_s);
 }
-//${SFs::TstSM3::SM::s1::s2::initial}
-QM_ACTION_DEF(TstSM3, s2_i) {
-    //${SFs::TstSM3::SM::s1::s2::initial}
+//${SFs::TstSM4::SM::s1::s2::initial}
+QM_ACTION_DEF(TstSM4, s2_i) {
+    //${SFs::TstSM4::SM::s1::s2::initial}
 
     static struct {
         QP::QMState const *target;
@@ -480,8 +538,8 @@ QM_ACTION_DEF(TstSM3, s2_i) {
     };
     return qm_tran_init(&tatbl_);
 }
-//${SFs::TstSM3::SM::s1::s2}
-QM_STATE_DEF(TstSM3, s2) {
+//${SFs::TstSM4::SM::s1::s2}
+QM_STATE_DEF(TstSM4, s2) {
     QP::QState status_;
     switch (e->sig) {
         default: {
@@ -492,27 +550,27 @@ QM_STATE_DEF(TstSM3, s2) {
     return status_;
 }
 
-//${SFs::TstSM3::SM::s1::s2::s3} .............................................
-QP::QMState const TstSM3::s3_s = {
-    &TstSM3::s2_s, // superstate
-    &TstSM3::s3,
-    &TstSM3::s3_e,
-    &TstSM3::s3_x,
-    &TstSM3::s3_i
+//${SFs::TstSM4::SM::s1::s2::s3} .............................................
+QP::QMState const TstSM4::s3_s = {
+    &TstSM4::s2_s, // superstate
+    &TstSM4::s3,
+    &TstSM4::s3_e,
+    &TstSM4::s3_x,
+    &TstSM4::s3_i
 };
-//${SFs::TstSM3::SM::s1::s2::s3}
-QM_ACTION_DEF(TstSM3, s3_e) {
+//${SFs::TstSM4::SM::s1::s2::s3}
+QM_ACTION_DEF(TstSM4, s3_e) {
     //
     return qm_entry(&s3_s);
 }
-//${SFs::TstSM3::SM::s1::s2::s3}
-QM_ACTION_DEF(TstSM3, s3_x) {
+//${SFs::TstSM4::SM::s1::s2::s3}
+QM_ACTION_DEF(TstSM4, s3_x) {
     //
     return qm_exit(&s3_s);
 }
-//${SFs::TstSM3::SM::s1::s2::s3::initial}
-QM_ACTION_DEF(TstSM3, s3_i) {
-    //${SFs::TstSM3::SM::s1::s2::s3::initial}
+//${SFs::TstSM4::SM::s1::s2::s3::initial}
+QM_ACTION_DEF(TstSM4, s3_i) {
+    //${SFs::TstSM4::SM::s1::s2::s3::initial}
 
     static struct {
         QP::QMState const *target;
@@ -527,8 +585,8 @@ QM_ACTION_DEF(TstSM3, s3_i) {
     };
     return qm_tran_init(&tatbl_);
 }
-//${SFs::TstSM3::SM::s1::s2::s3}
-QM_STATE_DEF(TstSM3, s3) {
+//${SFs::TstSM4::SM::s1::s2::s3}
+QM_STATE_DEF(TstSM4, s3) {
     QP::QState status_;
     switch (e->sig) {
         default: {
@@ -539,27 +597,27 @@ QM_STATE_DEF(TstSM3, s3) {
     return status_;
 }
 
-//${SFs::TstSM3::SM::s1::s2::s3::s4} .........................................
-QP::QMState const TstSM3::s4_s = {
-    &TstSM3::s3_s, // superstate
-    &TstSM3::s4,
-    &TstSM3::s4_e,
-    &TstSM3::s4_x,
-    &TstSM3::s4_i
+//${SFs::TstSM4::SM::s1::s2::s3::s4} .........................................
+QP::QMState const TstSM4::s4_s = {
+    &TstSM4::s3_s, // superstate
+    &TstSM4::s4,
+    &TstSM4::s4_e,
+    &TstSM4::s4_x,
+    &TstSM4::s4_i
 };
-//${SFs::TstSM3::SM::s1::s2::s3::s4}
-QM_ACTION_DEF(TstSM3, s4_e) {
+//${SFs::TstSM4::SM::s1::s2::s3::s4}
+QM_ACTION_DEF(TstSM4, s4_e) {
     //
     return qm_entry(&s4_s);
 }
-//${SFs::TstSM3::SM::s1::s2::s3::s4}
-QM_ACTION_DEF(TstSM3, s4_x) {
+//${SFs::TstSM4::SM::s1::s2::s3::s4}
+QM_ACTION_DEF(TstSM4, s4_x) {
     //
     return qm_exit(&s4_s);
 }
-//${SFs::TstSM3::SM::s1::s2::s3::s4::initial}
-QM_ACTION_DEF(TstSM3, s4_i) {
-    //${SFs::TstSM3::SM::s1::s2::s3::s4::initial}
+//${SFs::TstSM4::SM::s1::s2::s3::s4::initial}
+QM_ACTION_DEF(TstSM4, s4_i) {
+    //${SFs::TstSM4::SM::s1::s2::s3::s4::initial}
 
     static struct {
         QP::QMState const *target;
@@ -574,8 +632,8 @@ QM_ACTION_DEF(TstSM3, s4_i) {
     };
     return qm_tran_init(&tatbl_);
 }
-//${SFs::TstSM3::SM::s1::s2::s3::s4}
-QM_STATE_DEF(TstSM3, s4) {
+//${SFs::TstSM4::SM::s1::s2::s3::s4}
+QM_STATE_DEF(TstSM4, s4) {
     QP::QState status_;
     switch (e->sig) {
         default: {
@@ -586,27 +644,27 @@ QM_STATE_DEF(TstSM3, s4) {
     return status_;
 }
 
-//${SFs::TstSM3::SM::s1::s2::s3::s4::s5} .....................................
-QP::QMState const TstSM3::s5_s = {
-    &TstSM3::s4_s, // superstate
-    &TstSM3::s5,
-    &TstSM3::s5_e,
-    &TstSM3::s5_x,
-    &TstSM3::s5_i
+//${SFs::TstSM4::SM::s1::s2::s3::s4::s5} .....................................
+QP::QMState const TstSM4::s5_s = {
+    &TstSM4::s4_s, // superstate
+    &TstSM4::s5,
+    &TstSM4::s5_e,
+    &TstSM4::s5_x,
+    &TstSM4::s5_i
 };
-//${SFs::TstSM3::SM::s1::s2::s3::s4::s5}
-QM_ACTION_DEF(TstSM3, s5_e) {
+//${SFs::TstSM4::SM::s1::s2::s3::s4::s5}
+QM_ACTION_DEF(TstSM4, s5_e) {
     //
     return qm_entry(&s5_s);
 }
-//${SFs::TstSM3::SM::s1::s2::s3::s4::s5}
-QM_ACTION_DEF(TstSM3, s5_x) {
+//${SFs::TstSM4::SM::s1::s2::s3::s4::s5}
+QM_ACTION_DEF(TstSM4, s5_x) {
     //
     return qm_exit(&s5_s);
 }
-//${SFs::TstSM3::SM::s1::s2::s3::s4::s5::initial}
-QM_ACTION_DEF(TstSM3, s5_i) {
-    //${SFs::TstSM3::SM::s1::s2::s3::s4::s5::initial}
+//${SFs::TstSM4::SM::s1::s2::s3::s4::s5::initial}
+QM_ACTION_DEF(TstSM4, s5_i) {
+    //${SFs::TstSM4::SM::s1::s2::s3::s4::s5::initial}
 
     static struct {
         QP::QMState const *target;
@@ -621,8 +679,8 @@ QM_ACTION_DEF(TstSM3, s5_i) {
     };
     return qm_tran_init(&tatbl_);
 }
-//${SFs::TstSM3::SM::s1::s2::s3::s4::s5}
-QM_STATE_DEF(TstSM3, s5) {
+//${SFs::TstSM4::SM::s1::s2::s3::s4::s5}
+QM_STATE_DEF(TstSM4, s5) {
     QP::QState status_;
     switch (e->sig) {
         default: {
@@ -633,27 +691,27 @@ QM_STATE_DEF(TstSM3, s5) {
     return status_;
 }
 
-//${SFs::TstSM3::SM::s1::s2::s3::s4::s5::s6} .................................
-QP::QMState const TstSM3::s6_s = {
-    &TstSM3::s5_s, // superstate
-    &TstSM3::s6,
-    &TstSM3::s6_e,
-    &TstSM3::s6_x,
-    &TstSM3::s6_i
+//${SFs::TstSM4::SM::s1::s2::s3::s4::s5::s6} .................................
+QP::QMState const TstSM4::s6_s = {
+    &TstSM4::s5_s, // superstate
+    &TstSM4::s6,
+    &TstSM4::s6_e,
+    &TstSM4::s6_x,
+    &TstSM4::s6_i
 };
-//${SFs::TstSM3::SM::s1::s2::s3::s4::s5::s6}
-QM_ACTION_DEF(TstSM3, s6_e) {
+//${SFs::TstSM4::SM::s1::s2::s3::s4::s5::s6}
+QM_ACTION_DEF(TstSM4, s6_e) {
     //
     return qm_entry(&s6_s);
 }
-//${SFs::TstSM3::SM::s1::s2::s3::s4::s5::s6}
-QM_ACTION_DEF(TstSM3, s6_x) {
+//${SFs::TstSM4::SM::s1::s2::s3::s4::s5::s6}
+QM_ACTION_DEF(TstSM4, s6_x) {
     //
     return qm_exit(&s6_s);
 }
-//${SFs::TstSM3::SM::s1::s2::s3::s4::s5::s6::initial}
-QM_ACTION_DEF(TstSM3, s6_i) {
-    //${SFs::TstSM3::SM::s1::s2::s3::s4::s5::s6::initial}
+//${SFs::TstSM4::SM::s1::s2::s3::s4::s5::s6::initial}
+QM_ACTION_DEF(TstSM4, s6_i) {
+    //${SFs::TstSM4::SM::s1::s2::s3::s4::s5::s6::initial}
 
     static struct {
         QP::QMState const *target;
@@ -668,8 +726,8 @@ QM_ACTION_DEF(TstSM3, s6_i) {
     };
     return qm_tran_init(&tatbl_);
 }
-//${SFs::TstSM3::SM::s1::s2::s3::s4::s5::s6}
-QM_STATE_DEF(TstSM3, s6) {
+//${SFs::TstSM4::SM::s1::s2::s3::s4::s5::s6}
+QM_STATE_DEF(TstSM4, s6) {
     QP::QState status_;
     switch (e->sig) {
         default: {
@@ -680,27 +738,27 @@ QM_STATE_DEF(TstSM3, s6) {
     return status_;
 }
 
-//${SFs::TstSM3::SM::s1::s2::s3::s4::s5::s6::s7} .............................
-QP::QMState const TstSM3::s7_s = {
-    &TstSM3::s6_s, // superstate
-    &TstSM3::s7,
-    &TstSM3::s7_e,
-    &TstSM3::s7_x,
-    &TstSM3::s7_i
+//${SFs::TstSM4::SM::s1::s2::s3::s4::s5::s6::s7} .............................
+QP::QMState const TstSM4::s7_s = {
+    &TstSM4::s6_s, // superstate
+    &TstSM4::s7,
+    &TstSM4::s7_e,
+    &TstSM4::s7_x,
+    &TstSM4::s7_i
 };
-//${SFs::TstSM3::SM::s1::s2::s3::s4::s5::s6::s7}
-QM_ACTION_DEF(TstSM3, s7_e) {
+//${SFs::TstSM4::SM::s1::s2::s3::s4::s5::s6::s7}
+QM_ACTION_DEF(TstSM4, s7_e) {
     //
     return qm_entry(&s7_s);
 }
-//${SFs::TstSM3::SM::s1::s2::s3::s4::s5::s6::s7}
-QM_ACTION_DEF(TstSM3, s7_x) {
+//${SFs::TstSM4::SM::s1::s2::s3::s4::s5::s6::s7}
+QM_ACTION_DEF(TstSM4, s7_x) {
     //
     return qm_exit(&s7_s);
 }
-//${SFs::TstSM3::SM::s1::s2::s3::s4::s5::s6::s7::initial}
-QM_ACTION_DEF(TstSM3, s7_i) {
-    //${SFs::TstSM3::SM::s1::s2::s3::s4::s5::s6::s7::initial}
+//${SFs::TstSM4::SM::s1::s2::s3::s4::s5::s6::s7::initial}
+QM_ACTION_DEF(TstSM4, s7_i) {
+    //${SFs::TstSM4::SM::s1::s2::s3::s4::s5::s6::s7::initial}
 
     static struct {
         QP::QMState const *target;
@@ -714,8 +772,8 @@ QM_ACTION_DEF(TstSM3, s7_i) {
     };
     return qm_tran_init(&tatbl_);
 }
-//${SFs::TstSM3::SM::s1::s2::s3::s4::s5::s6::s7}
-QM_STATE_DEF(TstSM3, s7) {
+//${SFs::TstSM4::SM::s1::s2::s3::s4::s5::s6::s7}
+QM_STATE_DEF(TstSM4, s7) {
     QP::QState status_;
     switch (e->sig) {
         default: {
@@ -726,26 +784,26 @@ QM_STATE_DEF(TstSM3, s7) {
     return status_;
 }
 
-//${SFs::TstSM3::SM::s1::s2::s3::s4::s5::s6::s7::s8} .........................
-QP::QMState const TstSM3::s8_s = {
-    &TstSM3::s7_s, // superstate
-    &TstSM3::s8,
-    &TstSM3::s8_e,
-    &TstSM3::s8_x,
+//${SFs::TstSM4::SM::s1::s2::s3::s4::s5::s6::s7::s8} .........................
+QP::QMState const TstSM4::s8_s = {
+    &TstSM4::s7_s, // superstate
+    &TstSM4::s8,
+    &TstSM4::s8_e,
+    &TstSM4::s8_x,
     Q_ACTION_NULL  // no initial tran.
 };
-//${SFs::TstSM3::SM::s1::s2::s3::s4::s5::s6::s7::s8}
-QM_ACTION_DEF(TstSM3, s8_e) {
+//${SFs::TstSM4::SM::s1::s2::s3::s4::s5::s6::s7::s8}
+QM_ACTION_DEF(TstSM4, s8_e) {
     //
     return qm_entry(&s8_s);
 }
-//${SFs::TstSM3::SM::s1::s2::s3::s4::s5::s6::s7::s8}
-QM_ACTION_DEF(TstSM3, s8_x) {
+//${SFs::TstSM4::SM::s1::s2::s3::s4::s5::s6::s7::s8}
+QM_ACTION_DEF(TstSM4, s8_x) {
     //
     return qm_exit(&s8_s);
 }
-//${SFs::TstSM3::SM::s1::s2::s3::s4::s5::s6::s7::s8}
-QM_STATE_DEF(TstSM3, s8) {
+//${SFs::TstSM4::SM::s1::s2::s3::s4::s5::s6::s7::s8}
+QM_STATE_DEF(TstSM4, s8) {
     QP::QState status_;
     switch (e->sig) {
         default: {
@@ -879,13 +937,12 @@ QM_ACTION_DEF(TstSM5, s2_i) {
 
     static struct {
         QP::QMState const *target;
-        QP::QActionHandler act[4];
+        QP::QActionHandler act[3];
     } const tatbl_ = { // tran-action table
-        &s4_s, // target state
+        &s3_s, // target state
         {
             &s3_e, // entry
-            &s4_e, // entry
-            &s4_i, // initial tran.
+            &s3_i, // initial tran.
             Q_ACTION_NULL // zero terminator
         }
     };
@@ -909,7 +966,7 @@ QP::QMState const TstSM5::s3_s = {
     &TstSM5::s3,
     &TstSM5::s3_e,
     &TstSM5::s3_x,
-    Q_ACTION_NULL  // no initial tran.
+    &TstSM5::s3_i
 };
 //${SFs::TstSM5::SM::s1::s2::s3}
 QM_ACTION_DEF(TstSM5, s3_e) {
@@ -920,6 +977,23 @@ QM_ACTION_DEF(TstSM5, s3_e) {
 QM_ACTION_DEF(TstSM5, s3_x) {
     //
     return qm_exit(&s3_s);
+}
+//${SFs::TstSM5::SM::s1::s2::s3::initial}
+QM_ACTION_DEF(TstSM5, s3_i) {
+    //${SFs::TstSM5::SM::s1::s2::s3::initial}
+
+    static struct {
+        QP::QMState const *target;
+        QP::QActionHandler act[3];
+    } const tatbl_ = { // tran-action table
+        &s4_s, // target state
+        {
+            &s4_e, // entry
+            &s4_i, // initial tran.
+            Q_ACTION_NULL // zero terminator
+        }
+    };
+    return qm_tran_init(&tatbl_);
 }
 //${SFs::TstSM5::SM::s1::s2::s3}
 QM_STATE_DEF(TstSM5, s3) {

@@ -26,9 +26,9 @@
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"             // QP/C++ real-time event framework
-#include "dpp.hpp"               // DPP Application interface
-#include "bsp.hpp"               // Board Support Package
+#include "qpcpp.hpp"      // QP/C++ real-time event framework
+#include "dpp.hpp"        // DPP Application interface
+#include "bsp.hpp"        // Board Support Package
 
 #include "stm32u545xx.h"  // CMSIS-compliant header file for the MCU used
 // add other drivers if necessary...
@@ -75,7 +75,6 @@ enum AppRecords { // application-specific trace records
 
 //============================================================================
 // Error handler and ISRs...
-
 extern "C" {
 
 Q_NORETURN Q_onError(char const * const module, int_t const id) {
@@ -98,14 +97,12 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
     }
 }
 //............................................................................
-// assertion failure handler for the STM32 library, including the startup code
 void assert_failed(char const * const module, int_t const id); // prototype
 void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
 }
 
 // ISRs used in the application ==============================================
-
 void SysTick_Handler(void); // prototype
 void SysTick_Handler(void) {
     QXK_ISR_ENTRY();   // inform QXK about entering an ISR
@@ -130,11 +127,11 @@ void SysTick_Handler(void) {
 
     if ((tmp & (1U << B1_PIN)) != 0U) { // debounced B1 state changed?
         if ((current & (1U << B1_PIN)) != 0U) { // is B1 depressed?
-            static QP::QEvt const pauseEvt(APP::PAUSE_SIG);
+            static QP::QEvt const pauseEvt { APP::PAUSE_SIG };
             QP::QActive::PUBLISH(&pauseEvt, &l_SysTick_Handler);
         }
         else { // the button is released
-            static QP::QEvt const serveEvt(APP::SERVE_SIG);
+            static QP::QEvt const serveEvt { APP::SERVE_SIG };
             QP::QActive::PUBLISH(&serveEvt, &l_SysTick_Handler);
         }
     }
@@ -365,7 +362,7 @@ void displayPhilStat(uint8_t n, char const *stat) {
     QS_END()
 }
 //............................................................................
-void displayPaused(uint8_t const paused) {
+void displayPaused(std::uint8_t const paused) {
     // not enough LEDs to implement this feature
     if (paused != 0U) {
         //GPIOA->BSRR = (1U << LD2_PIN); // turn LED[n] on
@@ -380,7 +377,7 @@ void displayPaused(uint8_t const paused) {
     QS_END()
 }
 //............................................................................
-void randomSeed(uint32_t seed) {
+void randomSeed(std::uint32_t seed) {
     l_rndSeed = seed;
 }
 //............................................................................
@@ -473,7 +470,6 @@ void QXK::onIdle() {
 //============================================================================
 // QS callbacks...
 #ifdef Q_SPY
-namespace QS {
 
 //............................................................................
 static std::uint16_t const QS_UARTPrescTable[12] = {
@@ -493,7 +489,7 @@ constexpr std::uint32_t USART1_TX_PIN {9U};
 constexpr std::uint32_t USART1_RX_PIN {10U};
 
 //............................................................................
-bool onStartup(void const *arg) {
+bool QS::onStartup(void const *arg) {
     Q_UNUSED_PAR(arg);
 
     static std::uint8_t qsTxBuf[2*1024]; // buffer for QS-TX channel
@@ -606,17 +602,17 @@ bool onStartup(void const *arg) {
     return true; // return success
 }
 //............................................................................
-void onCleanup() {
+void QS::onCleanup() {
 }
 //............................................................................
-QSTimeCtr onGetTime() { // NOTE: invoked with interrupts DISABLED
+QSTimeCtr QS::onGetTime() { // NOTE: invoked with interrupts DISABLED
     return TIM5->CNT; // 32-bit Timer5 count
 }
 //............................................................................
 // NOTE:
 // No critical section in QS::onFlush() to avoid nesting of critical sections
 // in case QS::onFlush() is called from Q_onError().
-void onFlush() {
+void QS::onFlush() {
     for (;;) {
         std::uint16_t b = getByte();
         if (b != QS_EOD) {
@@ -630,11 +626,11 @@ void onFlush() {
     }
 }
 //............................................................................
-void onReset() {
+void QS::onReset() {
     NVIC_SystemReset();
 }
 //............................................................................
-void onCommand(std::uint8_t cmdId, std::uint32_t param1,
+void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
                std::uint32_t param2, std::uint32_t param3)
 {
     Q_UNUSED_PAR(cmdId);
@@ -642,8 +638,6 @@ void onCommand(std::uint8_t cmdId, std::uint32_t param1,
     Q_UNUSED_PAR(param2);
     Q_UNUSED_PAR(param3);
 }
-
-} // namespace QS
 
 #endif // Q_SPY
 

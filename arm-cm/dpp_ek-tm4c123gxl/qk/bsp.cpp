@@ -1,7 +1,5 @@
 //============================================================================
 // Product: DPP example, EK-TM4C123GXL board, QK kernel
-// Last updated for version 8.0.0
-// Last updated on  2024-09-20
 //
 //                   Q u a n t u m  L e a P s
 //                   ------------------------
@@ -79,7 +77,7 @@ static std::uint32_t l_rndSeed;
 // Error handler and ISRs...
 extern "C" {
 
-Q_NORETURN Q_onError(char const * const module, int const id) {
+Q_NORETURN Q_onError(char const * const module, int_t const id) {
     // NOTE: this implementation of the error handler is intended only
     // for debugging and MUST be changed for deployment of the application
     // (assuming that you ship your production code with assertions enabled).
@@ -100,8 +98,8 @@ Q_NORETURN Q_onError(char const * const module, int const id) {
 #endif
 }
 //............................................................................
-void assert_failed(char const * const module, int const id); // prototype
-void assert_failed(char const * const module, int const id) {
+void assert_failed(char const * const module, int_t const id); // prototype
+void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
 }
 
@@ -413,10 +411,9 @@ void QK::onIdle() {
 //============================================================================
 // QS callbacks...
 #ifdef Q_SPY
-namespace QS {
 
 //............................................................................
-bool onStartup(void const *arg) {
+bool QS::onStartup(void const *arg) {
     Q_UNUSED_PAR(arg);
 
     static std::uint8_t qsTxBuf[2*1024]; // buffer for QS-TX channel
@@ -469,23 +466,23 @@ bool onStartup(void const *arg) {
     return true; // return success
 }
 //............................................................................
-void onCleanup() {
+void QS::onCleanup() {
 }
 //............................................................................
-QSTimeCtr onGetTime() { // NOTE: invoked with interrupts DISABLED
+QSTimeCtr QS::onGetTime() { // NOTE: invoked with interrupts DISABLED
     return TIMER5->TAV;
 }
 //............................................................................
 // NOTE:
 // No critical section in QS::onFlush() to avoid nesting of critical sections
 // in case QS::onFlush() is called from Q_onError().
-void onFlush() {
+void QS::onFlush() {
     for (;;) {
         std::uint16_t b = getByte();
         if (b != QS_EOD) {
             while ((UART0->FR & UART_FR_TXFE) == 0U) { // while TXE not empty
             }
-            UART0->DR = b; // put into the DR register
+            UART0->DR = b;
         }
         else {
             break;
@@ -493,12 +490,11 @@ void onFlush() {
     }
 }
 //............................................................................
-void onReset() {
+void QS::onReset() {
     NVIC_SystemReset();
 }
 //............................................................................
-// callback function to execute a user command
-void onCommand(std::uint8_t cmdId, std::uint32_t param1,
+void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
                std::uint32_t param2, std::uint32_t param3)
 {
     Q_UNUSED_PAR(cmdId);
@@ -507,9 +503,7 @@ void onCommand(std::uint8_t cmdId, std::uint32_t param1,
     Q_UNUSED_PAR(param3);
 }
 
-} // namespace QS
 #endif // Q_SPY
-//----------------------------------------------------------------------------
 
 } // namespace QP
 

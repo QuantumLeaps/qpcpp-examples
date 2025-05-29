@@ -9,9 +9,10 @@ extern QP::QAsm * const the_TstSM2;
 extern QP::QAsm * const the_TstSM3;
 extern QP::QAsm * const the_TstSM4;
 extern QP::QAsm * const the_TstSM5;
+extern QP::QAsm * const the_TstSM6;
 
-bool TstSM5_isIn(std::uint32_t const state_num);
-QP::QStateHandler TstSM5_child(std::uint32_t const  state_num);
+bool TstSM6_isIn(std::uint32_t const state_num);
+QP::QStateHandler TstSM6_child(std::uint32_t const  state_num);
 
 } // namespace APP
 

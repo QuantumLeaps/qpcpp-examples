@@ -54,6 +54,9 @@ extern QP::QAsm * const the_TstSM2;
 //${Shared_SF::the_TstSM3} ...................................................
 extern QP::QAsm * const the_TstSM3;
 
+//${Shared_SF::the_TstSM4} ...................................................
+extern QP::QAsm * const the_TstSM4;
+
 //${Shared_SF::the_TstSM5} ...................................................
 extern QP::QAsm * const the_TstSM5;
 

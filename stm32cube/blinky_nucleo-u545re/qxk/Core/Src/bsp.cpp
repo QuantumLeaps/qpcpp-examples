@@ -134,24 +134,24 @@ static void STM32U545RE_MPU_setup(void) {
     MPU->RNR = 0U; // region 0 (for ROM: read-only, can-execute)
     MPU->RBAR = ARM_MPU_RBAR(0x08000000U,
         ARM_MPU_SH_NON,        // SH: Normal memory (not-shareable)
-        1U,                    // RO: Read-only memory
-        0U,                    // NP: Non-privileged (disabled)
+        1U,                    // RO: Normal memory, read-only
+        0U,                    // NP: Normal memory, privileged access only
         0U);                   // XN: eXecute never (disabled)
     MPU->RLAR = ARM_MPU_RLAR(0x0807FFFFU, 0U);
 
     MPU->RNR = 1U; // region 0 (for RAM1: read-write, execute-never)
     MPU->RBAR = ARM_MPU_RBAR(0x20000000U,
         ARM_MPU_SH_OUTER,      // SH: Normal memory (outer shareable)
-        0U,                    // RO: Read-only memory (read-write)
-        0U,                    // NP: Non-privileged (disabled)
+        0U,                    // RO: Normal memory, read/write
+        0U,                    // NP: Normal memory, privileged access only
         1U);                   // XN: eXecute never
     MPU->RLAR = ARM_MPU_RLAR(0x2003FFFFU, 0U);
 
     MPU->RNR = 2U; // region 0 (for RAM2: read-write, execute-never)
     MPU->RBAR = ARM_MPU_RBAR(0x28000000U,
         ARM_MPU_SH_OUTER,      // SH: Normal memory (outer shareable)
-        0U,                    // RO: Read-only memory (read-write)
-        0U,                    // NP: Non-privileged (disabled)
+        0U,                    // RO: Normal memory, read/write
+        0U,                    // NP: Normal memory, privileged access only
         1U);                   // XN: eXecute never
     MPU->RLAR = ARM_MPU_RLAR(0x28003FFFU, 0U);
 
@@ -329,12 +329,15 @@ void QXK::onIdle() {
 //============================================================================
 // QS callbacks...
 #ifdef Q_SPY
-namespace QS {
 
 //............................................................................
 static std::uint16_t const QS_UARTPrescTable[12] = {
     1U, 2U, 4U, 6U, 8U, 10U, 12U, 16U, 32U, 64U, 128U, 256U
 };
+
+// USART1 pins PA.9 and PA.10
+constexpr std::uint32_t USART1_TX_PIN {9U};
+constexpr std::uint32_t USART1_RX_PIN {10U};
 
 #define __LL_USART_DIV_SAMPLING16(__PERIPHCLK__, __PRESCALER__, __BAUDRATE__) \
   ((((__PERIPHCLK__)/(USART_PRESCALER_TAB[(__PRESCALER__)]))\
@@ -344,12 +347,8 @@ static std::uint16_t const QS_UARTPrescTable[12] = {
   ((((__PCLK__)/QS_UARTPrescTable[(__CLOCKPRESCALER__)]) \
   + ((__BAUD__)/2U)) / (__BAUD__))
 
-// USART1 pins PA.9 and PA.10
-constexpr std::uint32_t USART1_TX_PIN {9U};
-constexpr std::uint32_t USART1_RX_PIN {10U};
-
 //............................................................................
-bool onStartup(void const *arg) {
+bool QS::onStartup(void const *arg) {
     Q_UNUSED_PAR(arg);
 
     static std::uint8_t qsTxBuf[2*1024]; // buffer for QS-TX channel
@@ -462,17 +461,17 @@ bool onStartup(void const *arg) {
     return true; // return success
 }
 //............................................................................
-void onCleanup() {
+void QS::onCleanup() {
 }
 //............................................................................
-QSTimeCtr onGetTime() { // NOTE: invoked with interrupts DISABLED
+QSTimeCtr QS::onGetTime() { // NOTE: invoked with interrupts DISABLED
     return TIM5->CNT; // 32-bit Timer5 count
 }
 //............................................................................
 // NOTE:
 // No critical section in QS::onFlush() to avoid nesting of critical sections
 // in case QS::onFlush() is called from Q_onError().
-void onFlush() {
+void QS::onFlush() {
     for (;;) {
         std::uint16_t b = getByte();
         if (b != QS_EOD) {
@@ -486,11 +485,11 @@ void onFlush() {
     }
 }
 //............................................................................
-void onReset() {
+void QS::onReset() {
     NVIC_SystemReset();
 }
 //............................................................................
-void onCommand(std::uint8_t cmdId, std::uint32_t param1,
+void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
                std::uint32_t param2, std::uint32_t param3)
 {
     Q_UNUSED_PAR(cmdId);
@@ -498,8 +497,6 @@ void onCommand(std::uint8_t cmdId, std::uint32_t param1,
     Q_UNUSED_PAR(param2);
     Q_UNUSED_PAR(param3);
 }
-
-} // namespace QS
 
 #endif // Q_SPY
 

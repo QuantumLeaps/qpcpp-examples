@@ -1,7 +1,5 @@
 //============================================================================
 // Product: BSP for DPP example (console)
-// Last updated for version 7.3.0
-// Last updated on  2023-09-04
 //
 //                   Q u a n t u m  L e a P s
 //                   ------------------------
@@ -31,30 +29,32 @@
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"        // QP/C++ real-time event framework
-#include "dpp.hpp"          // DPP Application interface
-#include "bsp.hpp"          // Board Support Package
+#include "qpcpp.hpp"  // QP/C++ real-time event framework
+#include "dpp.hpp"    // DPP Application interface
+#include "bsp.hpp"    // Board Support Package
 
-#include "safe_std.h"       // portable "safe" <stdio.h>/<string.h> facilities
-#include <stdlib.h>
+#include "safe_std.h" // portable "safe" <stdio.h>/<string.h> facilities
+#include <stdlib.h>   // for exit()
 
 //============================================================================
 namespace { // unnamed namespace for local stuff with internal linkage
 
-Q_DEFINE_THIS_FILE
+Q_DEFINE_THIS_MODULE("bsp")
 
 // Local objects -------------------------------------------------------------
+static QP::QTicker l_Ticker0_inst(0U); // "ticker" AO for tick rate 0
+QP::QTicker * const the_Ticker0 = &l_Ticker0_inst;
+
 static std::uint32_t l_rnd; // random seed
 
 #ifdef Q_SPY
-
-    // QSpy source IDs
-    static QP::QSpyId const l_clock_tick = { QP::QS_AP_ID };
-
     enum AppRecords { // application-specific trace records
         PHILO_STAT = QP::QS_USER,
         PAUSED_STAT,
     };
+
+    // QSpy source IDs
+    static QP::QSpyId const l_clock_tick = { QP::QS_AP_ID };
 
 #endif
 
@@ -67,7 +67,7 @@ extern "C" {
 
 Q_NORETURN Q_onError(char const * const module, int_t const id) {
     QS_ASSERTION(module, id, 10000U); // report assertion to QS
-    FPRINTF_S(stderr, "ERROR in %s:%d", module, id);
+    FPRINTF_S(stderr, ">>>> ERROR in %s:%d <<<<", module, id);
     QP::QF::onCleanup();
     QS_EXIT();
     exit(-1);
@@ -84,7 +84,7 @@ void assert_failed(char const * const module, int_t const id) {
 namespace BSP {
 
 //............................................................................
-void init(int argc, char **argv) {
+void init(int argc, char *argv[]) {
     Q_UNUSED_PAR(argc);
     Q_UNUSED_PAR(argv);
 
@@ -97,11 +97,13 @@ void init(int argc, char **argv) {
 
     BSP::randomSeed(1234U);
 
+    // initialize the QS software tracing
     if (!QS_INIT(argc > 1 ? argv[1] : nullptr)) {
         Q_ERROR();
     }
 
     QS_OBJ_DICTIONARY(&l_clock_tick);
+    QS_OBJ_DICTIONARY(the_Ticker0);
 
     QS_USR_DICTIONARY(PHILO_STAT);
     QS_USR_DICTIONARY(PAUSED_STAT);
@@ -111,7 +113,7 @@ void init(int argc, char **argv) {
     // setup the QS filters...
     QS_GLB_FILTER(QP::QS_ALL_RECORDS);
     QS_GLB_FILTER(-QP::QS_QF_TICK);     // exclude the tick record
-    QS_LOC_FILTER(-(APP::N_PHILO + 3)); // exclude prio. of AO_Ticker0
+    QS_LOC_FILTER(-(APP::N_PHILO + 4)); // exclude the "ticker" prio
 }
 //............................................................................
 void start() {
@@ -125,12 +127,22 @@ void start() {
 
     // start AOs/threads...
 
+    the_Ticker0->start(
+        APP::N_PHILO + 4U,    // QP priority
+        nullptr, 0U,          // no queue
+        nullptr, 0U);         // no stack storage
+
     static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
     APP::AO_Table->start(
-        APP::N_PHILO + 7U,       // QP prio. of the AO
-        tableQueueSto,           // event queue storage
-        Q_DIM(tableQueueSto),    // queue length [events]
-        nullptr, 0U);            // no stack storage
+        APP::N_PHILO + 7U,    // QP prio. of the AO
+        tableQueueSto,        // event queue storage
+        Q_DIM(tableQueueSto), // queue length [events]
+        nullptr, 0U);         // no stack storage
+}
+//............................................................................
+void terminate(std::int16_t result) {
+    Q_UNUSED_PAR(result);
+    QP::QF::stop();
 }
 //............................................................................
 void displayPhilStat(std::uint8_t n, char const *stat) {
@@ -154,16 +166,11 @@ std::uint32_t random() { // a very cheap pseudo-random-number generator
     std::uint32_t rnd = l_rnd * (3U*7U*11U*13U*23U);
     l_rnd = rnd; // set for the next time
 
-    return (rnd >> 8);
+    return rnd >> 8;
 }
 //............................................................................
 void randomSeed(std::uint32_t seed) {
     l_rnd = seed;
-}
-//............................................................................
-void terminate(std::int16_t result) {
-    Q_UNUSED_PAR(result);
-    QP::QF::stop();
 }
 
 } // namespace BSP
@@ -174,7 +181,7 @@ namespace QP {
 //............................................................................
 void QF::onStartup() {
     consoleSetup();
-    setTickRate(BSP::TICKS_PER_SEC, 10); // desired tick rate/prio
+    setTickRate(BSP::TICKS_PER_SEC, 10U); // desired tick rate/prio
 }
 //............................................................................
 void QF::onCleanup() {
@@ -184,7 +191,8 @@ void QF::onCleanup() {
 //............................................................................
 void QF::onClockTick() {
 
-    QTimeEvt::TICK_X(0U, &l_clock_tick); // process time events at rate 0
+    //QTimeEvt::TICK_X(0U, &l_clock_tick); // process time events at rate 0
+    the_Ticker0->TRIG(&l_clock_tick); // trigger "ticker-0" to process time
 
     QS_RX_INPUT(); // handle the QS-RX input
     QS_OUTPUT();   // handle the QS output

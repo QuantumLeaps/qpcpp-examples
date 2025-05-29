@@ -41,8 +41,8 @@ enum CmdEnum {
     QP_VERSION_CMD,
     QHSM_GET_STATE_HANDLER_CMD,
     TSTSM_IS_IN_CMD,
-    TSTSM5_IS_IN_CMD,
-    TSTSM5_CHILD_CMD,
+    TSTSM6_IS_IN_CMD,
+    TSTSM6_CHILD_CMD,
     DISP_NULL_EVT_CMD,
     DISP_CORR_EVT_CMD,
 };
@@ -83,13 +83,13 @@ int main() {
     // dictionaries...
     QS_OBJ_DICTIONARY(&test_fixture);
     QS_OBJ_DICTIONARY(the_TstSM);
-
     QS_OBJ_DICTIONARY(the_TstSM0);
     QS_OBJ_DICTIONARY(the_TstSM1);
     QS_OBJ_DICTIONARY(the_TstSM2);
     QS_OBJ_DICTIONARY(the_TstSM3);
     QS_OBJ_DICTIONARY(the_TstSM4);
     QS_OBJ_DICTIONARY(the_TstSM5);
+    QS_OBJ_DICTIONARY(the_TstSM6);
 
     QS_SIG_DICTIONARY(A_SIG, nullptr);
     QS_SIG_DICTIONARY(B_SIG, nullptr);
@@ -106,8 +106,8 @@ int main() {
     QS_ENUM_DICTIONARY(QP_VERSION_CMD,             QS_CMD);
     QS_ENUM_DICTIONARY(QHSM_GET_STATE_HANDLER_CMD, QS_CMD);
     QS_ENUM_DICTIONARY(TSTSM_IS_IN_CMD,            QS_CMD);
-    QS_ENUM_DICTIONARY(TSTSM5_IS_IN_CMD,           QS_CMD);
-    QS_ENUM_DICTIONARY(TSTSM5_CHILD_CMD,           QS_CMD);
+    QS_ENUM_DICTIONARY(TSTSM6_IS_IN_CMD,           QS_CMD);
+    QS_ENUM_DICTIONARY(TSTSM6_CHILD_CMD,           QS_CMD);
     QS_ENUM_DICTIONARY(DISP_NULL_EVT_CMD,          QS_CMD);
     QS_ENUM_DICTIONARY(DISP_CORR_EVT_CMD,          QS_CMD);
 
@@ -160,8 +160,8 @@ void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
             QS_END()
             break;
         }
-        case TSTSM5_IS_IN_CMD: {
-            bool const ret = TstSM5_isIn(param1);
+        case TSTSM6_IS_IN_CMD: {
+            bool const ret = TstSM6_isIn(param1);
             QS_BEGIN_ID(COMMAND, 0U) // app-specific record
                 QS_ENUM(QS_CMD, cmdId);
                 QS_U8(0U, ret ? 1 : 0);
@@ -169,8 +169,8 @@ void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
             QS_END()
             break;
         }
-        case TSTSM5_CHILD_CMD: {
-            QStateHandler const child = TstSM5_child(param1);
+        case TSTSM6_CHILD_CMD: {
+            QStateHandler const child = TstSM6_child(param1);
             QS_BEGIN_ID(COMMAND, 0U) // app-specific record
                 QS_ENUM(QS_CMD, cmdId);
                 QS_FUN(child);
@@ -178,15 +178,13 @@ void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
             break;
         }
         case DISP_NULL_EVT_CMD: {
-            the_TstSM5->dispatch(nullptr, 0U);
+            the_TstSM6->dispatch(nullptr, 0U);
             break;
         }
         case DISP_CORR_EVT_CMD: {
-        /*
             static QEvt corr_evt(A_SIG);
-            corr_evt.refCtr_dis = 0U;
-            the_TstSM5->dispatch(&corr_evt, 0U);
-        */
+            //corr_evt.refCtr_dis = 0U; // corrupted event
+            the_TstSM6->dispatch(&corr_evt, 0U);
             break;
         }
         default:

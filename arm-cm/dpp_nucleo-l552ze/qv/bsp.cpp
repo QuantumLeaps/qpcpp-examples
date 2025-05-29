@@ -1,7 +1,5 @@
 //============================================================================
 // Product: DPP example, NUCLEO-L552ZE board, QV kernel
-// Last updated for version 7.3.2
-// Last updated on  2023-12-13
 //
 //                   Q u a n t u m  L e a P s
 //                   ------------------------
@@ -9,31 +7,29 @@
 //
 // Copyright (C) 2005 Quantum Leaps, LLC. <state-machine.com>
 //
-// This program is open source software: you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as published
-// by the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 //
-// Alternatively, this program may be distributed and modified under the
-// terms of Quantum Leaps commercial licenses, which expressly supersede
-// the GNU General Public License and are specifically designed for
-// licensees interested in retaining the proprietary status of their code.
+// This software is dual-licensed under the terms of the open source GNU
+// General Public License version 3 (or any later version), or alternatively,
+// under the terms of one of the closed source Quantum Leaps commercial
+// licenses.
 //
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
+// The terms of the open source GNU General Public License version 3
+// can be found at: <www.gnu.org/licenses/gpl-3.0>
 //
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <www.gnu.org/licenses/>.
+// The terms of the closed source Quantum Leaps commercial licenses
+// can be found at: <www.state-machine.com/licensing>
+//
+// Redistributions in source code must retain this top-level comment block.
+// Plagiarizing this software to sidestep the license obligations is illegal.
 //
 // Contact information:
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"             // QP/C++ real-time event framework
-#include "dpp.hpp"               // DPP Application interface
-#include "bsp.hpp"               // Board Support Package
+#include "qpcpp.hpp"      // QP/C++ real-time event framework
+#include "dpp.hpp"        // DPP Application interface
+#include "bsp.hpp"        // Board Support Package
 
 // STM32CubeL5 include files
 #include "stm32l5xx_hal.h"
@@ -70,16 +66,15 @@ static std::uint32_t l_rndSeed;
 
 //============================================================================
 // Error handler and ISRs...
-
 extern "C" {
 
 Q_NORETURN Q_onError(char const * const module, int_t const id) {
-    // NOTE: this implementation of the assertion handler is intended only
+    // NOTE: this implementation of the error handler is intended only
     // for debugging and MUST be changed for deployment of the application
     // (assuming that you ship your production code with assertions enabled).
     Q_UNUSED_PAR(module);
     Q_UNUSED_PAR(id);
-    QS_ASSERTION(module, id, 10000U);
+    QS_ASSERTION(module, id, 10000U); // report assertion to QS
 
 #ifndef NDEBUG
     // light all LEDs
@@ -100,7 +95,6 @@ void assert_failed(char const * const module, int_t const id) {
 }
 
 // ISRs used in the application ==============================================
-
 void SysTick_Handler(void); // prototype
 void SysTick_Handler(void) {
 
@@ -124,17 +118,17 @@ void SysTick_Handler(void) {
 
     if (tmp != 0U) { // debounced User button state changed?
         if (current != 0U) { // is User button depressed?
-            static QP::QEvt const pauseEvt(APP::PAUSE_SIG);
+            static QP::QEvt const pauseEvt { APP::PAUSE_SIG };
             QP::QActive::PUBLISH(&pauseEvt, &l_SysTick_Handler);
         }
         else { // the button is released
-            static QP::QEvt const serveEvt(APP::SERVE_SIG);
+            static QP::QEvt const serveEvt { APP::SERVE_SIG };
             QP::QActive::PUBLISH(&serveEvt, &l_SysTick_Handler);
         }
     }
 
 #ifdef Q_SPY
-    tmp = SysTick->CTRL; // clear SysTick_CTRL_COUNTFLAG
+    tmp = SysTick->CTRL; // clear CTRL_COUNTFLAG
     QS_tickTime_ += QS_tickPeriod_; // account for the clock rollover
 #endif
 
@@ -190,6 +184,10 @@ void init() {
     // started later in QF_onStartup().
     //
     HAL_Init();
+
+    // NOTE: SystemInit() has been already called from the startup code
+    // but SystemCoreClock needs to be updated
+    SystemCoreClockUpdate();
 
     // Configure the system clock
     RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
@@ -318,7 +316,7 @@ void displayPaused(uint8_t const paused) {
     QS_END()
 }
 //............................................................................
-void randomSeed(uint32_t seed) {
+void randomSeed(std::uint32_t seed) {
     l_rndSeed = seed;
 }
 //............................................................................
@@ -337,6 +335,10 @@ std::uint32_t random() { // a very cheap pseudo-random-number generator
     return (rnd >> 8U);
 }
 //............................................................................
+void terminate(std::int16_t result) {
+    Q_UNUSED_PAR(result);
+}
+//............................................................................
 void ledOn() {
     BSP_LED_On(LED1);
 }
@@ -344,28 +346,21 @@ void ledOn() {
 void ledOff() {
     BSP_LED_Off(LED1);
 }
-//............................................................................
-void terminate(int16_t result) {
-    Q_UNUSED_PAR(result);
-}
 
 } // namespace BSP
 
 //============================================================================
-// namespace QP
 namespace QP {
 
 // QF callbacks...
 void QF::onStartup() {
     // set up the SysTick timer to fire at BSP::TICKS_PER_SEC rate
+    SystemCoreClockUpdate();
     SysTick_Config(SystemCoreClock / BSP::TICKS_PER_SEC);
 
     // assign all priority bits for preemption-prio. and none to sub-prio.
     // NOTE: this might have been changed by STM32Cube.
     NVIC_SetPriorityGrouping(0U);
-
-    // set up the SysTick timer to fire at BSP_TICKS_PER_SEC rate
-    SysTick_Config(SystemCoreClock / BSP::TICKS_PER_SEC);
 
     // set priorities of ALL ISRs used in the system, see NOTE1
     NVIC_SetPriority(USART3_IRQn,    0U); // kernel UNAWARE interrupt
@@ -386,6 +381,10 @@ void QV::onIdle() { // CAUTION: called with interrupts DISABLED, see NOTE0
     BSP_LED_On (LED3);
     BSP_LED_Off(LED3);
 
+    // Some floating point code is to exercise the VFP...
+    double volatile x = 1.73205;
+    x = x * 1.73205;
+
 #ifdef Q_SPY
     QF_INT_ENABLE();
     QS::rxParse();  // parse all the received bytes
@@ -395,7 +394,7 @@ void QV::onIdle() { // CAUTION: called with interrupts DISABLED, see NOTE0
         std::uint16_t b = QS::getByte();
         QF_INT_ENABLE();
 
-        if (b != QS_EOD) {   // not End-Of-Data?
+        if (b != QS_EOD) {  // not End-Of-Data?
             l_uartHandle.Instance->TDR = b; // put into TDR
         }
     }
@@ -412,10 +411,9 @@ void QV::onIdle() { // CAUTION: called with interrupts DISABLED, see NOTE0
 //============================================================================
 // QS callbacks...
 #ifdef Q_SPY
-namespace QS {
 
 //............................................................................
-bool onStartup(void const *arg) {
+bool QS::onStartup(void const *arg) {
     Q_UNUSED_PAR(arg);
 
     static std::uint8_t qsTxBuf[2*1024]; // buffer for QS-TX channel
@@ -448,10 +446,10 @@ bool onStartup(void const *arg) {
     return true; // return success
 }
 //............................................................................
-void onCleanup() {
+void QS::onCleanup() {
 }
 //............................................................................
-QSTimeCtr onGetTime() {  // NOTE: invoked with interrupts DISABLED
+QSTimeCtr QS::onGetTime() { // NOTE: invoked with interrupts DISABLED
     if ((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) == 0) { // not set?
         return QS_tickTime_ - (QSTimeCtr)SysTick->VAL;
     }
@@ -463,7 +461,7 @@ QSTimeCtr onGetTime() {  // NOTE: invoked with interrupts DISABLED
 // NOTE:
 // No critical section in QS::onFlush() to avoid nesting of critical sections
 // in case QS::onFlush() is called from Q_onError().
-void onFlush() {
+void QS::onFlush() {
     for (;;) {
         std::uint16_t b = getByte();
         if (b != QS_EOD) {
@@ -477,11 +475,11 @@ void onFlush() {
     }
 }
 //............................................................................
-void onReset() {
+void QS::onReset() {
     NVIC_SystemReset();
 }
 //............................................................................
-void onCommand(std::uint8_t cmdId, std::uint32_t param1,
+void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
                std::uint32_t param2, std::uint32_t param3)
 {
     Q_UNUSED_PAR(cmdId);
@@ -490,9 +488,7 @@ void onCommand(std::uint8_t cmdId, std::uint32_t param1,
     Q_UNUSED_PAR(param3);
 }
 
-} // namespace QS
 #endif // Q_SPY
-//----------------------------------------------------------------------------
 
 } // namespace QP
 
