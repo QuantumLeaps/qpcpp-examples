@@ -134,7 +134,7 @@ Q_STATE_DEF(Table, initial) {
         m_isHungry[n] = false;
 
         // take top-most initial tran. in the Philo SM
-        SM_Philo[n]->INIT(QP::QS_AP_ID + n);
+        SM_Philo[n]->INIT(QP::QS_ID_AP + n);
         BSP::displayPhilStat(n, THINKING);
     }
 
@@ -163,7 +163,7 @@ Q_STATE_DEF(Table, active) {
         //${Cont::Table::SM::active::TIMEOUT}
         case TIMEOUT_SIG: {
             std::uint16_t n = Q_EVT_CAST(CompTimeEvt)->compNum;
-            SM_Philo[n]->DISPATCH(e, QP::QS_AP_ID + n);
+            SM_Philo[n]->DISPATCH(e, QP::QS_ID_AP + n);
             status_ = Q_RET_HANDLED;
             break;
         }
@@ -191,7 +191,7 @@ Q_STATE_DEF(Table, serving) {
 
                     // synchronoulsy dispatch EAT event to the Philo component
                     TableEvt const evt(EAT_SIG, n);
-                    SM_Philo[n]->DISPATCH(&evt, QP::QS_AP_ID + n);
+                    SM_Philo[n]->DISPATCH(&evt, QP::QS_ID_AP + n);
 
                     m_isHungry[n] = false;
                     BSP::displayPhilStat(n, EATING);
@@ -216,7 +216,7 @@ Q_STATE_DEF(Table, serving) {
 
                 // synchronoulsy dispatch EAT event to the Philo component
                 TableEvt const evt(EAT_SIG, n);
-                SM_Philo[n]->DISPATCH(&evt, QP::QS_AP_ID + n);
+                SM_Philo[n]->DISPATCH(&evt, QP::QS_ID_AP + n);
                 BSP::displayPhilStat(n, EATING);
                 status_ = Q_RET_HANDLED;
             }
@@ -250,7 +250,7 @@ Q_STATE_DEF(Table, serving) {
 
                 // synchronoulsy dispatch EAT event to the Philo component
                 TableEvt const evt(EAT_SIG, m);
-                SM_Philo[m]->DISPATCH(&evt, QP::QS_AP_ID + n);
+                SM_Philo[m]->DISPATCH(&evt, QP::QS_ID_AP + n);
 
                 BSP::displayPhilStat(m, EATING);
             }
@@ -263,7 +263,7 @@ Q_STATE_DEF(Table, serving) {
 
                 // synchronoulsy dispatch EAT event to the Philo component
                 TableEvt const evt(EAT_SIG, m);
-                SM_Philo[m]->DISPATCH(&evt, QP::QS_AP_ID + n);
+                SM_Philo[m]->DISPATCH(&evt, QP::QS_ID_AP + n);
 
                 BSP::displayPhilStat(m, EATING);
             }

@@ -54,4 +54,3 @@ extern QP::QActive * const AO_Blinky;
 //$enddecl${AOs::AO_Blinky} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 #endif // BLINKY_HPP
-

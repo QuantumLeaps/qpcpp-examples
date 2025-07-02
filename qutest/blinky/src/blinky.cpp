@@ -39,8 +39,6 @@
 #include "blinky.hpp" // Blinky application
 #include "bsp.hpp"    // Board Support Package interface
 
-//using namespace QP;
-
 // ask QM to declare the Blinky class ----------------------------------------
 //$declare${AOs::Blinky} vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
@@ -151,4 +149,3 @@ Q_STATE_DEF(Blinky, on) {
     return status_;
 }
 //$enddef${AOs::Blinky} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-

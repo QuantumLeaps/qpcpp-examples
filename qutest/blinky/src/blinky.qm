@@ -92,16 +92,13 @@ enum BlinkySignals {
 
 $declare${AOs::AO_Blinky}
 
-#endif // BLINKY_HPP
-</text>
+#endif // BLINKY_HPP</text>
   </file>
   <!--${.::blinky.cpp}-->
   <file name="blinky.cpp">
    <text>#include &quot;qpcpp.hpp&quot;  // QP/C++ framework API
 #include &quot;blinky.hpp&quot; // Blinky application
 #include &quot;bsp.hpp&quot;    // Board Support Package interface
-
-//using namespace QP;
 
 // ask QM to declare the Blinky class ----------------------------------------
 $declare${AOs::Blinky}
@@ -110,8 +107,7 @@ $declare${AOs::Blinky}
 $define${AOs::AO_Blinky}
 
 // ask QM to define the Blinky class (including the state machine) -----------
-$define${AOs::Blinky}
-</text>
+$define${AOs::Blinky}</text>
   </file>
  </directory>
 </model>

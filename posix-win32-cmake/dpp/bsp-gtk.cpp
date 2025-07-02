@@ -376,7 +376,7 @@ void init(int argc, char **argv) {
     QS_USR_DICTIONARY(PHILO_STAT);
 
     // setup the QS filters...
-    QS_GLB_FILTER(QP::QS_ALL_RECORDS);
+    QS_GLB_FILTER(QP::QS_GRP_ALL);
     QS_GLB_FILTER(-QP::QS_QF_TICK);
 }
 //............................................................................

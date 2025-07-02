@@ -70,7 +70,7 @@ int main(void)
 
     // start the active objects...
     static QEvtPtr blinkyQSto[10]; // event queue storage for Blinky
-    AO_Blinky->start(1U,
+    AO_Blinky->start(2U, // QF-priority/preemption-threshold
                      blinkyQSto, Q_DIM(blinkyQSto),
                      nullptr, 0U, nullptr);
 

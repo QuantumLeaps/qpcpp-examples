@@ -60,7 +60,7 @@ static std::uint32_t l_rndSeed;
 #ifdef Q_SPY
 
     // QSpy source IDs
-    static QP::QSpyId const l_clock_tick = { QP::QS_AP_ID };
+    static QP::QSpyId const l_clock_tick = { QP::QS_ID_AP };
 
     // ThreadX "idle" thread for QS output, see NOTE1
     static TX_THREAD idle_thread;
@@ -246,7 +246,7 @@ void init() {
     QS_ONLY(APP::produce_sig_dict());
 
     // setup the QS filters...
-    QS_GLB_FILTER(QP::QS_ALL_RECORDS); // all records
+    QS_GLB_FILTER(QP::QS_GRP_ALL); // all records
     QS_GLB_FILTER(-QP::QS_QF_TICK);    // exclude the clock tick
 }
 //............................................................................

@@ -176,8 +176,7 @@ static Sensor l_sensor; // the Sensor active object
 //............................................................................
 int main(int argc, char *argv[]) {
     PRINTF_S("Reminder state pattern\nQP version: %s\n"
-           "Press ESC to quit...\n",
-           QP::versionStr);
+           "Press ESC to quit...\n", QP_VERSION_STR);
 
     BSP_init(argc, argv); // initialize the BSP
 

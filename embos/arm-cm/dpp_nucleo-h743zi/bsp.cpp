@@ -179,7 +179,7 @@ void OS_Idle(void) {
             uint16_t b = QP::QS::getByte();
             QF_INT_ENABLE();
 
-            if (b != QS_EOD) { // not End-Of-Data?
+            if (b != QP::QS_EOD) { // not End-Of-Data?
                 l_uartHandle.Instance->TDR = b; // put into TDR
             }
         }
@@ -251,7 +251,7 @@ void init() {
     QS_ONLY(APP::produce_sig_dict());
 
     // setup the QS filters...
-    QS_GLB_FILTER(QP::QS_ALL_RECORDS); // all records
+    QS_GLB_FILTER(QP::QS_GRP_ALL); // all records
     QS_GLB_FILTER(-QP::QS_QF_TICK);    // exclude the clock tick
 }
 //............................................................................

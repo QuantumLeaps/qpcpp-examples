@@ -79,7 +79,7 @@ int main(void)
 
     // construct and initialize Philo HSM components
     for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
-        APP::SM_Philo[n]->init(nullptr, QP::QS_AP_ID + n);
+        APP::SM_Philo[n]->init(nullptr, QP::QS_ID_AP + n);
     }
 
     // start the active objects...

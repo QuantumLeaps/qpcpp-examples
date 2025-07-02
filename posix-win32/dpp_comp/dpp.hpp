@@ -107,7 +107,7 @@ public:
     CompTimeEvt(
         QP::QActive * act,
         std::uint16_t num,
-        enum_t const sig,
+        QP::QSignal const sig,
         std::uint_fast8_t const tickRate);
 }; // class CompTimeEvt
 

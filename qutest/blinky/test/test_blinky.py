@@ -12,6 +12,7 @@ def on_reset():
     expect("@timestamp Init===> Obj=Blinky::inst,State=Blinky::off")
     expect_run()
     current_obj(OBJ_SM_AO,"Blinky::inst")
+    current_obj(OBJ_AO,"Blinky::inst")
     current_obj(OBJ_TE,"Blinky::inst.m_timeEvt")
 
 
@@ -19,7 +20,7 @@ test("TIMEOUT_SIG->Blinky::inst")
 query_curr(OBJ_SM)
 expect("@timestamp Query-SM Obj=Blinky::inst,State=Blinky::off")
 query_curr(OBJ_AO)
-expect("@timestamp Query-AO Obj=Blinky::inst,State=Blinky::off")
+expect("@timestamp Query-AO Pri=2,Que<Use=0,Free=11,Min=11>")
 query_curr(OBJ_TE)
 expect("@timestamp Query-TE Obj=Blinky::inst.m_timeEvt,Rate=0,Sig=TIMEOUT_SIG,*")
 current_obj(OBJ_MP,"EvtPool1")

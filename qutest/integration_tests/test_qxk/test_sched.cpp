@@ -168,12 +168,12 @@ int main() {
     QS_SIG_DICTIONARY(TEST2_SIG,  nullptr);
     QS_SIG_DICTIONARY(TEST3_SIG,  nullptr);
 
-    QS_ENUM_DICTIONARY(MEM_READ,  QS_CMD);
-    QS_ENUM_DICTIONARY(MEM_WRITE, QS_CMD);
-    QS_ENUM_DICTIONARY(ROM_READ,  QS_CMD);
-    QS_ENUM_DICTIONARY(ROM_WRITE, QS_CMD);
-    QS_ENUM_DICTIONARY(RAM_READ,  QS_CMD);
-    QS_ENUM_DICTIONARY(RAM_WRITE, QS_CMD);
+    QS_ENUM_DICTIONARY(MEM_READ,  QP::QS_CMD);
+    QS_ENUM_DICTIONARY(MEM_WRITE, QP::QS_CMD);
+    QS_ENUM_DICTIONARY(ROM_READ,  QP::QS_CMD);
+    QS_ENUM_DICTIONARY(ROM_WRITE, QP::QS_CMD);
+    QS_ENUM_DICTIONARY(RAM_READ,  QP::QS_CMD);
+    QS_ENUM_DICTIONARY(RAM_WRITE, QP::QS_CMD);
 
     // priority specifications for ObjBs...
     static QP::QPrioSpec pspecB[NUM_B];
@@ -241,7 +241,7 @@ void QS::onCommand(uint8_t cmdId,
         case MEM_READ: { // read MEM (can trip the MPU)
             value = *(uint32_t volatile *)(param1 + param2);
             QS_BEGIN_ID(QS_USER, 0U)
-                QS_ENUM(QS_CMD, cmdId);
+                QS_ENUM(QP::QS_CMD, cmdId);
                 QS_U32(0, value);
             QS_END()
             break;
@@ -249,7 +249,7 @@ void QS::onCommand(uint8_t cmdId,
         case MEM_WRITE: { // write MEM (can trip the MPU)
             *(uint32_t volatile *)(param1 + param2) = param3;
             QS_BEGIN_ID(QS_USER, 0U)
-                QS_ENUM(QS_CMD, cmdId);
+                QS_ENUM(QP::QS_CMD, cmdId);
                 QS_U32(QS_HEX_FMT , param1);
                 QS_U32(QS_HEX_FMT , param2);
                 QS_U32(0 , param3);
@@ -259,7 +259,7 @@ void QS::onCommand(uint8_t cmdId,
         case ROM_READ: { // read ROM (can trip the MPU)
             value = BSP::romRead((int32_t)param1, param2);
             QS_BEGIN_ID(QS_USER, 0U)
-                QS_ENUM(QS_CMD, cmdId);
+                QS_ENUM(QP::QS_CMD, cmdId);
                 QS_U32(0, value);
             QS_END()
             break;
@@ -267,7 +267,7 @@ void QS::onCommand(uint8_t cmdId,
         case ROM_WRITE: { // write ROM (can trip the MPU)
             BSP::romWrite(param1, param2, param3);
             QS_BEGIN_ID(QS_USER, 0U)
-                QS_ENUM(QS_CMD, cmdId);
+                QS_ENUM(QP::QS_CMD, cmdId);
                 QS_U32(QS_HEX_FMT , param1);
                 QS_U32(QS_HEX_FMT , param2);
                 QS_U32(0 , param3);
@@ -277,7 +277,7 @@ void QS::onCommand(uint8_t cmdId,
         case RAM_READ: { // read RAM (can trip the MPU)
             value = BSP::ramRead(param1, param2);
             QS_BEGIN_ID(QS_USER, 0U)
-                QS_ENUM(QS_CMD, cmdId);
+                QS_ENUM(QP::QS_CMD, cmdId);
                 QS_U32(0, value);
             QS_END()
             break;
@@ -285,7 +285,7 @@ void QS::onCommand(uint8_t cmdId,
         case RAM_WRITE: { // write RAM (can trip the MPU)
             BSP::ramWrite(param1, param2, param3);
             QS_BEGIN_ID(QS_USER, 0U)
-                QS_ENUM(QS_CMD, cmdId);
+                QS_ENUM(QP::QS_CMD, cmdId);
                 QS_U32(QS_HEX_FMT , param1);
                 QS_U32(QS_HEX_FMT , param2);
                 QS_U32(0, param3);

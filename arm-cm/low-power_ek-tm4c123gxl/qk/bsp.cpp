@@ -1,13 +1,11 @@
 //============================================================================
 // Product: "Low-Power" example, preemptive QK kernel
-// Last Updated for Version: 8.0.0
-// Date of the Last Update:  2024-06-07
 //
-//                    Q u a n t u m  L e a P s
-//                    ------------------------
-//                    Modern Embedded Software
+//                   Q u a n t u m  L e a P s
+//                   ------------------------
+//                   Modern Embedded Software
 //
-// Copyright (C) 2005-2019 Quantum Leaps, LLC. All rights reserved.
+// Copyright (C) 2005 Quantum Leaps, LLC. <state-machine.com>
 //
 // This program is open source software: you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as published
@@ -31,14 +29,13 @@
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"
-#include "low_power.hpp"
-#include "bsp.hpp"
+#include "qpcpp.hpp"             // QP/C++ real-time event framework
+#include "low_power.hpp"         // this application interface
+#include "bsp.hpp"               // Board Support Package
 
-#include "TM4C123GH6PM.h"  // the device specific header (TI)
-#include "rom.h"           // the built-in ROM functions (TI)
-#include "sysctl.h"        // system control driver (TI)
-#include "gpio.h"          // GPIO driver (TI)
+#include "TM4C123GH6PM.h"        // the device specific header (TI)
+#include "sysctl.h"              // system control driver (TI)
+#include "gpio.h"                // GPIO driver (TI)
 // add other drivers if necessary...
 
 //Q_DEFINE_THIS_FILE
@@ -55,6 +52,7 @@ void GPIOPortA_IRQHandler(void);
 
 // bitmask of active sub-systems needed for low-power operation.
 // NOTE: shared between the idle thread application, see NOTE1
+//
 static uint32_t volatile l_activeSet;
 
 // bits in the l_activeSet bitmask
@@ -97,11 +95,6 @@ void GPIOPortF_IRQHandler(void) {
 
 // BSP functions =============================================================
 void BSP_init(void) {
-    // Set the clocking to run directly from the crystal
-    ROM_SysCtlClockSet(SYSCTL_SYSDIV_1 | SYSCTL_USE_OSC | SYSCTL_OSC_MAIN |
-                       SYSCTL_XTAL_16MHZ);
-    SystemCoreClock = XTAL_HZ;
-
     // NOTE: The VFP (hardware Floating Point) unit is configured by QK
 
     // enable clock for to the peripherals used by this application...
@@ -124,15 +117,15 @@ void BSP_init(void) {
     GPIOF->DATA_Bits[LED_RED | LED_GREEN | LED_BLUE] = 0U; // turn off
 
     // configure the button SW1
-    GPIOF->DIR &= ~BTN_SW1; /* input */
-    GPIOF->DEN |= BTN_SW1; /* digital enable */
-    GPIOF->PUR |= BTN_SW1; /* pull-up resistor enable */
+    GPIOF->DIR &= ~BTN_SW1; // input
+    GPIOF->DEN |= BTN_SW1; // digital enable
+    GPIOF->PUR |= BTN_SW1; // pull-up resistor enable
 
-    /* configure the GPIO interrupt for SW1 */
-    GPIOF->IS  &= ~BTN_SW1; /* edge detect for SW1 */
-    GPIOF->IBE &= ~BTN_SW1; /* only one edge generate the interrupt */
-    GPIOF->IEV &= ~BTN_SW1; /* a falling edge triggers the interrupt */
-    GPIOF->IM  |= BTN_SW1;  /* enable GPIOF interrupt for SW1 */
+    // configure the GPIO interrupt for SW1
+    GPIOF->IS  &= ~BTN_SW1; // edge detect for SW1
+    GPIOF->IBE &= ~BTN_SW1; // only one edge generate the interrupt
+    GPIOF->IEV &= ~BTN_SW1; // a falling edge triggers the interrupt
+    GPIOF->IM  |= BTN_SW1;  // enable GPIOF interrupt for SW1
 }
 //............................................................................
 void BSP_led0_off(void) {
@@ -158,18 +151,18 @@ void BSP_tickRate0_on(void) {
 }
 //............................................................................
 void BSP_tickRate1_on(void) {
-    SYSCTL->RCGCTIMER |= (1U << 0U); // enable Run mode for Timer0
-    TIMER0->CTL  &= ~(1U << 0U); // disable Timer0 before any changes
-    TIMER0->IMR  |= (1U << 0U);  // enable timer interrupt
-    TIMER0->CTL  |= (1U << 0U);  // enable Timer0 after the changes
+    SYSCTL->RCGCTIMER |= (1U << 0); // enable Run mode for Timer0
+    TIMER0->CTL  &= ~(1U << 0); // disable Timer0 before any changes
+    TIMER0->IMR  |= (1U << 0); // enable timer interrupt
+    TIMER0->CTL  |= (1U << 0); // enable Timer0 after the changes
     l_activeSet  |= (1U << TIMER0_ACTIVE);
 }
 
-// namespace QP **************************************************************
+// namespace QP ==============================================================
 namespace QP {
 
 // QF callbacks ==============================================================
-void QF::onStartup(void) {
+void QF::onStartup() {
     // set up the SysTick timer to fire at BSP_TICKS0_PER_SEC rate
     SysTick_Config(SystemCoreClock / BSP_TICKS0_PER_SEC);
 
@@ -177,7 +170,8 @@ void QF::onStartup(void) {
     NVIC_SetPriorityGrouping(0U);
 
     // set priorities of ALL ISRs used in the system, see NOTE00
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!! CAUTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!! CAUTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // Assign a priority to EVERY ISR explicitly by calling NVIC_SetPriority().
     // DO NOT LEAVE THE ISR PRIORITIES AT THE DEFAULT VALUE!
     //
@@ -189,12 +183,15 @@ void QF::onStartup(void) {
     // enable IRQs in the NVIC...
     NVIC_EnableIRQ(GPIOF_IRQn);
     NVIC_EnableIRQ(TIMER0A_IRQn);
+
+    // enable interrupts in hardware
+    GPIOF->IM  |= BTN_SW1;  // enable GPIOF interrupt for SW1
 }
 //............................................................................
 void QF::onCleanup(void) {
 }
 //............................................................................
-void QK::onIdle(void) {
+void QK::onIdle() {
     QF_INT_DISABLE();
     if (((l_activeSet & (1U << SYSTICK_ACTIVE)) != 0U) // rate-0 enabled?
         && QP::QTimeEvt::noActive(0U))  // no time events at rate-0?
@@ -224,18 +221,23 @@ void QK::onIdle(void) {
 extern "C" {
 
 Q_NORETURN Q_onError(char const * const module, int_t const id) {
+    //
     // NOTE: add here your application-specific error handling
     //
-    (void)module;
-    (void)id;
+    Q_UNUSED_PAR(module);
+    Q_UNUSED_PAR(id);
+    QS_ASSERTION(module, id, 10000U); // report assertion to QS
+
 #ifndef NDEBUG
-    // for debugging, hang on in an endless loop toggling the RED LED...
-    while (GPIOF->DATA_Bits[BTN_SW1] != 0) {
-        GPIOF->DATA = LED_RED;
-        GPIOF->DATA = 0U;
+    // light up all LEDs
+    GPIOF->DATA_Bits[LED_GREEN | LED_RED | LED_BLUE] = 0xFFU;
+    for (;;) { // for debugging, hang on in an endless loop...
+    }
+#else
+    NVIC_SystemReset();
+    for (;;) { // explicitly "no-return"
     }
 #endif
-    NVIC_SystemReset();
 }
 //............................................................................
 void assert_failed(char const * const module, int_t const id); // prototype

@@ -54,7 +54,7 @@ static std::uint32_t l_rnd; // random seed
 #ifdef Q_SPY
 
     // QSpy source IDs
-    static QP::QSpyId const timerID = { QP::QS_AP_ID };
+    static QP::QSpyId const timerID = { QP::QS_ID_AP };
 
     enum AppRecords { // application-specific trace records
         PHILO_STAT = QP::QS_USER,
@@ -127,7 +127,7 @@ void init() {
     QS_ONLY(APP::produce_sig_dict());
 
     // setup the QS filters...
-    QS_GLB_FILTER(QP::QS_ALL_RECORDS); // all records
+    QS_GLB_FILTER(QP::QS_GRP_ALL); // all records
     QS_GLB_FILTER(-QP::QS_QF_TICK);    // exclude the tick record
 }
 //............................................................................

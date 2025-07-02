@@ -54,7 +54,7 @@ static std::uint32_t l_rnd; // random seed
     };
 
     // QSpy source IDs
-    static QP::QSpyId const l_clock_tick = { QP::QS_AP_ID };
+    static QP::QSpyId const l_clock_tick = { QP::QS_ID_AP };
 
 #endif
 
@@ -111,7 +111,7 @@ void init(int argc, char *argv[]) {
     QS_ONLY(APP::produce_sig_dict());
 
     // setup the QS filters...
-    QS_GLB_FILTER(QP::QS_ALL_RECORDS);
+    QS_GLB_FILTER(QP::QS_GRP_ALL);
     QS_GLB_FILTER(-QP::QS_QF_TICK);     // exclude the tick record
     QS_LOC_FILTER(-(APP::N_PHILO + 4)); // exclude the "ticker" prio
 }
