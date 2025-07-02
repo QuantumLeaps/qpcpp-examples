@@ -75,7 +75,7 @@ int main(void)
 #endif
 
     // global filter
-    QS_GLB_FILTER(QP::QS_ALL_RECORDS); // enable all QS records
+    QS_GLB_FILTER(QP::QS_GRP_ALL); // enable all QS records
 
     // dictionaries...
     QS_OBJ_DICTIONARY(buffer);

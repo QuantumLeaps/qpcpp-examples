@@ -247,7 +247,7 @@ void init() {
     QS_ONLY(APP::produce_sig_dict());
 
     // setup the QS filters...
-    QS_GLB_FILTER(QP::QS_ALL_RECORDS);   // all records
+    QS_GLB_FILTER(QP::QS_GRP_ALL);   // all records
     QS_GLB_FILTER(-QP::QS_QF_TICK);      // exclude the clock tick
 }
 //............................................................................

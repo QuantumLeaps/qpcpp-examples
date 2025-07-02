@@ -54,7 +54,7 @@ C_SRCS :=
 
 CPP_SRCS := \
 	main.cpp \
-	qmsmtst.cpp \
+	qmsmtst.cpp
 
 DEFINES  :=
 
@@ -93,7 +93,8 @@ INCLUDES += \
 # QP/C++ framework sources
 #
 QP_SRCS := \
-	qep_msm.cpp
+	qep_msm.cpp \
+	qf_act.cpp
 
 QS_SRCS := \
 	qs.cpp \

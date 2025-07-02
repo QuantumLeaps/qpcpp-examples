@@ -139,7 +139,7 @@ void init() {
     QS_USR_DICTIONARY(COMMAND_STAT);
 
     // setup the QS filters...
-    QS_GLB_FILTER(QP::QS_ALL_RECORDS);
+    QS_GLB_FILTER(QP::QS_GRP_ALL);
     QS_GLB_FILTER(-QP::QS_QF_TICK);
 }
 //............................................................................
@@ -641,7 +641,7 @@ static void paintBitsClear(uint8_t x, uint8_t y,
 static void playerTrigger(void) {
     static QP::QEvt const fireEvt(GAME::PLAYER_TRIGGER_SIG);
 #ifdef Q_SPY
-    static QP::QSpyId const sender = { QP::QS_AP_ID };
+    static QP::QSpyId const sender = { QP::QS_ID_AP };
 #endif
     QP::QF::PUBLISH(&fireEvt, &sender);
 }
