@@ -1,0 +1,107 @@
+//============================================================================
+// QP Real-Time Event Framework (RTEF)
+//
+// Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
+//
+//                    Q u a n t u m  L e a P s
+//                    ------------------------
+//                    Modern Embedded Software
+//
+// SPDX-License-Identifier: LicenseRef-QL-commercial
+//
+// This software is licensed under the terms of the Quantum Leaps commercial
+// licenses. Please contact Quantum Leaps for more information about the
+// available licensing options.
+//
+// RESTRICTIONS
+// You may NOT :
+// (a) redistribute, encumber, sell, rent, lease, sublicense, or otherwise
+//     transfer rights in this software,
+// (b) remove or alter any trademark, logo, copyright or other proprietary
+//     notices, legends, symbols or labels present in this software,
+// (c) plagiarize this software to sidestep the licensing obligations.
+//
+// Quantum Leaps contact information :
+// <www.state-machine.com/licensing>
+// <info@state-machine.com>
+//============================================================================
+
+// general options
+-unit_check          // perform only subset check (suppresses Global Wrapup)
+-max_threads=1       // suppress message "no '-max_threads=N' option"
+++efreeze(686)       // never suppress (see PC-Lint-Plus in Safety-Critical)
+//-vf                // print names of all source files (for debugging linting)
+
+// PCLP-9155 line comment may contain commented-out code
+// reported for QM-generated reference comments
+-efile(9155,
+ -*.cpp)
+
+// include directories
+-i%QP_PCLP%          // QP PCLP configuration
+
+-i%QP%/include       // QP public includes
+-i%QP%/ports/arm-cm/qk/gnu // QP port includes
+-i..                 // application includes
+//???-libh(q*.hpp)        // don't treat q* headers as library (i.e., analyze)
+
+// standards
+au-misra-cpp2.lnt    // MISRA-C++:2023 (MP2)
+-std=c++17           // apply the C++17 Language Standard
+
+// suppress the diagnostics from the C standard library headers...
+// NOTE: must be immediately *after* the MISRA .lnt file
+// SEE: PCLP-2025 Manual, Section 20.2
+//      "Suppressing MISRA messages from library/system headers"
+-wlib(4)
+-wlib(1)
+
+au-ds.lnt          // Dan Saks recommendations
+
+//----------------------------------------------------------------------------
+// QP/C options for QP Applications
+qpcpp.lnt          // QP PCLP options
+
+//----------------------------------------------------------------------------
+// additional suppression rules for this application
+
+//! MP2-R10.2.2(A): enum 'APP::AppSignals' is not a scoped enumeration
+-esym(9419,
+ APP::AppSignals)
+
+//! MP2-R6.5.1(A): non-static function declared outside of a header
+-esym(902,
+ APP::Philo::Philo,
+ APP::Table::Table)
+
+//! MP2-R8.14.1(A): side effects on right hand of logical operator '&&'
+// false-positive
+-efile(9007,
+ -table.cpp)
+
+//! PCLP-1762: member function could be made const
+-efile(1762,
+ -table.cpp)
+
+//! PCLP-752: local declarator not referenced
+-esym(752,
+ *::initial_s)
+
+//! PCLP-754: local struct member not referenced
+-esym(754,
+ *::act,
+ *::target)
+
+//! PCLP-641: implicit conversion of enum 'APP::AppSignals' to integral type
+-esym(641,
+ APP::AppSignals)
+
+//! PCLP-1736: redundant access specifier (public)
+-efile(1736,
+ -dpp.hpp,
+ -philo.cpp,
+ -table.cpp)
+
+//! PCLP-3708: variable '*::inst' has static
+-esym(3708,
+ *::inst)

@@ -154,7 +154,7 @@ void App_TaskIdleHook(void) {
         std::uint16_t b = QP::QS::getByte();
         QF_CRIT_EXIT();
 
-        if (b != QS_EOD) {   // not End-Of-Data?
+        if (b != QP::QS_EOD) {   // not End-Of-Data?
             USART1->TDR = b; // put into the DR register
         }
         else {

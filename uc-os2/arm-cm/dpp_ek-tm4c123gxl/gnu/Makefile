@@ -1,5 +1,5 @@
 ##############################################################################
-# Makefile for QP/C++ on EK-TM4C123GXL, uC/OS-II kernel, GNU-ARM
+# Product: Makefile for QP/C on EK-TM4C123GXL, uC-OS2 kernel, GNU-ARM
 #
 # Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 #
@@ -9,7 +9,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 #
-# The QP/C software is dual-licensed under the terms of the open-source
+# The QP software is dual-licensed under the terms of the open-source
 # GNU General Public License (GPL) or under the terms of one of the
 # closed-source Quantum Leaps commercial licenses.
 #
@@ -42,7 +42,6 @@
 # To use this Makefile on Windows, you will need the GNU make utility, which
 # is included in the QTools collection for Windows, see:
 #    https://github.com/QuantumLeaps/qtools
-#
 
 #-----------------------------------------------------------------------------
 # project name
@@ -88,8 +87,7 @@ INCLUDES  = \
 #
 
 # assembler source files
-ASM_SRCS := \
-	os_cpu_a.s
+ASM_SRCS :=
 
 # C source files
 C_SRCS := \
@@ -134,6 +132,9 @@ RTOS_SRCS := \
 	os_dbg.c \
 	os_cpu_c.c
 
+RTOS_ASMS := \
+	os_cpu_a.s
+
 QS_SRCS := \
 	qs.cpp \
 	qs_rx.cpp \
@@ -152,7 +153,7 @@ DEFINES   := $(DEF)
 #
 ARM_CPU   := -mcpu=cortex-m4
 ARM_FPU   := -mfpu=vfp
-FLOAT_ABI := -mfloat-abi=softfp
+FLOAT_ABI := -mfloat-abi=hard
 
 #-----------------------------------------------------------------------------
 # GNU-ARM toolset (NOTE: You need to adjust to your machine)
@@ -173,7 +174,6 @@ AS    := $(GNU_ARM)/bin/arm-none-eabi-as
 LINK  := $(GNU_ARM)/bin/arm-none-eabi-g++
 BIN   := $(GNU_ARM)/bin/arm-none-eabi-objcopy
 
-
 ##############################################################################
 # Typically you should not need to change anything below this line
 
@@ -184,20 +184,20 @@ MKDIR := mkdir
 RM    := rm
 
 #-----------------------------------------------------------------------------
-# build options for various configurations
+# build options for various configurations for ARM Cortex-M
 #
 
 # combine all the sources...
+ASM_SRCS += $(RTOS_ASMS)
 CPP_SRCS += $(QP_SRCS)
 C_SRCS   += $(RTOS_SRCS)
 C_SRCS   += syscalls.c
-ASM_SRCS += $(QP_ASMS)
 
 ifeq (rel, $(CONF)) # Release configuration ..................................
 
 BIN_DIR := rel
 
-ASFLAGS = $(ARM_CPU) $(ARM_FPU) $(ASM_CPU) $(ASM_FPU)
+ASFLAGS = -mthumb $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI)
 
 CFLAGS = -c $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb -Wall \
 	-ffunction-sections -fdata-sections \
@@ -213,7 +213,7 @@ BIN_DIR := spy
 
 CPP_SRCS += $(QS_SRCS)
 
-ASFLAGS = -g $(ARM_CPU) $(ARM_FPU) $(ASM_CPU) $(ASM_FPU)
+ASFLAGS = -g -mthumb $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI)
 
 CFLAGS = -c -g $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb -Wall \
 	-ffunction-sections -fdata-sections \
@@ -227,7 +227,7 @@ else # default Debug configuration ..........................................
 
 BIN_DIR := dbg
 
-ASFLAGS = -g $(ARM_CPU) $(ARM_FPU) $(ASM_CPU) $(ASM_FPU)
+ASFLAGS = -g -mthumb $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI)
 
 CFLAGS = -c -g $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb -Wall \
 	-ffunction-sections -fdata-sections \
@@ -265,14 +265,8 @@ endif
 # rules
 #
 
-.PHONY : run norun flash
-
-ifeq ($(MAKECMDGOALS),norun)
-all : $(TARGET_BIN)
-norun : all
-else
-all : $(TARGET_BIN) run
-endif
+all: $(TARGET_BIN)
+#all: $(TARGET_ELF)
 
 $(TARGET_BIN): $(TARGET_ELF)
 	$(BIN) -O binary $< $@
@@ -296,8 +290,6 @@ $(BIN_DIR)/%.o : %.c
 $(BIN_DIR)/%.o : %.cpp
 	$(CPP) $(CPPFLAGS) $< -o $@
 
-.PHONY : clean show
-
 # include dependency files only if our goal depends on their existence
 ifneq ($(MAKECMDGOALS),clean)
   ifneq ($(MAKECMDGOALS),show)
@@ -306,13 +298,14 @@ ifneq ($(MAKECMDGOALS),clean)
 endif
 
 
+.PHONY : clean
 clean:
 	-$(RM) $(BIN_DIR)/*.o \
 	$(BIN_DIR)/*.d \
 	$(BIN_DIR)/*.bin \
 	$(BIN_DIR)/*.elf \
 	$(BIN_DIR)/*.map
-	
+
 show:
 	@echo PROJECT = $(PROJECT)
 	@echo CONF = $(CONF)

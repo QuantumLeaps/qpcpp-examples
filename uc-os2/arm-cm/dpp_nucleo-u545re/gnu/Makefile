@@ -87,8 +87,7 @@ INCLUDES  = \
 #
 
 # assembler source files
-ASM_SRCS := \
-	os_cpu_a.s
+ASM_SRCS :=
 
 # C source files
 C_SRCS := \
@@ -133,6 +132,9 @@ RTOS_SRCS := \
 	os_dbg.c \
 	os_cpu_c.c
 
+RTOS_ASMS := \
+	os_cpu_a.s
+
 QS_SRCS := \
 	qs.cpp \
 	qs_rx.cpp \
@@ -152,7 +154,7 @@ DEFINES   := -DSTM32U545xx \
 #
 ARM_CPU   := -mcpu=cortex-m33
 ARM_FPU   := -mfpu=fpv5-sp-d16
-FLOAT_ABI := -mfloat-abi=hard -mthumb
+FLOAT_ABI := -mfloat-abi=hard
 
 #-----------------------------------------------------------------------------
 # GNU-ARM toolset (NOTE: You need to adjust to your machine)
@@ -173,9 +175,8 @@ AS    := $(GNU_ARM)/bin/arm-none-eabi-as
 LINK  := $(GNU_ARM)/bin/arm-none-eabi-g++
 BIN   := $(GNU_ARM)/bin/arm-none-eabi-objcopy
 
-
 ##############################################################################
-# Typically, you should not need to change anything below this line
+# Typically you should not need to change anything below this line
 
 # basic utilities (included in QTools for Windows), see:
 #     https://www.state-machine.com/qtools
@@ -184,19 +185,20 @@ MKDIR := mkdir
 RM    := rm
 
 #-----------------------------------------------------------------------------
-# build options for various configurations
+# build options for various configurations for ARM Cortex-M
 #
 
 # combine all the sources...
-CPP_SRCS += $(QP_SRCS)
-C_SRCS += $(RTOS_SRCS)
 ASM_SRCS += $(RTOS_ASMS)
+CPP_SRCS += $(QP_SRCS)
+C_SRCS   += $(RTOS_SRCS)
+C_SRCS   += syscalls.c
 
 ifeq (rel, $(CONF)) # Release configuration ..................................
 
 BIN_DIR := rel
 
-ASFLAGS = $(ARM_CPU) $(ARM_FPU) $(ASM_CPU) $(ASM_FPU)
+ASFLAGS = -mthumb $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI)
 
 CFLAGS = -c $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb -Wall \
 	-ffunction-sections -fdata-sections \
@@ -212,7 +214,7 @@ BIN_DIR := spy
 
 CPP_SRCS += $(QS_SRCS)
 
-ASFLAGS = -g $(ARM_CPU) $(ARM_FPU) $(ASM_CPU) $(ASM_FPU)
+ASFLAGS = -g -mthumb $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI)
 
 CFLAGS = -c -g $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb -Wall \
 	-ffunction-sections -fdata-sections \
@@ -226,7 +228,7 @@ else # default Debug configuration ..........................................
 
 BIN_DIR := dbg
 
-ASFLAGS = -g $(ARM_CPU) $(ARM_FPU) $(ASM_CPU) $(ASM_FPU)
+ASFLAGS = -g -mthumb $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI)
 
 CFLAGS = -c -g $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb -Wall \
 	-ffunction-sections -fdata-sections \
@@ -242,7 +244,6 @@ endif # ......................................................................
 LINKFLAGS = -T$(LD_SCRIPT) $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb \
 	-specs=nosys.specs -specs=nano.specs \
 	-Wl,-Map,$(BIN_DIR)/$(OUTPUT).map,--cref,--gc-sections $(LIB_DIRS)
-
 
 ASM_OBJS     := $(patsubst %.s,%.o,  $(notdir $(ASM_SRCS)))
 C_OBJS       := $(patsubst %.c,%.o,  $(notdir $(C_SRCS)))
@@ -265,14 +266,8 @@ endif
 # rules
 #
 
-.PHONY : run norun flash
-
-ifeq ($(MAKECMDGOALS),norun)
-all : $(TARGET_BIN)
-norun : all
-else
-all : $(TARGET_BIN) run
-endif
+all: $(TARGET_BIN)
+#all: $(TARGET_ELF)
 
 $(TARGET_BIN): $(TARGET_ELF)
 	$(BIN) -O binary $< $@
@@ -296,8 +291,6 @@ $(BIN_DIR)/%.o : %.c
 $(BIN_DIR)/%.o : %.cpp
 	$(CPP) $(CPPFLAGS) $< -o $@
 
-.PHONY : clean show
-
 # include dependency files only if our goal depends on their existence
 ifneq ($(MAKECMDGOALS),clean)
   ifneq ($(MAKECMDGOALS),show)
@@ -306,13 +299,14 @@ ifneq ($(MAKECMDGOALS),clean)
 endif
 
 
+.PHONY : clean
 clean:
 	-$(RM) $(BIN_DIR)/*.o \
 	$(BIN_DIR)/*.d \
 	$(BIN_DIR)/*.bin \
 	$(BIN_DIR)/*.elf \
 	$(BIN_DIR)/*.map
-	
+
 show:
 	@echo PROJECT = $(PROJECT)
 	@echo CONF = $(CONF)
