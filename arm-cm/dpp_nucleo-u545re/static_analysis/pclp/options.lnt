@@ -30,40 +30,22 @@
 -unit_check          // perform only subset check (suppresses Global Wrapup)
 -max_threads=1       // suppress message "no '-max_threads=N' option"
 ++efreeze(686)       // never suppress (see PC-Lint-Plus in Safety-Critical)
-//-vf                // print names of all source files (for debugging linting)
+//-vf                  // print names of all source files (for debugging linting)
 
-// PCLP-9155 line comment may contain commented-out code
-// reported for QM-generated reference comments
--efile(9155,
- -*.cpp)
-
+//----------------------------------------------------------------------------
 // include directories
 -i%QP_PCLP%          // QP PCLP configuration
-
 -i%QP%/include       // QP public includes
--i%QP%/ports/arm-cm/qk/gnu // QP port includes
--i..                 // application includes
-//???-libh(q*.hpp)        // don't treat q* headers as library (i.e., analyze)
-
-// standards
-au-misra-cpp2.lnt    // MISRA-C++:2023 (MP2)
--std=c++17           // apply the C++17 Language Standard
-
-// suppress the diagnostics from the C standard library headers...
-// NOTE: must be immediately *after* the MISRA .lnt file
-// SEE: PCLP-2025 Manual, Section 20.2
-//      "Suppressing MISRA messages from library/system headers"
--wlib(4)
--wlib(1)
-
-au-ds.lnt          // Dan Saks recommendations
 
 //----------------------------------------------------------------------------
 // QP/C options for QP Applications
-qpcpp.lnt          // QP PCLP options
+qpcpp.lnt            // QP/C++ PCLP options
 
 //----------------------------------------------------------------------------
 // additional suppression rules for this application
+
+-i%QP%/ports/arm-cm/qk/gnu  // QP port includes
+-i..                 // application includes
 
 //! MP2-R10.2.2(A): enum 'APP::AppSignals' is not a scoped enumeration
 -esym(9419,
@@ -82,6 +64,11 @@ qpcpp.lnt          // QP PCLP options
 //! PCLP-1762: member function could be made const
 -efile(1762,
  -table.cpp)
+
+// PCLP-9155 line comment may contain commented-out code
+// reported for QM-generated reference comments
+-efile(9155,
+ -*.cpp)
 
 //! PCLP-752: local declarator not referenced
 -esym(752,
@@ -102,6 +89,6 @@ qpcpp.lnt          // QP PCLP options
  -philo.cpp,
  -table.cpp)
 
-//! PCLP-3708: variable '*::inst' has static
+//! PCLP-3708: variable '*::inst' has static duration but no initialization
 -esym(3708,
  *::inst)
