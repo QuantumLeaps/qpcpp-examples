@@ -173,7 +173,7 @@ void App_TaskIdleHook(void) {
         b = QP::QS::getByte();
         OS_EXIT_CRITICAL();
 
-        if (b != QS_EOD) {  // not End-Of-Data?
+        if (b != QP::QS_EOD) {  // not End-Of-Data?
             DPP::l_USART0->TXDATA = (b & 0xFFU); // put into the DR register
         }
     }

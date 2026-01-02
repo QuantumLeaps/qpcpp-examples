@@ -176,7 +176,7 @@ void vApplicationIdleHook(void) {
         std::uint16_t b = QP::QS::getByte();
         QF_INT_ENABLE();
 
-        if (b != QS_EOD) {  // not End-Of-Data?
+        if (b != QP::QS_EOD) {  // not End-Of-Data?
             USART2->DR = b; // put into the DR register
         }
     }

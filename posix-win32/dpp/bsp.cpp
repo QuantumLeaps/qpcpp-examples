@@ -155,7 +155,7 @@ void terminate(std::int16_t result) {
 }
 //............................................................................
 void displayPhilStat(std::uint8_t n, char const *stat) {
-    PRINTF_S("Philosopher %2d is %s\n", (int)n, stat);
+    PRINTF_S("Philosopher %2d is %s\n", static_cast<int>(n), stat);
 
     // application-specific record
     QS_BEGIN_ID(PHILO_STAT, APP::AO_Table->getPrio())
@@ -204,7 +204,7 @@ void QF::onStartup() {
 }
 //............................................................................
 void QF::onCleanup() {
-    PRINTF_S("\n%s\n", "Bye!");
+    PRINTF_S("\n%s\n", "Bye! Bye!");
     consoleCleanup();
 }
 //............................................................................

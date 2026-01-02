@@ -146,7 +146,7 @@ static void idle_thread_fun(ULONG /*thread_input*/) { // see NOTE1
             std::uint16_t b = QP::QS::getByte();
             QF_CRIT_EXIT();
 
-            if (b != QS_EOD) {  // not End-Of-Data?
+            if (b != QP::QS_EOD) {  // not End-Of-Data?
                 USART2->DR = b; // put into the DR register
             }
         }
