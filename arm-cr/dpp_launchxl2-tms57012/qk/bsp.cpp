@@ -26,9 +26,9 @@
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"      // QP/C++ real-time event framework
-#include "dpp.hpp"        // DPP Application interface
-#include "bsp.hpp"        // Board Support Package
+#include "qpcpp.hpp"        // QP/C++ real-time event framework
+#include "bsp.hpp"          // Board Support Package
+#include "app.hpp"          // Application
 
 #include "sys_common.h"
 #include "sys_core.h"
@@ -43,9 +43,9 @@
 //============================================================================
 namespace { // unnamed namespace for local stuff with internal linkage
 
-Q_DEFINE_THIS_FILE
+Q_DEFINE_THIS_FILE  // file name for assertions
 
-// Local-scope objects -------------------------------------------------------
+// Local objects -------------------------------------------------------------
 constexpr std::uint32_t LED2_PIN  {1U};
 constexpr gioPORT_t    *LED2_PORT {gioPORTB};
 
@@ -63,46 +63,45 @@ constexpr hetBASE_t    *SWB_PORT  {hetREG1};
 
 constexpr t_isrFuncPTR *VIM_RAM   {reinterpret_cast<t_isrFuncPTR *>(0xFFF82000U)};
 
+// Local-scope objects -----------------------------------------------------
 static std::uint32_t   l_rndSeed;
 
 #ifdef Q_SPY
-
-    // QSpy source IDs
-    static QP::QSpyId const l_rtiCompare0 = { 0U };
-    static QP::QSpyId const l_ssiTest = { 0U };
-
     enum AppRecords { // application-specific trace records
         PHILO_STAT = QP::QS_USER,
         PAUSED_STAT,
-        CONTEXT_SW,
     };
 
-#endif
+    // QSpy source IDs...
+    static QP::QSpyId const l_rtiCompare0 { QP::QS_ID_AP };
+    static QP::QSpyId const l_ssiTest { QP::QS_ID_AP + 1U };
+#endif // Q_SPY
 
 } // unnamed namespace
 
 //============================================================================
-// Error handler and ISRs...
+// Error handler
+
 extern "C" {
 
 Q_NORETURN Q_onError(char const * const module, int_t const id) {
     // NOTE: this implementation of the error handler is intended only
-    // for debugging and MUST be changed for deployment of the application
-    // (assuming that you ship your production code with assertions enabled).
+    // for debugging and MUST be changed for deployment of the application.
     Q_UNUSED_PAR(module);
     Q_UNUSED_PAR(id);
     QS_ASSERTION(module, id, 10000U); // report assertion to QS
 
 #ifndef NDEBUG
-    // for debugging, hang on in an endless loop...
-    for (;;) {
+    for (;;) { // for debugging, hang on in an endless loop...
     }
-#endif
+#else
     systemREG1->SYSECR = 0; // perform system reset
     for (;;) { // explicitly "no-return"
     }
+#endif
 }
 //............................................................................
+// assertion failure handler for the startup code and libraries
 void assert_failed(char const * const module, int_t const id); // prototype
 void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
@@ -111,7 +110,6 @@ void assert_failed(char const * const module, int_t const id) {
 // ISRs used in the application ==============================================
 // CAUTION: ISRs MUST be both __stackless and __arm!
 QK_IRQ_BEGIN(rtiCompare0)
-
     rtiREG1->INTFLAG = 1U;    // clear the interrutp source
     QP::QTimeEvt::TICK_X(0U, &l_rtiCompare0); // time events at rate 0
 
@@ -179,10 +177,8 @@ void sciHighLevel(void) {
 #ifdef QF_ON_CONTEXT_SW
 // NOTE: the context-switch callback is called with interrupts DISABLED
 void QF_onContextSw(QP::QActive *prev, QP::QActive *next) {
-    QS_BEGIN_INCRIT(CONTEXT_SW, 0U) // in critical section!
-        QS_OBJ(prev);
-        QS_OBJ(next);
-    QS_END_INCRIT()
+    Q_UNUSED_PAR(prev);
+    Q_UNUSED_PAR(next);
 }
 #endif // QF_ON_CONTEXT_SW
 
@@ -191,7 +187,10 @@ void QF_onContextSw(QP::QActive *prev, QP::QActive *next) {
 //============================================================================
 namespace BSP {
 
-void init() {
+//............................................................................
+void init(void const * const arg) {
+    Q_UNUSED_PAR(arg);
+
     // configure the LEDs
     gioInit();
     LED2_PORT->DIR |= (1U << LED2_PIN); // set as output
@@ -200,30 +199,26 @@ void init() {
     // configure the Buttons
     SWB_PORT->DIR  &= (1U << SWB_PIN);    // set as input
 
-    // initialize the random seed
-    BSP::randomSeed(1234U);
-
-    // initialize the QS software tracing...
-    if (!QS_INIT(nullptr)) {
+    // initialize QS software tracing...
+    if (!QS_INIT(arg)) {
         Q_ERROR();
     }
 
-    // dictionaries...
+    // QS dictionaries...
     QS_OBJ_DICTIONARY(&l_rtiCompare0);
     QS_OBJ_DICTIONARY(&l_ssiTest);
     QS_USR_DICTIONARY(PHILO_STAT);
     QS_USR_DICTIONARY(PAUSED_STAT);
-    QS_USR_DICTIONARY(CONTEXT_SW);
-
     QS_ONLY(APP::produce_sig_dict());
 
     // setup the QS filters...
-    QS_GLB_FILTER(QP::QS_GRP_ALL);   // all records
-    QS_GLB_FILTER(-QP::QS_QF_TICK);      // exclude the clock tick
+    QS_GLB_FILTER(QP::QS_GRP_ALL);  // enable all QS trace records
+    QS_GLB_FILTER(-QP::QS_QF_TICK); // exclude the tick record
     QS_LOC_FILTER(-(APP::N_PHILO + 3U)); // exclude prio. of AO_Ticker0
-}
-//............................................................................
-void start() {
+
+    // initialize the random seed
+    randomSeed(1234U);
+
     // initialize event pools
     static QF_MPOOL_EL(APP::TableEvt) smlPoolSto[2*APP::N_PHILO];
     QP::QF::poolInit(smlPoolSto,
@@ -232,28 +227,6 @@ void start() {
     // initialize publish-subscribe
     static QP::QSubscrList subscrSto[APP::MAX_PUB_SIG];
     QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
-
-    // instantiate and start AOs/threads...
-
-    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][APP::N_PHILO];
-    for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
-        APP::AO_Philo[n]->start(
-
-            // NOTE: set the preemption-threshold of all Philos to
-            // the same level, so that they cannot preempt each other.
-            Q_PRIO(n + 3U, APP::N_PHILO + 2U), // QF-prio/pre-thre.
-
-            philoQueueSto[n],        // event queue storage
-            Q_DIM(philoQueueSto[n]), // queue length [events]
-            nullptr, 0U);            // no stack storage
-    }
-
-    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
-    APP::AO_Table->start(
-        APP::N_PHILO + 7U,           // QP prio. of the AO
-        tableQueueSto,               // event queue storage
-        Q_DIM(tableQueueSto),        // queue length [events]
-        nullptr, 0U);                // no stack storage
 }
 //............................................................................
 void displayPhilStat(std::uint8_t n, char const *stat) {
@@ -266,7 +239,7 @@ void displayPhilStat(std::uint8_t n, char const *stat) {
         LED2_PORT->DCLR = (1U << LED2_PIN);
     }
 
-    // app-specific trace record...
+    // application-specific trace record
     QS_BEGIN_ID(PHILO_STAT, APP::AO_Table->getPrio())
         QS_U8(1, n);  // Philosopher number
         QS_STR(stat); // Philosopher status
@@ -301,12 +274,11 @@ std::uint32_t random() { // a very cheap pseudo-random-number generator
     QP::QSchedStatus lockStat = QP::QK::schedLock(APP::N_PHILO + 1U);
     // "Super-Duper" Linear Congruential Generator (LCG)
     // LCG(2^32, 3*7*11*13*23, 0, seed)
-    //
-    std::uint32_t rnd = l_rndSeed * (3U*7U*11U*13U*23U);
+    std::uint32_t const rnd = l_rndSeed * (3U*7U*11U*13U*23U);
     l_rndSeed = rnd; // set for the next time
     QP::QK::schedUnlock(lockStat); // unlock sched after accessing l_rnd
 
-    return (rnd >> 8U);
+    return rnd >> 8U;
 }
 //............................................................................
 void terminate(int16_t result) {
@@ -320,15 +292,36 @@ namespace QP {
 
 // QF callbacks...
 void QF::onStartup() {
+    // instantiate and start AOs/threads...
+    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][APP::N_PHILO];
+    for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
+        APP::AO_Philo[n]->start(
+
+            // NOTE: set the preemption-threshold of all Philos to
+            // the same level, so that they cannot preempt each other.
+            Q_PRIO(n + 3U, APP::N_PHILO + 2U), // QF-prio/pre-thre.
+
+            philoQueueSto[n],        // event queue storage
+            Q_DIM(philoQueueSto[n]), // queue length [events]
+            nullptr, 0U);            // no stack storage
+    }
+
+    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
+    APP::AO_Table->start(
+        APP::N_PHILO + 7U,           // QP prio. of the AO
+        tableQueueSto,               // event queue storage
+        Q_DIM(tableQueueSto),        // queue length [events]
+        nullptr, 0U);                // no stack storage
+
     rtiInit(); // configure RTI with UC counter of 7
     rtiSetPeriod(rtiCOUNTER_BLOCK0,
-                 (uint32)((RTI_FREQ*1E6/(7+1))/BSP::TICKS_PER_SEC));
+        static_cast<std::uint32_t>((RTI_FREQ*1E6/(7+1))/BSP::TICKS_PER_SEC));
     rtiEnableNotification(rtiNOTIFICATION_COMPARE0);
     rtiStartCounter(rtiCOUNTER_BLOCK0);
 
     VIM_RAM[2 + 1] = (t_isrFuncPTR)&rtiCompare0; // install the IRQ
-    vimREG->FIRQPR0 &= ~(1U << 2);   // designate interrupt as IRQ, NOTE0
-    vimREG->REQMASKSET0 = (1U << 2); // enable interrupt
+    vimREG->FIRQPR0 &= ~(1U << 2U);   // designate interrupt as IRQ, NOTE0
+    vimREG->REQMASKSET0 = (1U << 2U); // enable RTI interrupt
 
     VIM_RAM[21 + 1] = (t_isrFuncPTR)&ssiTest ; // install the IRQ
     vimREG->FIRQPR0 &= ~(1U << 21);   // designate interrupt as IRQ, NOTE0
@@ -338,10 +331,11 @@ void QF::onStartup() {
 }
 //............................................................................
 void QF::onCleanup() {
+    QS_EXIT();
 }
 //............................................................................
 void QK::onIdle() {
-    // toggle the User LED on and then off, see NOTE01
+    // toggle User LED on and then off, see NOTE01
     QF_INT_DISABLE();
     LED3_PORT->DSET = (1U << LED3_PIN);
     LED3_PORT->DCLR = (1U << LED3_PIN);
@@ -398,6 +392,9 @@ QSTimeCtr QS::onGetTime() { // NOTE: invoked with interrupts DISABLED
     return rtiREG1->CNT[0].FRCx; // free running RTI counter0
 }
 //............................................................................
+// NOTE:
+// No critical section in QS_onFlush() to avoid nesting of critical sections
+// in case QS::onFlush() is called from Q_onError().
 void QS::onFlush() {
     for (;;) {
         std::uint16_t b = getByte();
@@ -417,7 +414,7 @@ void QS::onReset() {
 }
 //............................................................................
 void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
-               std::uint32_t param2, std::uint32_t param3)
+    std::uint32_t param2, std::uint32_t param3)
 {
     Q_UNUSED_PAR(cmdId);
     Q_UNUSED_PAR(param1);
@@ -441,4 +438,3 @@ void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
 // of the LED is proportional to the frequency of invcations of the idle loop.
 // Please note that the LED is toggled with interrupts locked, so no interrupt
 // execution time contributes to the brightness of the User LED.
-//

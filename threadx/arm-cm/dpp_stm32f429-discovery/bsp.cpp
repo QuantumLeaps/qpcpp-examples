@@ -26,9 +26,9 @@
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"      // QP/C++ real-time event framework
-#include "dpp.hpp"        // DPP Application interface
-#include "bsp.hpp"        // Board Support Package
+#include "qpcpp.hpp"        // QP/C++ real-time event framework
+#include "bsp.hpp"          // Board Support Package
+#include "app.hpp"          // Application
 
 #include "stm32f4xx.h"  // CMSIS-compliant header file for the MCU used
 #include "stm32f4xx_exti.h"
@@ -58,9 +58,13 @@ Q_DEFINE_THIS_FILE
 static std::uint32_t l_rndSeed;
 
 #ifdef Q_SPY
+    enum AppRecords { // application-specific trace records
+        PHILO_STAT = QP::QS_USER,
+        PAUSED_STAT,
+    };
 
-    // QSpy source IDs
-    static QP::QSpyId const l_clock_tick = { QP::QS_ID_AP };
+    // QS source IDs
+    static QP::QSpyId const l_clock_tick { QP::QS_ID_AP };
 
     // ThreadX "idle" thread for QS output, see NOTE1
     static TX_THREAD idle_thread;
@@ -69,12 +73,7 @@ static std::uint32_t l_rndSeed;
     QP::QSTimeCtr QS_tickTime_;
     QP::QSTimeCtr QS_tickPeriod_;
 
-    enum AppRecords { // application-specific trace records
-        PHILO_STAT = QP::QS_USER,
-        PAUSED_STAT,
-    };
-
-#endif
+#endif // Q_SPY
 
 static TX_TIMER l_tick_timer; // ThreadX timer to call QTimeEvt::TICKX_()
 static VOID timer_expiration(ULONG id); // prototype
@@ -91,12 +90,12 @@ static VOID timer_expiration(ULONG id) {
 
 //============================================================================
 // Error handler
+
 extern "C" {
 
 Q_NORETURN Q_onError(char const * const module, int_t const id) {
     // NOTE: this implementation of the error handler is intended only
-    // for debugging and MUST be changed for deployment of the application
-    // (assuming that you ship your production code with assertions enabled).
+    // for debugging and MUST be changed for deployment of the application.
     Q_UNUSED_PAR(module);
     Q_UNUSED_PAR(id);
     QS_ASSERTION(module, id, 10000U); // report assertion to QS
@@ -105,29 +104,42 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
     // turn LED on
     LED_GPIO_PORT->BSRRL = LED4_PIN;
     // for debugging, hang on in an endless loop...
-    for (;;) {
+    for (;;) { // for debugging, hang on in an endless loop...
     }
-#endif
+#else
     NVIC_SystemReset();
     for (;;) { // explicitly "no-return"
     }
+#endif
 }
 //............................................................................
+// assertion failure handler for the startup code and libraries
 void assert_failed(char const * const module, int_t const id); // prototype
 void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
 }
 
-// ISRs used in the application ==============================================
+//============================================================================
+// ISRs and ThreadX IRS callbacks
 
-//............................................................................
 #ifdef Q_SPY
 
 //............................................................................
 static void idle_thread_fun(ULONG /*thread_input*/); // prototype
 static void idle_thread_fun(ULONG /*thread_input*/) { // see NOTE1
     for (;;) {
+        QP::QS::rxParse();  // parse all the received bytes
+
         QF_CRIT_STAT
+        if ((USART2->SR & 0x80U) != 0U) { // is TXE empty?
+            QF_CRIT_ENTRY();
+            std::uint16_t b = QP::QS::getByte();
+            QF_CRIT_EXIT();
+
+            if (b != QP::QS_EOD) {  // not End-Of-Data?
+                USART2->DR = b; // put into the DR register
+            }
+        }
 
         QF_CRIT_ENTRY();
         // turn the LED6 on an off to visualize the QS activity
@@ -139,18 +151,6 @@ static void idle_thread_fun(ULONG /*thread_input*/) { // see NOTE1
         LED_GPIO_PORT->BSRRH = LED6_PIN; // turn LED off
         QF_CRIT_EXIT();
 
-        QP::QS::rxParse();  // parse all the received bytes
-
-        if ((USART2->SR & 0x80U) != 0U) { // is TXE empty?
-            QF_CRIT_ENTRY();
-            std::uint16_t b = QP::QS::getByte();
-            QF_CRIT_EXIT();
-
-            if (b != QP::QS_EOD) {  // not End-Of-Data?
-                USART2->DR = b; // put into the DR register
-            }
-        }
-
         // no blocking in this "idle" thread; see NOTE1
     }
 }
@@ -158,20 +158,21 @@ static void idle_thread_fun(ULONG /*thread_input*/) { // see NOTE1
 //............................................................................
 // ISR for receiving bytes from the QSPY Back-End
 // NOTE: This ISR is "kernel-unaware" meaning that it does not interact with
-// the  or QP and is not disabled. Such ISRs don't cannot call any
+// the or QP and is not disabled. Such ISRs don't cannot call any
 // ThreadX or QP APIs.
 //
 //TBD...
 
 #endif // Q_SPY
 
-
 } // extern "C"
 
-// BSP functions =============================================================
+//============================================================================
 namespace BSP {
 
-void init() {
+void init(void const * const arg) {
+    Q_UNUSED_PAR(arg);
+
     // Configure the MPU to prevent NULL-pointer dereferencing ...
     MPU->RBAR = 0x0U                          // base address (NULL)
                 | MPU_RBAR_VALID_Msk          // valid region
@@ -187,9 +188,7 @@ void init() {
     // enable the MemManage_Handler for MPU exception
     SCB->SHCSR |= SCB_SHCSR_MEMFAULTENA_Msk;
 
-    // NOTE: SystemInit() has been already called from the startup code
-    // but SystemCoreClock needs to be updated
-    SystemCoreClockUpdate();
+    // NOTE: VFP (hardware Floating Point) unit is configured by ThreadX
 
     // NOTE: VFP (hardware Floating Point) unit is configured by ThreadX
 
@@ -230,24 +229,56 @@ void init() {
     GPIO_struct.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(BTN_GPIO_PORT, &GPIO_struct);
 
-    // seed the random number generator
     BSP::randomSeed(1234U);
 
-    // initialize the QS software tracing...
-    if (!QS_INIT(nullptr)) {
+    // initialize QS software tracing...
+    if (!QS_INIT(arg)) {
         Q_ERROR();
     }
 
-    // dictionaries...
+    // QS dictionaries...
     QS_OBJ_DICTIONARY(&l_clock_tick);
     QS_USR_DICTIONARY(PHILO_STAT);
     QS_USR_DICTIONARY(PAUSED_STAT);
-
     QS_ONLY(APP::produce_sig_dict());
 
     // setup the QS filters...
-    QS_GLB_FILTER(QP::QS_GRP_ALL); // all records
-    QS_GLB_FILTER(-QP::QS_QF_TICK);    // exclude the clock tick
+    QS_GLB_FILTER(QP::QS_GRP_ALL);  // enable all QS trace records
+    QS_GLB_FILTER(-QP::QS_QF_TICK); // exclude the tick record
+
+    // initialize event pools for mutable events
+    static QF_MPOOL_EL(APP::TableEvt) smlPoolSto[2*APP::N_PHILO];
+    QP::QF::poolInit(smlPoolSto, sizeof(smlPoolSto), sizeof(smlPoolSto[0]));
+
+    // initialize publish-subscribe
+    static QP::QSubscrList subscrSto[APP::MAX_PUB_SIG];
+    QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
+
+    randomSeed(1234U); // seed the random number generator
+
+    // start AOs/threads...
+    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10];
+    static ULONG philoStk[APP::N_PHILO][200]; // stacks for the Philos
+    for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
+        APP::AO_Philo[n]->setAttr(QP::THREAD_NAME_ATTR, "Philo");
+        APP::AO_Philo[n]->start(
+
+            // NOTE: set the preemption-threshold of all Philos to
+            // the same level, so that they cannot preempt each other.
+            Q_PRIO(n + 1U, APP::N_PHILO), // QF-prio/pre-thre.
+
+            philoQueueSto[n], Q_DIM(philoQueueSto[n]),
+            philoStk[n], sizeof(philoStk[n]));
+    }
+
+    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
+    static ULONG tableStk[200]; // stack for the Table
+    APP::AO_Table->setAttr(QP::THREAD_NAME_ATTR, "Table");
+    APP::AO_Table->start(
+        APP::N_PHILO + 1U,
+        tableQueueSto, Q_DIM(tableQueueSto),
+        tableStk, sizeof(tableStk));
+
 }
 //............................................................................
 void displayPhilStat(std::uint8_t n, char const *stat) {
@@ -299,7 +330,7 @@ std::uint32_t random() { // a very cheap pseudo-random-number generator
     // NOTE: l_rndSeed is SHARED among the Philo AOs, but does not need
     // to be protected because all Philos have the same ThreadX preemption
     // threshold, so they cannot preempt each other.
-    std::uint32_t rnd = l_rndSeed * (3U*7U*11U*13U*23U);
+    std::uint32_t const rnd = l_rndSeed * (3U*7U*11U*13U*23U);
     l_rndSeed = rnd; // set for the next time
 
     return (rnd >> 8);
@@ -323,7 +354,6 @@ void ledOff() {
 namespace QP {
 
 // QF callbacks...
-
 void QF::onStartup() {
     // NOTE:
     // This application uses the ThreadX timer to periodically call
@@ -453,7 +483,7 @@ void QS::onReset() {
 }
 //............................................................................
 void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
-               std::uint32_t param2, std::uint32_t param3)
+    std::uint32_t param2, std::uint32_t param3)
 {
     Q_UNUSED_PAR(cmdId);
     Q_UNUSED_PAR(param1);

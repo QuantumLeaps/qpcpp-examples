@@ -405,11 +405,6 @@
               <FilePath>..\bsp.hpp</FilePath>
             </File>
             <File>
-              <FileName>dpp.hpp</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\dpp.hpp</FilePath>
-            </File>
-            <File>
               <FileName>main.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>..\main.cpp</FilePath>
@@ -1136,11 +1131,6 @@
               <FilePath>..\bsp.hpp</FilePath>
             </File>
             <File>
-              <FileName>dpp.hpp</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\dpp.hpp</FilePath>
-            </File>
-            <File>
               <FileName>main.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>..\main.cpp</FilePath>
@@ -1865,11 +1855,6 @@
               <FileName>bsp.hpp</FileName>
               <FileType>5</FileType>
               <FilePath>..\bsp.hpp</FilePath>
-            </File>
-            <File>
-              <FileName>dpp.hpp</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\dpp.hpp</FilePath>
             </File>
             <File>
               <FileName>main.cpp</FileName>

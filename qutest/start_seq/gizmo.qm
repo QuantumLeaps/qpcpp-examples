@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<model version="7.0.1" links="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm7.xsd">
+<model version="7.0.3" links="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm7.xsd">
  <documentation>Start sequence example</documentation>
  <!--${qpcpp}-->
  <framework name="qpcpp"/>
@@ -75,10 +75,10 @@ QS_END()</action>
  </package>
  <!--${src}-->
  <directory name="src">
-  <!--${src::gizmo.hpp}-->
-  <file name="gizmo.hpp">
-   <text>#ifndef GIZMO_HPP_
-#define GIZMO_HPP_
+  <!--${src::app.hpp}-->
+  <file name="app.hpp">
+   <text>#ifndef APP_HPP_
+#define APP_HPP_
 
 enum GizmoSignals {
     DUMMY_SIG = QP::Q_USER_SIG,
@@ -92,16 +92,13 @@ enum GizmoSignals {
 
 $declare ${AOs::AO_Gizmo}
 
-#endif // GIZMO_HPP_
-</text>
+#endif // APP_HPP_</text>
   </file>
   <!--${src::gizmo.cpp}-->
   <file name="gizmo.cpp">
    <text>#include &quot;qpcpp.hpp&quot;  // QP/C++ framework API
-#include &quot;bsp.hpp&quot;    // Board Support Package interface
-#include &quot;gizmo.hpp&quot;  // Gizmo AO
-
-//using namespace QP;
+#include &quot;bsp.hpp&quot;    // Board Support Package
+#include &quot;app.hpp&quot;    // Application
 
 $declare ${AOs::Gizmo}
 

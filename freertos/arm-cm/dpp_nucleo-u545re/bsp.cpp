@@ -26,9 +26,9 @@
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"      // QP/C++ real-time event framework
-#include "dpp.hpp"        // DPP Application interface
-#include "bsp.hpp"        // Board Support Package
+#include "qpcpp.hpp"        // QP/C++ real-time event framework
+#include "bsp.hpp"          // Board Support Package
+#include "app.hpp"          // Application
 
 #include "stm32u545xx.h"  // CMSIS-compliant header file for the MCU used
 // add other drivers if necessary...
@@ -45,17 +45,16 @@ constexpr std::uint32_t RTOS_AWARE_ISR_CMSIS_PRI
 static std::uint32_t l_rndSeed;
 
 #ifdef Q_SPY
-
-// QSpy source IDs
-static QP::QSpyId const l_TickHook = { 0U };
-static QP::QSpyId const l_EXTI0_IRQHandler = { 0U };
-
 enum AppRecords { // application-specific trace records
     PHILO_STAT = QP::QS_USER,
     PAUSED_STAT,
 };
 
-#endif
+// QSpy source IDs
+static QP::QSpyId const l_TickHook = { 0U };
+static QP::QSpyId const l_EXTI0_IRQHandler = { 0U };
+
+#endif // Q_SPY
 
 } // unnamed namespace
 
@@ -78,12 +77,12 @@ enum AppRecords { // application-specific trace records
 
 //============================================================================
 // Error handler
+
 extern "C" {
 
 Q_NORETURN Q_onError(char const * const module, int_t const id) {
     // NOTE: this implementation of the error handler is intended only
-    // for debugging and MUST be changed for deployment of the application
-    // (assuming that you ship your production code with assertions enabled).
+    // for debugging and MUST be changed for deployment of the application.
     Q_UNUSED_PAR(module);
     Q_UNUSED_PAR(id);
     QS_ASSERTION(module, id, 10000U); // report assertion to QS
@@ -91,15 +90,16 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
 #ifndef NDEBUG
     // light up the user LED
     GPIOA->BSRR = (1U << LD2_PIN);  // turn LED on
-    // for debugging, hang on in an endless loop...
-    for (;;) {
+    for (;;) { // for debugging, hang on in an endless loop...
     }
-#endif
+#else
     NVIC_SystemReset();
     for (;;) { // explicitly "no-return"
     }
+#endif
 }
 //............................................................................
+// assertion failure handler for the startup code and libraries
 void assert_failed(char const * const module, int_t const id); // prototype
 void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
@@ -247,11 +247,12 @@ void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
 
 } // extern "C"
 
-// BSP functions =============================================================
+//============================================================================
 namespace BSP {
 
-void init() {
-    // initialize I-CACHE
+void init(void const * const arg) {
+    Q_UNUSED_PAR(arg);
+
     MODIFY_REG(ICACHE->CR, ICACHE_CR_WAYSEL, 0U); // 1-way
     SET_BIT(ICACHE->CR, ICACHE_CR_EN); // enable
 
@@ -260,10 +261,6 @@ void init() {
 
     // enable PWR clock interface
     SET_BIT(RCC->AHB3ENR, RCC_AHB3ENR_PWREN);
-
-    // NOTE: SystemInit() has been already called from the startup code
-    // but SystemCoreClock needs to be updated
-    SystemCoreClockUpdate();
 
     // NOTE: The VFP (hardware Floating Point) unit is configured by QK
 
@@ -523,6 +520,7 @@ bool QS::onStartup(void const *arg) {
         0U);  // hardware-flow=NO
 
     // baud rate
+    SystemCoreClockUpdate();
     USART1->BRR = QS_UART_DIV_SAMPLING16(
                        SystemCoreClock, // USART1 clock
                        115200U,         // baud rate

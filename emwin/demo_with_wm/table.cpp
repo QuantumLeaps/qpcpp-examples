@@ -1,45 +1,39 @@
 //============================================================================
 // Product: DPP example with emWin/uC/GUI, NO Window Manager
-// Last updated for version 6.9.1
-// Last updated on  2020-09-21
+//
+// Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 //
 //                    Q u a n t u m  L e a P s
 //                    ------------------------
 //                    Modern Embedded Software
 //
-// Copyright (C) 2005-2020 Quantum Leaps. All rights reserved.
+// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 //
-// This program is open source software: you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as published
-// by the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// This software is dual-licensed under the terms of the open-source GNU
+// General Public License (GPL) or under the terms of one of the closed-
+// source Quantum Leaps commercial licenses.
 //
-// Alternatively, this program may be distributed and modified under the
-// terms of Quantum Leaps commercial licenses, which expressly supersede
-// the GNU General Public License and are specifically designed for
-// licensees interested in retaining the proprietary status of their code.
+// Redistributions in source code must retain this top-level comment block.
+// Plagiarizing this software to sidestep the license obligations is illegal.
 //
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
+// NOTE:
+// The GPL does NOT permit the incorporation of this code into proprietary
+// programs. Please contact Quantum Leaps for commercial licensing options,
+// which expressly supersede the GPL and are designed explicitly for
+// closed-source distribution.
 //
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <www.gnu.org/licenses>.
-//
-// Contact information:
+// Quantum Leaps contact information:
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"
-#include "dpp.hpp"
-#include "bsp.hpp"
+#include "qpcpp.hpp"        // QP/C++ real-time event framework
+#include "bsp.hpp"          // Board Support Package
+#include "app.hpp"          // Application
 
 extern "C" {
     #include "GUI.h"
     #include "LCD_SIM.h"
     #include "DIALOG.h"
-    #include "WM.h" // emWin Windows Manager
 }
 
 Q_DEFINE_THIS_FILE
@@ -67,96 +61,48 @@ enum m_forkState { FREE, USED };
 // Local objects -------------------------------------------------------------
 static Table l_table; // local Table object
 
+#ifdef Q_SPY
+enum QSUserRecords {
+    PHILO_STAT = QS_USER,
+    TABLE_STAT
+};
+#endif
+
 // Public-scope objects ------------------------------------------------------
 QActive * const AO_Table = &l_table; // "opaque" AO pointer
 
 
 // GUI definition ============================================================
-static WM_HWIN l_hDlg;
-static WM_CALLBACK *l_cb_WM_HBKWIN;
-
-static const GUI_WIDGET_CREATE_INFO l_dialog[] = {
-    { &FRAMEWIN_CreateIndirect, "Dining Philosopher Problem",
-        0,  30,  30, 260, 180, FRAMEWIN_CF_MOVEABLE },
-    { &TEXT_CreateIndirect, "Philosopher 0",
-        GUI_ID_TEXT9,  50,  10, 0, 0, TEXT_CF_LEFT },
-    { &TEXT_CreateIndirect, "Philosopher 1",
-        GUI_ID_TEXT9,  50,  30, 0, 0, TEXT_CF_LEFT },
-    { &TEXT_CreateIndirect, "Philosopher 2",
-        GUI_ID_TEXT9,  50,  50, 0, 0, TEXT_CF_LEFT },
-    { &TEXT_CreateIndirect, "Philosopher 3",
-        GUI_ID_TEXT9,  50,  70, 0, 0, TEXT_CF_LEFT },
-    { &TEXT_CreateIndirect, "Philosopher 4",
-        GUI_ID_TEXT9,  50,  90, 0, 0, TEXT_CF_LEFT },
-    { &TEXT_CreateIndirect, "Table",
-        GUI_ID_TEXT9,  50, 110, 0, 0, TEXT_CF_LEFT },
-
-    { &TEXT_CreateIndirect, "thinking",
-        GUI_ID_TEXT0, 130,  10, 0, 0, TEXT_CF_LEFT },
-    { &TEXT_CreateIndirect, "thinking",
-        GUI_ID_TEXT1, 130,  30, 0, 0, TEXT_CF_LEFT },
-    { &TEXT_CreateIndirect, "thinking",
-        GUI_ID_TEXT2, 130,  50, 0, 0, TEXT_CF_LEFT },
-    { &TEXT_CreateIndirect, "thinking",
-        GUI_ID_TEXT3, 130,  70, 0, 0, TEXT_CF_LEFT },
-    { &TEXT_CreateIndirect, "thinking",
-        GUI_ID_TEXT4, 130,  90, 0, 0, TEXT_CF_LEFT },
-    { &TEXT_CreateIndirect, "serving",
-        GUI_ID_TEXT5, 130, 110, 0, 0, TEXT_CF_LEFT },
-
-    { &BUTTON_CreateIndirect,"PAUSE",
-        GUI_ID_BUTTON0,    160, 130, 80, 30 }
+enum YCoord {
+    PHILO_0_Y =   0,
+    PHILO_1_Y =  20,
+    PHILO_2_Y =  40,
+    PHILO_3_Y =  60,
+    PHILO_4_Y =  80,
+    TABLE_Y   = 100,
+    STATE_X   = 100
 };
 
-//............................................................................
-static void onMainWndGUI(WM_MESSAGE* pMsg) {
-    switch (pMsg->MsgId) {
-        case WM_PAINT: {
-            GUI_SetBkColor(GUI_GRAY);
-            GUI_Clear();
-            GUI_SetColor(GUI_BLACK);
-            GUI_SetFont(&GUI_Font24_ASCII);
-            GUI_DispStringHCenterAt("Dining Philosophers - Demo", 160, 5);
-            break;
-        }
-        default: {
-            WM_DefaultProc(pMsg);
-            break;
-        }
-    }
-}
-//............................................................................
-static void onDialogGUI(WM_MESSAGE * pMsg) {
-    switch (pMsg->MsgId) {
-        case WM_INIT_DIALOG: {
-            break;
-        }
-        case WM_NOTIFY_PARENT: {
-            switch (pMsg->Data.v) {
-                case WM_NOTIFICATION_RELEASED: { // react only if released
-                    switch (WM_GetId(pMsg->hWinSrc)) {
-                        case GUI_ID_BUTTON0: {
-                            // static PAUSE event for the Table AO
-                            static QEvt const pauseEvt = { PAUSE_SIG, 0 };
-                            AO_Table->POST(&pauseEvt, &l_onDialogGUI);
-                            break;
-                        }
-                    }
-                    break;
-                }
-            }
-            break;
-        }
-        default: {
-            WM_DefaultProc(pMsg);
-            break;
-        }
-    }
-}
+static int l_xOrg = 80;
+static int l_yOrg = 60;
+static char const l_thinking[] = "thinking";
+static char const *l_philoStat[N_PHILO] = {
+    l_thinking, l_thinking, l_thinking, l_thinking, l_thinking
+};
+static int const l_philoY[N_PHILO] = {
+    0, 20, 40, 60, 80
+};
+static char const *l_tableState = " ";
+static int const l_tableY = 100;
+
 //............................................................................
 static void displyPhilStat(uint8_t n, char const *stat) {
-    TEXT_SetText(WM_GetDialogItem(l_hDlg, GUI_ID_TEXT0 + n), stat);
-    WM_Exec(); // update the screen and invoke WM callbacks
+    GUI_SetBkColor(GUI_GRAY);
+    GUI_SetColor(GUI_BLACK);
+    GUI_SetFont(&GUI_Font13_ASCII);
+
+    l_philoStat[n] = stat;
+    GUI_DispStringAt(stat,  l_xOrg + STATE_X, l_yOrg + l_philoY[n]);
 
     QS_BEGIN_ID(PHILO_STAT, AO_Philo[n]->getPrio()) // app-specific record begin
         QS_U8(1, n);  // Philosopher number
@@ -165,12 +111,46 @@ static void displyPhilStat(uint8_t n, char const *stat) {
 }
 //............................................................................
 static void displyTableStat(char const *stat) {
-    TEXT_SetText(WM_GetDialogItem(l_hDlg, GUI_ID_TEXT5), stat);
-    WM_Exec();                    // update the screen and invoke WM callbacks
+    GUI_SetBkColor(GUI_GRAY);
+    GUI_SetColor(GUI_BLACK);
+    GUI_SetFont(&GUI_Font13_ASCII);
+
+    l_tableState = stat;
+    GUI_DispStringAt(stat,  l_xOrg + STATE_X, l_yOrg + l_tableY);
 
     QS_BEGIN_ID(TABLE_STAT, AO_Table->getPrio()) // app-specific record begin
         QS_STR(stat); // Philosopher status
     QS_END()
+}
+
+//............................................................................
+static void renderDppScreen(void) {
+    GUI_SetBkColor(GUI_GRAY);
+    GUI_Clear();
+    GUI_SetColor(GUI_BLACK);
+    GUI_SetFont(&GUI_Font24_ASCII);
+    GUI_DispStringHCenterAt("Dining Philosophers - Demo", 160, 5);
+    GUI_SetFont(&GUI_Font13_ASCII);
+
+    GUI_DispStringAt("Philosopher 0",  l_xOrg, l_yOrg + l_philoY[0]);
+    GUI_DispStringAt("Philosopher 1",  l_xOrg, l_yOrg + l_philoY[1]);
+    GUI_DispStringAt("Philosopher 2",  l_xOrg, l_yOrg + l_philoY[2]);
+    GUI_DispStringAt("Philosopher 3",  l_xOrg, l_yOrg + l_philoY[3]);
+    GUI_DispStringAt("Philosopher 4",  l_xOrg, l_yOrg + l_philoY[4]);
+    GUI_DispStringAt("Table",          l_xOrg, l_yOrg + l_tableY);
+
+    displyPhilStat(0, l_philoStat[0]);
+    displyPhilStat(1, l_philoStat[1]);
+    displyPhilStat(2, l_philoStat[2]);
+    displyPhilStat(3, l_philoStat[3]);
+    displyPhilStat(4, l_philoStat[4]);
+}
+//............................................................................
+static void moveDppScreen(int dx, int dy) {
+    l_xOrg += dx;
+    l_yOrg += dy;
+
+    renderDppScreen();
 }
 
 //............................................................................
@@ -195,52 +175,28 @@ Q_STATE_DEF(Table, initial) {
 Q_STATE_DEF(Table, ready) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
-            l_cb_WM_HBKWIN = WM_SetCallback(WM_HBKWIN, &onMainWndGUI);
-            // create the diaglog box and return right away...
-            l_hDlg = GUI_CreateDialogBox(l_dialog, GUI_COUNTOF(l_dialog),
-                                         &onDialogGUI, 0, 0, 0);
-            return Q_RET_HANDLED;
-        }
-        case Q_EXIT_SIG: {
-            GUI_EndDialog(l_hDlg, 0);
-            WM_SetCallback(WM_HBKWIN, l_cb_WM_HBKWIN);
+            renderDppScreen();
             return Q_RET_HANDLED;
         }
         case Q_INIT_SIG: {
             return tran(&serving);
         }
 
-        case MOUSE_CHANGE_SIG: { // mouse change (move or click) event
-            GUI_PID_STATE mouse;
-            mouse.x = Q_EVT_CAST(MouseEvt)->x;
-            mouse.y = Q_EVT_CAST(MouseEvt)->y;
-            mouse.Pressed = Q_EVT_CAST(MouseEvt)->Pressed;
-            mouse.Layer   = Q_EVT_CAST(MouseEvt)->Layer;
-            GUI_PID_StoreState(&mouse); // update the state of the Mouse PID
-
-            WM_Exec(); // update the screen and invoke WM callbacks
-            return Q_RET_HANDLED;
-        }
-
         // ... hardkey events ...
         case KEY_LEFT_REL_SIG: { // hardkey LEFT released
-            WM_MoveWindow(l_hDlg, -5, 0);
-            WM_Exec(); // update the screen and invoke WM callbacks
+            moveDppScreen(-5, 0);
             return Q_RET_HANDLED;
         }
         case KEY_RIGHT_REL_SIG: { // hardkey RIGHT released
-            WM_MoveWindow(l_hDlg, 5, 0);
-            WM_Exec(); // update the screen and invoke WM callbacks
+            moveDppScreen(5, 0);
             return Q_RET_HANDLED;
         }
         case KEY_DOWN_REL_SIG: { // hardkey DOWN released
-            WM_MoveWindow(l_hDlg, 0, 5);
-            WM_Exec(); // update the screen and invoke WM callbacks
+            moveDppScreen(0, 5);
             return Q_RET_HANDLED;
         }
-        case KEY_UP_REL_SIG: { // hardkey UP released
-            WM_MoveWindow(l_hDlg, 0, -5);
-            WM_Exec(); // update the screen and invoke WM callbacks
+        case KEY_UP_REL_SIG: {   // hardkey UP released
+            moveDppScreen(0, -5);
             return Q_RET_HANDLED;
         }
     }

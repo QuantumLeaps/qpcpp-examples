@@ -25,7 +25,7 @@ def on_reset():
     expect("@timestamp BSP_CALL BSP::displayPhilStat 2 thinking")
     expect("@timestamp BSP_CALL BSP::displayPhilStat 3 thinking")
     expect("@timestamp BSP_CALL BSP::displayPhilStat 4 thinking")
-    expect("===RTC===> St-Init  Obj=Table::inst,State=QP::QHsm::top->Table::serving")
+    expect("===RTC===> St-Init  Obj=Table::inst,State=NULL->Table::serving")
     expect("===RTC===> St-Entry Obj=Table::inst,State=Table::serving")
     expect("@timestamp Init===> Obj=Table::inst,State=Table::serving")
     expect_run()

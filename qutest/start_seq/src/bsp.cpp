@@ -1,50 +1,44 @@
 //***************************************************************************
 // Product: Start sequence example
-// Last updated for version 7.2.0
-// Last updated on  2022-12-22
+//
+// Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 //
 //                    Q u a n t u m  L e a P s
 //                    ------------------------
 //                    Modern Embedded Software
 //
-// Copyright (C) 2005-2020 Quantum Leaps. All rights reserved.
+// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 //
-// This program is open source software: you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as published
-// by the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// This software is dual-licensed under the terms of the open-source GNU
+// General Public License (GPL) or under the terms of one of the closed-
+// source Quantum Leaps commercial licenses.
 //
-// Alternatively, this program may be distributed and modified under the
-// terms of Quantum Leaps commercial licenses, which expressly supersede
-// the GNU General Public License and are specifically designed for
-// licensees interested in retaining the proprietary status of their code.
+// Redistributions in source code must retain this top-level comment block.
+// Plagiarizing this software to sidestep the license obligations is illegal.
 //
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
+// NOTE:
+// The GPL does NOT permit the incorporation of this code into proprietary
+// programs. Please contact Quantum Leaps for commercial licensing options,
+// which expressly supersede the GPL and are designed explicitly for
+// closed-source distribution.
 //
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <www.gnu.org/licenses>.
-//
-// Contact information:
+// Quantum Leaps contact information:
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
 #include "qpcpp.hpp"  // QP/C++ framework API
-#include "bsp.hpp"    // Board Support Package interface
-#include "gizmo.hpp"  // Gizmo AO
-
-using namespace QP;
+#include "bsp.hpp"    // Board Support Package
+#include "app.hpp"    // Application
 
 //Q_DEFINE_THIS_FILE
 
 static std::uint8_t status;
 
 //............................................................................
-void BSP::init() {
-    QS_SIG_DICTIONARY(START_SIG, nullptr);
+void BSP::init(void const * const arg) {
+    Q_UNUSED_PAR(arg);
 
+    QS_SIG_DICTIONARY(START_SIG, nullptr);
     QS_OBJ_DICTIONARY(AO_Gizmo);
     QS_OBJ_DICTIONARY(&status);
 }

@@ -186,6 +186,7 @@
             <RvdsVP>0</RvdsVP>
             <RvdsMve>0</RvdsMve>
             <RvdsCdeCp>0</RvdsCdeCp>
+            <nBranchProt>0</nBranchProt>
             <hadIRAM2>1</hadIRAM2>
             <hadIROM2>0</hadIROM2>
             <StupSel>8</StupSel>
@@ -397,11 +398,6 @@
               <FileName>bsp.hpp</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\bsp.hpp</FilePath>
-            </File>
-            <File>
-              <FileName>dpp.hpp</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\dpp.hpp</FilePath>
             </File>
             <File>
               <FileName>philo.cpp</FileName>
@@ -811,6 +807,7 @@
             <RvdsVP>0</RvdsVP>
             <RvdsMve>0</RvdsMve>
             <RvdsCdeCp>0</RvdsCdeCp>
+            <nBranchProt>0</nBranchProt>
             <hadIRAM2>1</hadIRAM2>
             <hadIROM2>0</hadIROM2>
             <StupSel>8</StupSel>
@@ -1022,11 +1019,6 @@
               <FileName>bsp.hpp</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\bsp.hpp</FilePath>
-            </File>
-            <File>
-              <FileName>dpp.hpp</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\dpp.hpp</FilePath>
             </File>
             <File>
               <FileName>philo.cpp</FileName>
@@ -1436,6 +1428,7 @@
             <RvdsVP>0</RvdsVP>
             <RvdsMve>0</RvdsMve>
             <RvdsCdeCp>0</RvdsCdeCp>
+            <nBranchProt>0</nBranchProt>
             <hadIRAM2>1</hadIRAM2>
             <hadIROM2>0</hadIROM2>
             <StupSel>8</StupSel>
@@ -1647,11 +1640,6 @@
               <FileName>bsp.hpp</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\bsp.hpp</FilePath>
-            </File>
-            <File>
-              <FileName>dpp.hpp</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\dpp.hpp</FilePath>
             </File>
             <File>
               <FileName>philo.cpp</FileName>

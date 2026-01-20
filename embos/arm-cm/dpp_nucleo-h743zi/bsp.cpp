@@ -26,9 +26,9 @@
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"      // QP/C++ real-time event framework
-#include "dpp.hpp"        // DPP Application interface
-#include "bsp.hpp"        // Board Support Package
+#include "qpcpp.hpp"        // QP/C++ real-time event framework
+#include "bsp.hpp"          // Board Support Package
+#include "app.hpp"          // Application
 
 // STM32CubeH7 include files
 //#include "stm32h7xx_it.h"
@@ -46,31 +46,30 @@ static OS_TICK_HOOK l_tick_hook;
 static std::uint32_t l_rndSeed;
 
 #ifdef Q_SPY
-
-    // QS source IDs
-    static QP::QSpyId const l_embos_ticker = { 0U };
-
-    static UART_HandleTypeDef l_uartHandle;
-    QP::QSTimeCtr QS_tickTime_;
-    QP::QSTimeCtr QS_tickPeriod_;
-
     enum AppRecords { // application-specific trace records
         PHILO_STAT = QP::QS_USER,
         PAUSED_STAT,
     };
 
-#endif
+    // QS source IDs
+    static QP::QSpyId const l_embos_ticker { QP::QS_ID_AP };
+
+    static UART_HandleTypeDef l_uartHandle;
+    QP::QSTimeCtr QS_tickTime_;
+    QP::QSTimeCtr QS_tickPeriod_;
+
+#endif // Q_SPY
 
 } // unnamed namespace
 
 //============================================================================
 // Error handler
+
 extern "C" {
 
 Q_NORETURN Q_onError(char const * const module, int_t const id) {
     // NOTE: this implementation of the error handler is intended only
-    // for debugging and MUST be changed for deployment of the application
-    // (assuming that you ship your production code with assertions enabled).
+    // for debugging and MUST be changed for deployment of the application.
     Q_UNUSED_PAR(module);
     Q_UNUSED_PAR(id);
     QS_ASSERTION(module, id, 10000U); // report assertion to QS
@@ -78,15 +77,16 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
 #ifndef NDEBUG
     // light up LED
     BSP_LED_On(LED1);
-    // for debugging, hang on in an endless loop...
-    for (;;) {
+    for (;;) { // for debugging, hang on in an endless loop...
     }
-#endif
+#else
     NVIC_SystemReset();
     for (;;) { // explicitly "no-return"
     }
+#endif
 }
 //............................................................................
+// assertion failure handler for the startup code and libraries
 void assert_failed(char const * const module, int_t const id); // prototype
 void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
@@ -194,10 +194,12 @@ void OS_Idle(void) {
 
 } // extern "C"
 
-// BSP functions =============================================================
+//============================================================================
 namespace BSP {
 
-void init() {
+void init(void const * const arg) {
+    Q_UNUSED_PAR(arg);
+
     // Configure the MPU to prevent NULL-pointer dereferencing ...
     MPU->RBAR = 0x0U                          // base address (NULL)
                 | MPU_RBAR_VALID_Msk          // valid region
@@ -212,10 +214,6 @@ void init() {
 
     // enable the MemManage_Handler for MPU exception
     SCB->SHCSR |= SCB_SHCSR_MEMFAULTENA_Msk;
-
-    // NOTE: SystemInit() has been already called from the startup code
-    // but SystemCoreClock needs to be updated
-    SystemCoreClockUpdate();
 
     // NOTE: VFP (hardware Floating Point) unit is configured by embOS
 
@@ -238,25 +236,22 @@ void init() {
 
     BSP::randomSeed(1234U);
 
-    // initialize the QS software tracing...
-    if (!QS_INIT(nullptr)) {
+    // initialize QS software tracing...
+    if (!QS_INIT(arg)) {
         Q_ERROR();
     }
 
-    // dictionaries...
+    // QS dictionaries...
     QS_OBJ_DICTIONARY(&l_embos_ticker);
     QS_USR_DICTIONARY(PHILO_STAT);
     QS_USR_DICTIONARY(PAUSED_STAT);
-
     QS_ONLY(APP::produce_sig_dict());
 
     // setup the QS filters...
-    QS_GLB_FILTER(QP::QS_GRP_ALL); // all records
-    QS_GLB_FILTER(-QP::QS_QF_TICK);    // exclude the clock tick
-}
-//............................................................................
-void start() {
-    // initialize event pools
+    QS_GLB_FILTER(QP::QS_GRP_ALL);  // enable all QS trace records
+    QS_GLB_FILTER(-QP::QS_QF_TICK); // exclude the tick record
+
+    // initialize event pools for mutable events
     static QF_MPOOL_EL(APP::TableEvt) smlPoolSto[2*APP::N_PHILO];
     QP::QF::poolInit(smlPoolSto, sizeof(smlPoolSto), sizeof(smlPoolSto[0]));
 
@@ -264,8 +259,10 @@ void start() {
     static QP::QSubscrList subscrSto[APP::MAX_PUB_SIG];
     QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
 
+    randomSeed(1234U); // seed the random number generator
+
     // start AOs/threads...
-    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][APP::N_PHILO];
+    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10];
     static OS_STACKPTR int philoStack[APP::N_PHILO][128];
     for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
         APP::AO_Philo[n]->start(
@@ -296,7 +293,7 @@ void displayPhilStat(std::uint8_t n, char const *stat) {
         BSP_LED_Off(LED1);
     }
 
-    // app-specific trace record...
+    // application-specific trace record
     QS_BEGIN_ID(PHILO_STAT, APP::AO_Table->getPrio())
         QS_U8(1, n);  // Philosopher number
         QS_STR(stat); // Philosopher status
@@ -329,11 +326,15 @@ std::uint32_t random() { // a very cheap pseudo-random-number generator
     OS_TASK_EnterRegion(); // lock embOS scheduler
     // "Super-Duper" Linear Congruential Generator (LCG)
     // LCG(2^32, 3*7*11*13*23, 0, seed)
-    std::uint32_t rnd = l_rndSeed * (3U*7U*11U*13U*23U);
+    std::uint32_t const rnd = l_rndSeed * (3U*7U*11U*13U*23U);
     l_rndSeed = rnd; // set for the next time
     OS_TASK_LeaveRegion(); // unlock embOS scheduler
 
-    return (rnd >> 8);
+    return rnd >> 8U;
+}
+//............................................................................
+void terminate(std::int16_t result) {
+    Q_UNUSED_PAR(result);
 }
 //............................................................................
 void ledOn() {
@@ -342,10 +343,6 @@ void ledOn() {
 //............................................................................
 void ledOff() {
     BSP_LED_Off(LED3);
-}
-//............................................................................
-void terminate(int16_t result) {
-    Q_UNUSED_PAR(result);
 }
 
 } // namespace BSP
@@ -360,13 +357,14 @@ void QF::onStartup() {
 #ifdef Q_SPY
     NVIC_SetPriority(USART3_IRQn,  0U); // kernel unaware interrupt
     NVIC_EnableIRQ(USART3_IRQn); // UART interrupt used for QS-RX
-#endif
+#endif // Q_SPY
 }
 //............................................................................
 void QF::onCleanup() {
 }
 
-// QS callbacks --------------------------------------------------------------
+//============================================================================
+// QS callbacks...
 #ifdef Q_SPY
 
 //............................................................................
@@ -379,6 +377,8 @@ bool QS::onStartup(void const *arg) {
     static std::uint8_t qsRxBuf[100];    // buffer for QS-RX channel
     rxInitBuf(qsRxBuf, sizeof(qsRxBuf));
 
+    // baud rate
+    SystemCoreClockUpdate();
     l_uartHandle.Instance        = USART3;
     l_uartHandle.Init.BaudRate   = 115200;
     l_uartHandle.Init.WordLength = UART_WORDLENGTH_8B;
@@ -437,7 +437,7 @@ void QS::onReset() {
 }
 //............................................................................
 void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
-               std::uint32_t param2, std::uint32_t param3)
+    std::uint32_t param2, std::uint32_t param3)
 {
     Q_UNUSED_PAR(cmdId);
     Q_UNUSED_PAR(param1);

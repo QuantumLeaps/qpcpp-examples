@@ -26,9 +26,9 @@
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"        // QP/C++ real-time event framework
-#include "blinky.hpp"       // Blinky Application interface
+#include "qpcpp.hpp"        // QP/C++ real-time embedded framework
 #include "bsp.hpp"          // Board Support Package
+#include "app.hpp"          // Application
 
 // NOTES:
 // 1. This is an example of a an eXtened thread (with blocking) for the

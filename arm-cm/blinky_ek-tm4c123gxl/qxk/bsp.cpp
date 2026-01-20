@@ -26,9 +26,9 @@
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"             // QP/C++ real-time event framework
-#include "blinky.hpp"            // Blinky Application interface
-#include "bsp.hpp"               // Board Support Package
+#include "qpcpp.hpp"        // QP/C++ real-time event framework
+#include "bsp.hpp"          // Board Support Package
+#include "app.hpp"          // Application
 
 #include "TM4C123GH6PM.h"        // the device specific header (TI)
 #include "sysctl.h"              // system control driver (TI)
@@ -38,41 +38,41 @@
 //============================================================================
 namespace { // unnamed namespace for local stuff with internal linkage
 
-Q_DEFINE_THIS_FILE
+Q_DEFINE_THIS_FILE  // file name for assertions
 
-// Local-scope objects -----------------------------------------------------
+// Local objects -------------------------------------------------------------
+constexpr std::uint32_t LED_RED     {1U << 1U};
+constexpr std::uint32_t LED_GREEN   {1U << 3U};
+constexpr std::uint32_t LED_BLUE    {1U << 2U};
+
+constexpr std::uint32_t BTN_SW1     {1U << 4U};
+constexpr std::uint32_t BTN_SW2     {1U << 0U};
+
 #ifdef Q_SPY
+    enum AppRecords { // application-specific trace records
+        LED_STAT = QP::QS_USER,
+    };
 
     // QSpy source IDs
-    static QP::QSpyId const l_SysTick_Handler = { 0U };
+    static QP::QSpyId const l_SysTick_Handler = { QP::QS_ID_AP };
+    static QP::QSpyId const l_GPIOPortA_IRQHandler = { QP::QS_ID_AP + 1U };
 
     constexpr std::uint32_t UART_BAUD_RATE      {115200U};
     constexpr std::uint32_t UART_FR_TXFE        {1U << 7U};
     constexpr std::uint32_t UART_FR_RXFE        {1U << 4U};
     constexpr std::uint32_t UART_TXFIFO_DEPTH   {16U};
+#endif // Q_SPY
 
-
-#endif
-
-} // unnamed local namespace
-
-// Local-scope defines -------------------------------------------------------
-#define LED_RED     (1U << 1U)
-#define LED_GREEN   (1U << 3U)
-#define LED_BLUE    (1U << 2U)
-
-#define BTN_SW1     (1U << 4U)
-#define BTN_SW2     (1U << 0U)
+} // unnamed namespace
 
 //============================================================================
-// Error handler and ISRs...
+// Error handler
 
 extern "C" {
 
 Q_NORETURN Q_onError(char const * const module, int_t const id) {
     // NOTE: this implementation of the error handler is intended only
-    // for debugging and MUST be changed for deployment of the application
-    // (assuming that you ship your production code with assertions enabled).
+    // for debugging and MUST be changed for deployment of the application.
     Q_UNUSED_PAR(module);
     Q_UNUSED_PAR(id);
     QS_ASSERTION(module, id, 10000U); // report assertion to QS
@@ -80,38 +80,71 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
 #ifndef NDEBUG
     // light up all LEDs
     GPIOF_AHB->DATA_Bits[LED_GREEN | LED_RED | LED_BLUE] = 0xFFU;
-    // for debugging, hang on in an endless loop...
-    for (;;) {
+    for (;;) { // for debugging, hang on in an endless loop...
     }
-#endif
+#else
     NVIC_SystemReset();
     for (;;) { // explicitly "no-return"
     }
+#endif
 }
 //............................................................................
-// assertion failure handler for the STM32 library, including the startup code
+// assertion failure handler for the startup code and libraries
 void assert_failed(char const * const module, int_t const id); // prototype
 void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
 }
 
 // ISRs used in the application ==============================================
-
 void SysTick_Handler(void); // prototype
 void SysTick_Handler(void) {
     QXK_ISR_ENTRY();   // inform QXK about entering an ISR
 
-    QP::QTimeEvt::TICK_X(0U, nullptr); // process time events at rate 0
+    QP::QTimeEvt::TICK_X(0U, &l_SysTick_Handler); // time events at rate 0
 
     QXK_ISR_EXIT();  // inform QXK about exiting an ISR
 }
+//............................................................................
+// interrupt handler for testing preemptions
+void GPIOPortA_IRQHandler(void); // prototype
+void GPIOPortA_IRQHandler(void) {
+    QXK_ISR_ENTRY();   // inform QXK about entering an ISR
+
+    static QP::QEvt const testEvt(APP::TIMEOUT_SIG);
+    APP::AO_Blinky->POST(&testEvt, &l_GPIOPortA_IRQHandler);
+
+    QXK_ISR_EXIT();  // inform QXK about exiting an ISR
+}
+
+//............................................................................
+#ifdef Q_SPY
+// ISR for receiving bytes from the QSPY Back-End
+// NOTE: This ISR is "QF-unaware" meaning that it does not interact with
+// the QF/QK and is not disabled. Such ISRs don't need to call
+// QK_ISR_ENTRY/QK_ISR_EXIT and they cannot post or publish events.
+
+void UART0_IRQHandler(void); // prototype
+void UART0_IRQHandler(void) {
+    uint32_t status = UART0->RIS; // get the raw interrupt status
+    UART0->ICR = status;          // clear the asserted interrupts
+
+    while ((UART0->FR & UART_FR_RXFE) == 0U) { // while RX FIFO NOT empty
+        std::uint8_t b = static_cast<uint8_t>(UART0->DR);
+        QP::QS::rxPut(b);
+    }
+
+    QXK_ARM_ERRATUM_838869();
+}
+#endif // Q_SPY
 
 } // extern "C"
 
 //============================================================================
 namespace BSP {
 
-void init() {
+void init(void const * const arg) {
+    Q_UNUSED_PAR(arg);
+
     // Configure the MPU to prevent NULL-pointer dereferencing ...
     MPU->RBAR = 0x0U                          // base address (NULL)
                 | MPU_RBAR_VALID_Msk          // valid region
@@ -126,10 +159,6 @@ void init() {
 
     // enable the MemManage_Handler for MPU exception
     SCB->SHCSR |= SCB_SHCSR_MEMFAULTENA_Msk;
-
-    // NOTE: SystemInit() has been already called from the startup code
-    // but SystemCoreClock needs to be updated
-    SystemCoreClockUpdate();
 
     // NOTE: The VFP (hardware Floating Point) unit is configured by QXK
 
@@ -158,36 +187,31 @@ void init() {
     *(uint32_t volatile *)&GPIOF_AHB->CR = 0x00U;
     GPIOF_AHB->LOCK = 0x0; // lock GPIOCR register for SW2
 
-    // initialize the QS software tracing...
-    if (!QS_INIT(nullptr)) {
+    // initialize QS software tracing...
+    if (!QS_INIT(arg)) {
         Q_ERROR();
     }
 
-    // dictionaries...
+    // QS dictionaries...
     QS_OBJ_DICTIONARY(&l_SysTick_Handler);
+    QS_OBJ_DICTIONARY(&l_GPIOPortA_IRQHandler);
+    QS_SIG_DICTIONARY(APP::TIMEOUT_SIG, nullptr);
+    QS_USR_DICTIONARY(LED_STAT);
 
     // setup the QS filters...
-    QS_GLB_FILTER(QP::QS_GRP_ALL);   // all records
-    QS_GLB_FILTER(-QP::QS_QF_TICK);      // exclude the clock tick
-}
-//............................................................................
-void start() {
-    // initialize event pools
-    static QF_MPOOL_EL(QP::QEvt) smlPoolSto[20];
-    QP::QF::poolInit(smlPoolSto, sizeof(smlPoolSto), sizeof(smlPoolSto[0]));
+    QS_GLB_FILTER(QP::QS_GRP_ALL);  // enable all QS trace records
+    QS_GLB_FILTER(-QP::QS_QF_TICK); // exclude the tick record
 
-    // initialize publish-subscribe
-    static QP::QSubscrList subscrSto[APP::MAX_PUB_SIG];
-    QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
+    // mutable events not used -- no need to call QP::QF::poolInit()
+    // publish-subscribe not used -- no need to call QP::QActive::psInit()
 
-    // start Active Objects...
-
-    static QP::QEvtPtr blinkyQueueSto[5];
+    // start AOs...
+    static QP::QEvtPtr blinkyQueueSto[10];
     APP::AO_Blinky->start(
-        1U,                         // QP prio. of the AO
-        blinkyQueueSto,              // event queue storage
-        Q_DIM(blinkyQueueSto),       // queue length [events]
-        nullptr, 0U);                // no stack storage
+        1U,                      // QP prio. of the AO
+        blinkyQueueSto,          // event queue storage
+        Q_DIM(blinkyQueueSto),   // queue length [events]
+        nullptr, 0U);            // no stack storage
 
     // start eXtened Threads...
     static uint64_t xthr_stackSto[64];
@@ -200,14 +224,18 @@ void start() {
 //............................................................................
 void ledOn() {
     GPIOF_AHB->DATA_Bits[LED_RED] = 0xFFU;
+    // application-specific trace record
+    QS_BEGIN_ID(LED_STAT, APP::AO_Blinky->getPrio())
+        QS_STR("ON"); // LED status
+    QS_END()
 }
 //............................................................................
 void ledOff() {
     GPIOF_AHB->DATA_Bits[LED_RED] = 0x00U;
-}
-//............................................................................
-void terminate(std::int16_t result) {
-    Q_UNUSED_PAR(result);
+    // application-specific trace record
+    QS_BEGIN_ID(LED_STAT, APP::AO_Blinky->getPrio())
+        QS_STR("OFF"); // LED status
+    QS_END()
 }
 
 } // namespace BSP
@@ -218,6 +246,7 @@ namespace QP {
 // QF callbacks...
 void QF::onStartup() {
     // set up the SysTick timer to fire at BSP::TICKS_PER_SEC rate
+    SystemCoreClockUpdate();
     SysTick_Config(SystemCoreClock / BSP::TICKS_PER_SEC);
 
     // assign all priority bits for preemption-prio. and none to sub-prio.
@@ -225,21 +254,24 @@ void QF::onStartup() {
 
     // set priorities of ALL ISRs used in the system, see NOTE1
     NVIC_SetPriority(UART0_IRQn,     0U); // kernel unaware interrupt
+    NVIC_SetPriority(GPIOA_IRQn,     QF_AWARE_ISR_CMSIS_PRI + 0U);
     NVIC_SetPriority(SysTick_IRQn,   QF_AWARE_ISR_CMSIS_PRI + 1U);
     // ...
 
     // enable IRQs...
+    NVIC_EnableIRQ(GPIOA_IRQn);
+
 #ifdef Q_SPY
     NVIC_EnableIRQ(UART0_IRQn); // UART interrupt used for QS-RX
 #endif
 }
 //............................................................................
 void QF::onCleanup() {
+    QS_EXIT();
 }
 //............................................................................
 void QXK::onIdle() {
-
-    // toggle an LED on and then off
+    // toggle the User LED on and then off, see NOTE2
     QF_INT_DISABLE();
     GPIOF_AHB->DATA_Bits[LED_BLUE] = 0xFFU;  // turn the Blue LED on
     GPIOF_AHB->DATA_Bits[LED_BLUE] = 0U;     // turn the Blue LED off
@@ -342,7 +374,7 @@ void QS::onFlush() {
         if (b != QS_EOD) {
             while ((UART0->FR & UART_FR_TXFE) == 0U) { // while TXE not empty
             }
-            UART0->DR = b; // put into the DR register
+            UART0->DR = b;
         }
         else {
             break;
@@ -355,7 +387,7 @@ void QS::onReset() {
 }
 //............................................................................
 void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
-                   std::uint32_t param2, std::uint32_t param3)
+               std::uint32_t param2, std::uint32_t param3)
 {
     Q_UNUSED_PAR(cmdId);
     Q_UNUSED_PAR(param1);
@@ -364,36 +396,8 @@ void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
 }
 
 #endif // Q_SPY
-//----------------------------------------------------------------------------
 
 } // namespace QP
-
-//............................................................................
-#ifdef Q_SPY
-
-extern "C" {
-//............................................................................
-// ISR for receiving bytes from the QSPY Back-End
-// NOTE: This ISR is "QF-unaware" meaning that it does not interact with
-// the QF/QXK and is not disabled. Such ISRs don't need to call
-// QXK_ISR_ENTRY/QXK_ISR_EXIT and they cannot post or publish events.
-
-void UART0_IRQHandler(void); // prototype
-void UART0_IRQHandler(void) {
-    uint32_t status = UART0->RIS; // get the raw interrupt status
-    UART0->ICR = status;          // clear the asserted interrupts
-
-    while ((UART0->FR & UART_FR_RXFE) == 0U) { // while RX FIFO NOT empty
-        std::uint8_t b = static_cast<uint8_t>(UART0->DR);
-        QP::QS::rxPut(b);
-    }
-
-    QXK_ARM_ERRATUM_838869();
-}
-
-} // extern "C"
-
-#endif // Q_SPY
 
 //============================================================================
 // NOTE1:
@@ -420,4 +424,3 @@ void UART0_IRQHandler(void) {
 // of the LED is proportional to the frequency of the idle loop.
 // Please note that the LED is toggled with interrupts locked, so no interrupt
 // execution time contributes to the brightness of the User LED.
-

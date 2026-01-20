@@ -113,7 +113,7 @@ ObjB ObjB::inst[NUM_B];
 int main() {
 
     QP::QF::init();  // initialize the framework and the underlying QXK kernel
-    BSP::init(); // initialize the Board Support Package
+    BSP::init(nullptr); // initialize the Board Support Package
 
     // initialize publish-subscribe...
     static QP::QSubscrList subscrSto[MAX_PUB_SIG];
@@ -150,7 +150,7 @@ int main() {
     // variables to start the threads with the desired prio-specifications.
     QS_TEST_PAUSE();
 
-    static QP::QEvt const *aoB_queueSto[NUM_B][10];
+    static QP::QEvtPtr aoB_queueSto[NUM_B][10];
     for (std::uint8_t n = 0U; n < NUM_B; ++n) {
         if (pspecB[n] != 0U) {
             ObjB::inst[n].start(pspecB[n],       // QF-prio/p-thre.

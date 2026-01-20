@@ -186,6 +186,7 @@
             <RvdsVP>2</RvdsVP>
             <RvdsMve>0</RvdsMve>
             <RvdsCdeCp>0</RvdsCdeCp>
+            <nBranchProt>0</nBranchProt>
             <hadIRAM2>0</hadIRAM2>
             <hadIROM2>0</hadIROM2>
             <StupSel>8</StupSel>
@@ -402,11 +403,6 @@
               <FileName>bsp.hpp</FileName>
               <FileType>5</FileType>
               <FilePath>..\bsp.hpp</FilePath>
-            </File>
-            <File>
-              <FileName>dpp.hpp</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\dpp.hpp</FilePath>
             </File>
             <File>
               <FileName>main.cpp</FileName>
@@ -896,6 +892,7 @@
             <RvdsVP>2</RvdsVP>
             <RvdsMve>0</RvdsMve>
             <RvdsCdeCp>0</RvdsCdeCp>
+            <nBranchProt>0</nBranchProt>
             <hadIRAM2>0</hadIRAM2>
             <hadIROM2>0</hadIROM2>
             <StupSel>8</StupSel>
@@ -1112,11 +1109,6 @@
               <FileName>bsp.hpp</FileName>
               <FileType>5</FileType>
               <FilePath>..\bsp.hpp</FilePath>
-            </File>
-            <File>
-              <FileName>dpp.hpp</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\dpp.hpp</FilePath>
             </File>
             <File>
               <FileName>main.cpp</FileName>
@@ -1606,6 +1598,7 @@
             <RvdsVP>2</RvdsVP>
             <RvdsMve>0</RvdsMve>
             <RvdsCdeCp>0</RvdsCdeCp>
+            <nBranchProt>0</nBranchProt>
             <hadIRAM2>0</hadIRAM2>
             <hadIROM2>0</hadIROM2>
             <StupSel>8</StupSel>
@@ -1822,11 +1815,6 @@
               <FileName>bsp.hpp</FileName>
               <FileType>5</FileType>
               <FilePath>..\bsp.hpp</FilePath>
-            </File>
-            <File>
-              <FileName>dpp.hpp</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\dpp.hpp</FilePath>
             </File>
             <File>
               <FileName>main.cpp</FileName>

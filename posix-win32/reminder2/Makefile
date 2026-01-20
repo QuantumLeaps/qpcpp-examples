@@ -53,6 +53,7 @@ INCLUDES := -I.
 C_SRCS :=
 
 CPP_SRCS := \
+	main.cpp \
 	bsp.cpp \
 	reminder2.cpp
 
@@ -104,7 +105,7 @@ VPATH += \
 	$(QP_PORT_DIR)
 
 INCLUDES += \
-	-I$(QPC)/include \
+	-I$(QP)/include \
 	-I$(QP_PORT_DIR)
 
 #-----------------------------------------------------------------------------

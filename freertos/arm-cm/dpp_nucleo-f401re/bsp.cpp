@@ -26,9 +26,9 @@
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"      // QP/C++ real-time event framework
-#include "dpp.hpp"        // DPP Application interface
-#include "bsp.hpp"        // Board Support Package
+#include "qpcpp.hpp"        // QP/C++ real-time event framework
+#include "bsp.hpp"          // Board Support Package
+#include "app.hpp"          // Application
 
 #include "stm32f4xx.h"    // CMSIS-compliant header file for the MCU used
 // add other drivers if necessary...
@@ -62,32 +62,33 @@ static std::uint32_t l_rndSeed;
         PAUSED_STAT,
     };
 
-#endif
+#endif // Q_SPY
 
 } // unnamed namespace
 
 //============================================================================
 // Error handler
+
 extern "C" {
 
 Q_NORETURN Q_onError(char const * const module, int_t const id) {
     // NOTE: this implementation of the error handler is intended only
-    // for debugging and MUST be changed for deployment of the application
-    // (assuming that you ship your production code with assertions enabled).
+    // for debugging and MUST be changed for deployment of the application.
     Q_UNUSED_PAR(module);
     Q_UNUSED_PAR(id);
     QS_ASSERTION(module, id, 10000U); // report assertion to QS
 
 #ifndef NDEBUG
-    // for debugging, hang on in an endless loop...
-    for (;;) {
+    for (;;) { // for debugging, hang on in an endless loop...
     }
-#endif
+#else
     NVIC_SystemReset();
     for (;;) { // explicitly "no-return"
     }
+#endif
 }
 //............................................................................
+// assertion failure handler for the startup code and libraries
 void assert_failed(char const * const module, int_t const id); // prototype
 void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
@@ -98,7 +99,7 @@ void assert_failed(char const * const module, int_t const id) {
 
 //............................................................................
 #ifdef Q_SPY
-//............................................................................
+
 // ISR for receiving bytes from the QSPY Back-End
 // NOTE: This ISR is "QF-unaware" meaning that it does not interact with
 // the QF/QK and is not disabled. Such ISRs don't need to call
@@ -224,10 +225,12 @@ void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
 
 } // extern "C"
 
-// BSP functions =============================================================
+//============================================================================
 namespace BSP {
 
-void init() {
+void init(void const * const arg) {
+    Q_UNUSED_PAR(arg);
+
     // Configure the MPU to prevent NULL-pointer dereferencing ...
     MPU->RBAR = 0x0U                          // base address (NULL)
                 | MPU_RBAR_VALID_Msk          // valid region
@@ -266,8 +269,8 @@ void init() {
 
     BSP::randomSeed(1234U);
 
-    // initialize the QS software tracing...
-    if (!QS_INIT(nullptr)) {
+    // initialize QS software tracing...
+    if (!QS_INIT(arg)) {
         Q_ERROR();
     }
 
@@ -275,16 +278,13 @@ void init() {
     QS_OBJ_DICTIONARY(&l_TickHook);
     QS_USR_DICTIONARY(PHILO_STAT);
     QS_USR_DICTIONARY(PAUSED_STAT);
-
     QS_ONLY(APP::produce_sig_dict());
 
     // setup the QS filters...
-    QS_GLB_FILTER(QP::QS_GRP_ALL); // all records
-    QS_GLB_FILTER(-QP::QS_QF_TICK);    // exclude the clock tick
-}
-//............................................................................
-void start() {
-    // initialize event pools
+    QS_GLB_FILTER(QP::QS_GRP_ALL);  // enable all QS trace records
+    QS_GLB_FILTER(-QP::QS_QF_TICK); // exclude the tick record
+
+    // initialize event pools for mutable events
     static QF_MPOOL_EL(APP::TableEvt) smlPoolSto[2*APP::N_PHILO];
     QP::QF::poolInit(smlPoolSto, sizeof(smlPoolSto), sizeof(smlPoolSto[0]));
 
@@ -292,26 +292,7 @@ void start() {
     static QP::QSubscrList subscrSto[APP::MAX_PUB_SIG];
     QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
 
-    // start AOs/threads...
-    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10];
-    static StackType_t philoStack[APP::N_PHILO][configMINIMAL_STACK_SIZE];
-    for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
-        APP::AO_Philo[n]->start(
-            Q_PRIO(n + 3U, 3U),      // QP prio., FreeRTOS prio.
-            philoQueueSto[n],        // event queue storage
-            Q_DIM(philoQueueSto[n]), // queue length [events]
-            philoStack[n],           // stack storage
-            sizeof(philoStack[n]));  // stack size [bytes]
-    }
-
-    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
-    static StackType_t tableStack[configMINIMAL_STACK_SIZE];
-    APP::AO_Table->start(
-        Q_PRIO(APP::N_PHILO + 7U, 7U), // QP prio., FreeRTOS prio.
-        tableQueueSto,               // event queue storage
-        Q_DIM(tableQueueSto),        // queue length [events]
-        tableStack,                  // stack storage
-        sizeof(tableStack));         // stack size [bytes]
+    randomSeed(1234U); // seed the random number generator
 }
 //............................................................................
 void displayPhilStat(std::uint8_t n, char const *stat) {
@@ -383,8 +364,28 @@ void ledOff() {
 namespace QP {
 
 // QF callbacks...
-
 void QF::onStartup() {
+    // start AOs/threads...
+    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10];
+    static StackType_t philoStack[APP::N_PHILO][configMINIMAL_STACK_SIZE];
+    for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
+        APP::AO_Philo[n]->start(
+            Q_PRIO(n + 3U, 3U),      // QP prio., FreeRTOS prio.
+            philoQueueSto[n],        // event queue storage
+            Q_DIM(philoQueueSto[n]), // queue length [events]
+            philoStack[n],           // stack storage
+            sizeof(philoStack[n]));  // stack size [bytes]
+    }
+
+    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
+    static StackType_t tableStack[configMINIMAL_STACK_SIZE];
+    APP::AO_Table->start(
+        Q_PRIO(APP::N_PHILO + 7U, 7U), // QP prio., FreeRTOS prio.
+        tableQueueSto,               // event queue storage
+        Q_DIM(tableQueueSto),        // queue length [events]
+        tableStack,                  // stack storage
+        sizeof(tableStack));         // stack size [bytes]
+
     // set up the SysTick timer to fire at BSP::TICKS_PER_SEC rate
     //SysTick_Config(SystemCoreClock / BSP::TICKS_PER_SEC); // done in FreeRTOS
 
@@ -492,7 +493,7 @@ void QS::onReset() {
 }
 //............................................................................
 void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
-               std::uint32_t param2, std::uint32_t param3)
+    std::uint32_t param2, std::uint32_t param3)
 {
     Q_UNUSED_PAR(cmdId);
     Q_UNUSED_PAR(param1);

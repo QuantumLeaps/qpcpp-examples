@@ -1,48 +1,47 @@
 //============================================================================
-// Product:  Board Support Package (BSP) for the Calculator example
-// Last Updated for Version: 6.5.0
-// Date of the Last Update:  2019-03-21
+// Product: Console-based BSP
+//
+// Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 //
 //                    Q u a n t u m  L e a P s
 //                    ------------------------
 //                    Modern Embedded Software
 //
-// Copyright (C) 2005-2019 Quantum Leaps, LLC. All rights reserved.
+// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 //
-// This program is open source software: you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as published
-// by the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// This software is dual-licensed under the terms of the open-source GNU
+// General Public License (GPL) or under the terms of one of the closed-
+// source Quantum Leaps commercial licenses.
 //
-// Alternatively, this program may be distributed and modified under the
-// terms of Quantum Leaps commercial licenses, which expressly supersede
-// the GNU General Public License and are specifically designed for
-// licensees interested in retaining the proprietary status of their code.
+// Redistributions in source code must retain this top-level comment block.
+// Plagiarizing this software to sidestep the license obligations is illegal.
 //
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
+// NOTE:
+// The GPL does NOT permit the incorporation of this code into proprietary
+// programs. Please contact Quantum Leaps for commercial licensing options,
+// which expressly supersede the GPL and are designed explicitly for
+// closed-source distribution.
 //
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <www.gnu.org/licenses/>.
-//
-// Contact information:
+// Quantum Leaps contact information:
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#ifndef BSP_HPP
-#define BSP_HPP
+#ifndef BSP_HPP_
+#define BSP_HPP_
 
-void BSP_clear(void);
-void BSP_negate(void);
-void BSP_insert(int keyId);
-double BSP_get_value(void);
-void BSP_display(double value);
-void BSP_display_error(char const *err);
-void BSP_exit(void);
+namespace BSP {
 
-void BSP_show_display(void);
-void BSP_message(char const *msg);
+void clear();
+void negate();
+void insert(int keyId);
+double get_value();
+void display(double value);
+void display_error(char const *err);
+void stop();
 
-#endif // BSP_HPP
+void show_display();
+void message(char const *msg);
+
+} // namespace BSP
+
+#endif // BSP_HPP_

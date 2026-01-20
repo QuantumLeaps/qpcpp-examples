@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<model version="7.0.1" links="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm7.xsd">
+<model version="7.0.3" links="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm7.xsd">
  <documentation>Dining Philosopher Problem example with MSM state machines</documentation>
  <!--${qpcpp}-->
  <framework name="qpcpp"/>
@@ -368,10 +368,10 @@ m_fork[n] = FREE;</action>
  </package>
  <!--${.}-->
  <directory name=".">
-  <!--${.::dpp.hpp}-->
-  <file name="dpp.hpp">
-   <text>#ifndef DPP_HPP
-#define DPP_HPP
+  <!--${.::app.hpp}-->
+  <file name="app.hpp">
+   <text>#ifndef APP_HPP
+#define APP_HPP
 
 namespace DPP {
 
@@ -403,13 +403,13 @@ $declare(AOs::XT_Test1)
 $declare(AOs::XT_Test2)
 #endif // QXK_HPP_
 
-#endif // DPP_HPP</text>
+#endif // APP_HPP</text>
   </file>
   <!--${.::philo.cpp}-->
   <file name="philo.cpp">
-   <text>#include &quot;qpcpp.hpp&quot;
-#include &quot;dpp.hpp&quot;
-#include &quot;bsp.hpp&quot;
+   <text>#include &quot;qpcpp.hpp&quot;        // QP/C++ real-time event framework
+#include &quot;bsp.hpp&quot;          // Board Support Package
+#include &quot;app.hpp&quot;          // Application
 
 Q_DEFINE_THIS_FILE
 
@@ -458,9 +458,9 @@ $define(AOs::Philo)</text>
   </file>
   <!--${.::table.cpp}-->
   <file name="table.cpp">
-   <text>#include &quot;qpcpp.hpp&quot;
-#include &quot;dpp.hpp&quot;
-#include &quot;bsp.hpp&quot;
+   <text>#include &quot;qpcpp.hpp&quot;        // QP/C++ real-time event framework
+#include &quot;bsp.hpp&quot;          // Board Support Package
+#include &quot;app.hpp&quot;          // Application
 
 Q_DEFINE_THIS_FILE
 

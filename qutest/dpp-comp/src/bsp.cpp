@@ -26,9 +26,9 @@
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"        // QP/C++ real-time event framework
-#include "dpp.hpp"          // DPP Application interface
-#include "bsp.hpp"          // Board Support Package
+#include "qpcpp.hpp"  // QP/C++ real-time event framework
+#include "bsp.hpp"    // Board Support Package
+#include "app.hpp"    // Application
 
 //============================================================================
 namespace { // unnamed namespace for local stuff with internal linkage
@@ -39,7 +39,6 @@ Q_DEFINE_THIS_MODULE("bsp")
 static std::uint32_t l_rnd; // random seed
 
 #ifdef Q_SPY
-
     enum AppRecords { // application-specific trace records
         BSP_CALL = QP::QS_USER,
     };
@@ -52,8 +51,8 @@ static std::uint32_t l_rnd; // random seed
 //============================================================================
 namespace BSP {
 
-void init(void) {
-    BSP::randomSeed(1234U);
+void init(void const * const arg) {
+    Q_UNUSED_PAR(arg);
 
     QS_FUN_DICTIONARY(&BSP::displayPaused);
     QS_FUN_DICTIONARY(&BSP::displayPhilStat);
@@ -61,6 +60,8 @@ void init(void) {
     QS_FUN_DICTIONARY(&BSP::randomSeed);
     QS_ONLY(APP::produce_sig_dict());
     QS_USR_DICTIONARY(BSP_CALL);
+
+    BSP::randomSeed(1234U);
 }
 //............................................................................
 void displayPhilStat(std::uint8_t n, char const *stat) {

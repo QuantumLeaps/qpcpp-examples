@@ -395,11 +395,6 @@
               <FilePath>..\..\bsp.hpp</FilePath>
             </File>
             <File>
-              <FileName>dpp.hpp</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\dpp.hpp</FilePath>
-            </File>
-            <File>
               <FileName>philo.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>..\..\philo.cpp</FilePath>
@@ -1026,11 +1021,6 @@
               <FilePath>..\..\bsp.hpp</FilePath>
             </File>
             <File>
-              <FileName>dpp.hpp</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\dpp.hpp</FilePath>
-            </File>
-            <File>
               <FileName>philo.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>..\..\philo.cpp</FilePath>
@@ -1655,11 +1645,6 @@
               <FileName>bsp.hpp</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\bsp.hpp</FilePath>
-            </File>
-            <File>
-              <FileName>dpp.hpp</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\dpp.hpp</FilePath>
             </File>
             <File>
               <FileName>philo.cpp</FileName>

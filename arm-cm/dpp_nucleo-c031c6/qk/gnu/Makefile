@@ -3,13 +3,13 @@
 #
 # Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 #
-#                    Q u a n t u m  L e a P s
-#                    ------------------------
-#                    Modern Embedded Software
+#                   Q u a n t u m  L e a P s
+#                   ------------------------
+#                   Modern Embedded Software
 #
 # SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 #
-# This software is dual-licensed under the terms of the open-source GNU
+# The QP/C software is dual-licensed under the terms of the open-source GNU
 # General Public License (GPL) or under the terms of one of the closed-
 # source Quantum Leaps commercial licenses.
 #
@@ -17,15 +17,17 @@
 # Plagiarizing this software to sidestep the license obligations is illegal.
 #
 # NOTE:
-# The GPL does NOT permit the incorporation of this code into proprietary
-# programs. Please contact Quantum Leaps for commercial licensing options,
-# which expressly supersede the GPL and are designed explicitly for
-# closed-source distribution.
+# The GPL (see <www.gnu.org/licenses/gpl-3.0>) does NOT permit the
+# incorporation of the QP/C software into proprietary programs. Please
+# contact Quantum Leaps for commercial licensing options, which expressly
+# supersede the GPL and are designed explicitly for licensees interested
+# in using QP/C in closed-source proprietary applications.
 #
 # Quantum Leaps contact information:
 # <www.state-machine.com/licensing>
 # <info@state-machine.com>
 ##############################################################################
+#
 # examples of invoking this Makefile:
 # building configurations: Debug (default), Release, and Spy
 # make
@@ -45,38 +47,38 @@
 #-----------------------------------------------------------------------------
 # project name
 #
-PROJECT     := dpp-qk
+PROJECT := dpp-qk
 
 #-----------------------------------------------------------------------------
 # project directories
 #
 
 # location of the QP/C++ framework (if not provided in an environment var.)
-ifeq ($(QP),)
-QP := ../../../../..
+ifeq ($(QPCPP),)
+QPCPP := ../../../../..
 endif
 
 # QP port used in this project
-QP_PORT_DIR := $(QP)/ports/arm-cm/qk/gnu
+QP_PORT_DIR := $(QPCPP)/ports/arm-cm/qk/gnu
 
 # list of all source directories used by this project
 VPATH = \
 	.. \
 	../.. \
-	$(QP)/src/qf \
-	$(QP)/src/qk \
-	$(QP)/src/qs \
+	$(QPCPP)/src/qf \
+	$(QPCPP)/src/qk \
+	$(QPCPP)/src/qs \
 	$(QP_PORT_DIR) \
-	$(QP)/3rd_party/nucleo-c031c6 \
-	$(QP)/3rd_party/nucleo-c031c6/gnu
+	$(QPCPP)/3rd_party/nucleo-c031c6 \
+	$(QPCPP)/3rd_party/nucleo-c031c6/gnu
 
 # list of all include directories needed by this project
 INCLUDES  = \
 	-I../.. \
-	-I$(QP)/include \
+	-I$(QPCPP)/include \
 	-I$(QP_PORT_DIR) \
-	-I$(QP)/3rd_party/CMSIS/Include \
-	-I$(QP)/3rd_party/nucleo-c031c6
+	-I$(QPCPP)/3rd_party/CMSIS/Include \
+	-I$(QPCPP)/3rd_party/nucleo-c031c6
 
 #-----------------------------------------------------------------------------
 # files
@@ -261,7 +263,7 @@ $(TARGET_BIN): $(TARGET_ELF)
 	$(BIN) -O binary $< $@
 
 $(TARGET_ELF) : $(ASM_OBJS_EXT) $(C_OBJS_EXT) $(CPP_OBJS_EXT)
-	$(CPP) $(CPPFLAGS) $(QP)/src/qs/qstamp.cpp -o $(BIN_DIR)/qstamp.o
+	$(CPP) $(CPPFLAGS) $(QPCPP)/src/qs/qstamp.cpp -o $(BIN_DIR)/qstamp.o
 	$(LINK) $(LINKFLAGS) -o $@ $^ $(BIN_DIR)/qstamp.o $(LIBS)
 
 $(BIN_DIR)/%.d : %.c
@@ -295,7 +297,7 @@ clean:
 	$(BIN_DIR)/*.bin \
 	$(BIN_DIR)/*.elf \
 	$(BIN_DIR)/*.map
-	
+
 show:
 	@echo PROJECT = $(PROJECT)
 	@echo CONF = $(CONF)

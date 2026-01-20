@@ -54,6 +54,7 @@ C_SRCS :=
 
 CPP_SRCS := \
 	main.cpp \
+	bsp.cpp \
 	history.cpp
 
 DEFINES  :=

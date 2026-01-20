@@ -28,7 +28,7 @@
 //============================================================================
 #include "qpcpp.hpp"
 #include "bsp.hpp"
-#include "dpp.hpp"
+#include "app.hpp"
 
 namespace { // unnamed namespace
 
@@ -39,7 +39,7 @@ static QP::QHsmDummy Philo_dummy[APP::N_PHILO];
 
 } // unnamed namespace
 
-QP::QAsm * const APP::SM_Philo[APP::N_PHILO] = {
+std::array<QP::QAsm * const, APP::N_PHILO> APP::SM_Philo {
     &Philo_dummy[0],
     &Philo_dummy[1],
     &Philo_dummy[2],
@@ -67,7 +67,7 @@ int main(void)
     }
 #endif
 
-    BSP::init();     // initialize the BSP
+    BSP::init(nullptr); // initialize the BSP and start the AOs
 
     // pause execution of the test and wait for the test script to continue
     QS_TEST_PAUSE();

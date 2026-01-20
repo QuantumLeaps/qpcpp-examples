@@ -1,70 +1,63 @@
 //============================================================================
 // Product: QP-lwIP demonstration
-// Last Updated for Version: 5.4.0
-// Date of the Last Update:  2015-05-12
 //
-//                    Q u a n t u m     L e a P s
-//                    ---------------------------
-//                    innovating embedded systems
+// Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 //
-// Copyright (C) Quantum Leaps, LLC. All rights reserved.
+//                    Q u a n t u m  L e a P s
+//                    ------------------------
+//                    Modern Embedded Software
 //
-// This program is open source software: you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as published
-// by the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 //
-// Alternatively, this program may be distributed and modified under the
-// terms of Quantum Leaps commercial licenses, which expressly supersede
-// the GNU General Public License and are specifically designed for
-// licensees interested in retaining the proprietary status of their code.
+// This software is dual-licensed under the terms of the open-source GNU
+// General Public License (GPL) or under the terms of one of the closed-
+// source Quantum Leaps commercial licenses.
 //
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
+// Redistributions in source code must retain this top-level comment block.
+// Plagiarizing this software to sidestep the license obligations is illegal.
 //
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <www.gnu.org/licenses/>.
+// NOTE:
+// The GPL does NOT permit the incorporation of this code into proprietary
+// programs. Please contact Quantum Leaps for commercial licensing options,
+// which expressly supersede the GPL and are designed explicitly for
+// closed-source distribution.
 //
-// Contact information:
+// Quantum Leaps contact information:
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"
-#include "dpp.hpp"
-#include "bsp.hpp"
+#include "qpcpp.hpp"        // QP/C++ real-time event framework
+#include "bsp.hpp"          // Board Support Package
+#include "app.hpp"          // Application
 
 //............................................................................
 int main(void) {
-    static QEvt const *tableQueueSto[N_PHILO + 5];
-    static QEvt const *philoQueueSto[N_PHILO][N_PHILO];
-    static QEvt const *lwIPMgrQueueSto[10];
-    static QSubscrList subscrSto[MAX_PUB_SIG];
-
-    static QF_MPOOL_EL(TableEvt) smlPoolSto[20]; // storage for small pool
-    static QF_MPOOL_EL(TextEvt)  medPoolSto[4];  // storage for med.  pool
-
     QF::init();  // initialize the framework and the underlying RT kernel
-    BSP_init();  // initialize the BSP
-
-    // initialize publish-subscribe...
-    QActive::psInit(subscrSto, Q_DIM(subscrSto));
+    BSP_init();  // initialize the BSP and start the AOs
 
     // initialize event pools...
+    static QF_MPOOL_EL(TableEvt) smlPoolSto[20]; // storage for small pool
     QF::poolInit(smlPoolSto, sizeof(smlPoolSto), sizeof(smlPoolSto[0]));
+    static QF_MPOOL_EL(TextEvt)  medPoolSto[4];  // storage for med.  pool
     QF::poolInit(medPoolSto, sizeof(medPoolSto), sizeof(medPoolSto[0]));
 
+    // initialize publish-subscribe...
+    static QSubscrList subscrSto[MAX_PUB_SIG];
+    QActive::psInit(subscrSto, Q_DIM(subscrSto));
+
     // start the active objects...
+    static QEvtPtr lwIPMgrQueueSto[10];
     AO_LwIPMgr->start(1U,
                     lwIPMgrQueueSto, Q_DIM(lwIPMgrQueueSto),
                     nullptr, 0U);
 
+    static QEvtPtr philoQueueSto[N_PHILO][N_PHILO];
     for (uint8_t n = 0U; n < N_PHILO; ++n) {
         AO_Philo[n]->start(n + 2U,
                            philoQueueSto[n], Q_DIM(philoQueueSto[n]),
                            nullptr, 0U);
     }
+    static QEvtPtr tableQueueSto[N_PHILO + 5];
     AO_Table->start(N_PHILO + 2U,
                     tableQueueSto, Q_DIM(tableQueueSto),
                     nullptr, 0U);

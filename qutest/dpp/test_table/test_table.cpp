@@ -26,20 +26,19 @@
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"
-#include "bsp.hpp"
-#include "dpp.hpp"
+#include "qpcpp.hpp"        // QP/C++ real-time event framework
+#include "bsp.hpp"          // Board Support Package
+#include "app.hpp"          // Application
 
-namespace { // unnamed namespace
-
+namespace {
 Q_DEFINE_THIS_FILE
 
 // instantiate dummy collaborator AOs...
 static QP::QActiveDummy Philo_dummy[APP::N_PHILO];
 
-} // unnamed namespace
+} // anonymous namespace
 
-QP::QActive * const APP::AO_Philo[APP::N_PHILO] = {
+std::array<QP::QActive * const, APP::N_PHILO> APP::AO_Philo {
     &Philo_dummy[0],
     &Philo_dummy[1],
     &Philo_dummy[2],
@@ -67,10 +66,10 @@ int main(void)
     }
 #endif
 
-    BSP::init();    // initialize the BSP
+    BSP::init(nullptr); // initialize the BSP and start the AOs
 
     for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
-       QS_OBJ_ARR_DICTIONARY(&Philo_dummy[n], n);
+        QS_OBJ_ARR_DICTIONARY(&Philo_dummy[n], n);
     }
 
     // pause execution of the test and wait for the test script to continue
@@ -119,7 +118,7 @@ void QS::onTestTeardown() {
 //............................................................................
 // callback function to execute user commands
 void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
-                   std::uint32_t param2, std::uint32_t param3)
+    std::uint32_t param2, std::uint32_t param3)
 {
     Q_UNUSED_PAR(cmdId);
     Q_UNUSED_PAR(param1);
@@ -149,13 +148,13 @@ void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
 void QS::onTestEvt(QEvt *e) {
     Q_UNUSED_PAR(e);
 #ifdef Q_HOST  // is this test compiled for a desktop Host computer?
-#else // this test is compiled for an embedded Target system
-#endif
+#else // embedded Target
+#endif // embedded Target
 }
 //............................................................................
 // callback function to output the posted QP events (not used here)
 void QS::onTestPost(void const *sender, QActive *recipient,
-                    QEvt const *e, bool status)
+    QEvt const *e, bool status)
 {
     Q_UNUSED_PAR(sender);
     Q_UNUSED_PAR(status);
@@ -164,7 +163,7 @@ void QS::onTestPost(void const *sender, QActive *recipient,
         case APP::EAT_SIG:
         case APP::DONE_SIG:
         case APP::HUNGRY_SIG:
-            QS_BEGIN_ID(QUTEST_ON_POST, 0U) // application-specific record
+            QS_BEGIN_ID(QUTEST_ON_POST, 0U) // app-specific record
                 QS_SIG(e->sig, recipient);
                 QS_U8(0, Q_EVT_CAST(APP::TableEvt)->philoId);
             QS_END()

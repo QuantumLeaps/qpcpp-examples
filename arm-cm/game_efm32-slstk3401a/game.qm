@@ -1,100 +1,152 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<model version="7.0.1" links="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm7.xsd">
+<model version="7.0.3" links="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm7.xsd">
  <documentation>&quot;Fly 'n' Shoot&quot; game model from Chapters 1 &amp; 9 of PSiCC2</documentation>
  <!--${qpcpp}-->
  <framework name="qpcpp"/>
- <!--${Shared}-->
- <package name="Shared" stereotype="0x01" namespace="GAME::">
-  <!--${Shared::ObjectPosEvt}-->
+ <!--${App}-->
+ <package name="App" stereotype="0x01" namespace="APP::">
+  <!--${App::AppSignals}-->
+  <attribute name="AppSignals" type="enum" visibility="0x04" properties="0x00">
+   <code> : QP::QSignal { // signals used in the game
+    TIME_TICK_SIG = QP::Q_USER_SIG, // published from tick ISR
+    PLAYER_TRIGGER_SIG, // published by Player (ISR) to trigger the Missile
+    PLAYER_QUIT_SIG,    // published by Player (ISR) to quit the game
+    GAME_OVER_SIG,      // published by Ship when it finishes exploding
+
+    // insert other published signals here ...
+    MAX_PUB_SIG,        // the last published signal
+
+    PLAYER_SHIP_MOVE_SIG, // posted by Player (ISR) to the Ship to move it
+
+    BLINK_TIMEOUT_SIG,  // signal for Tunnel's blink timeout event
+    SCREEN_TIMEOUT_SIG, // signal for Tunnel's screen timeout event
+
+    TAKE_OFF_SIG,       // from Tunnel to Ship to grant permission to take off
+    HIT_WALL_SIG,       // from Tunnel to Ship when Ship hits the wall
+    HIT_MINE_SIG,       // from Mine to Ship or Missile when it hits the mine
+    SHIP_IMG_SIG,       // from Ship to the Tunnel to draw and check for hits
+    MISSILE_IMG_SIG,    // from Missile the Tunnel to draw and check for hits
+    MINE_IMG_SIG,       // sent by Mine to the Tunnel to draw the mine
+    MISSILE_FIRE_SIG,   // sent by Ship to the Missile to fire
+    DESTROYED_MINE_SIG, // from Missile to Ship when Missile destroyed Mine
+    EXPLOSION_SIG,      // from any exploding object to render the explosion
+    MINE_PLANT_SIG,     // from Tunnel to the Mine to plant it
+    MINE_DISABLED_SIG,  // from Mine to Tunnel when it becomes disabled
+    MINE_RECYCLE_SIG,   // sent by Tunnel to Mine to recycle the mine
+    SCORE_SIG,          // from Ship to Tunnel to display the score
+
+    MAX_SIG             // the last signal (keep always last)
+};</code>
+  </attribute>
+  <!--${App::GameBitmapIds}-->
+  <attribute name="GameBitmapIds" type="enum" visibility="0x04" properties="0x00">
+   <code>  : std::uint8_t {
+    SHIP_BMP,
+    MISSILE_BMP,
+    MINE1_BMP,
+    MINE2_BMP,
+    MINE2_MISSILE_BMP,
+    EXPLOSION0_BMP,
+    EXPLOSION1_BMP,
+    EXPLOSION2_BMP,
+    EXPLOSION3_BMP,
+    MAX_BMP
+};</code>
+  </attribute>
+  <!--${App::ObjectPosEvt}-->
   <class name="ObjectPosEvt" superclass="qpcpp::QEvt">
-   <!--${Shared::ObjectPosEvt::x}-->
+   <!--${App::ObjectPosEvt::x}-->
    <attribute name="x" type="std::uint8_t" visibility="0x00" properties="0x00"/>
-   <!--${Shared::ObjectPosEvt::y}-->
+   <!--${App::ObjectPosEvt::y}-->
    <attribute name="y" type="std::uint8_t" visibility="0x00" properties="0x00"/>
-   <!--${Shared::ObjectPosEvt::ObjectPosEvt}-->
+   <!--${App::ObjectPosEvt::ObjectPosEvt}-->
    <operation name="ObjectPosEvt" type="constexpr" visibility="0x00" properties="0x02">
-    <!--${Shared::ObjectPosEvt::ObjectPosEvt::sig}-->
+    <!--${App::ObjectPosEvt::ObjectPosEvt::sig}-->
     <parameter name="sig" type="QP::QSignal"/>
-    <!--${Shared::ObjectPosEvt::ObjectPosEvt::x0}-->
+    <!--${App::ObjectPosEvt::ObjectPosEvt::x0}-->
     <parameter name="x0" type="std::uint8_t const"/>
-    <!--${Shared::ObjectPosEvt::ObjectPosEvt::y0}-->
+    <!--${App::ObjectPosEvt::ObjectPosEvt::y0}-->
     <parameter name="y0" type="std::uint8_t const"/>
     <code>  : QEvt(sig),
     x(x0),
     y(y0)</code>
    </operation>
   </class>
-  <!--${Shared::ObjectImageEvt}-->
+  <!--${App::ObjectImageEvt}-->
   <class name="ObjectImageEvt" superclass="qpcpp::QEvt">
-   <!--${Shared::ObjectImageEvt::x}-->
+   <!--${App::ObjectImageEvt::x}-->
    <attribute name="x" type="std::uint8_t" visibility="0x00" properties="0x00"/>
-   <!--${Shared::ObjectImageEvt::y}-->
+   <!--${App::ObjectImageEvt::y}-->
    <attribute name="y" type="std::int8_t" visibility="0x00" properties="0x00"/>
-   <!--${Shared::ObjectImageEvt::bmp}-->
+   <!--${App::ObjectImageEvt::bmp}-->
    <attribute name="bmp" type="std::uint8_t" visibility="0x00" properties="0x00"/>
   </class>
-  <!--${Shared::MineEvt}-->
+  <!--${App::MineEvt}-->
   <class name="MineEvt" superclass="qpcpp::QEvt">
-   <!--${Shared::MineEvt::id}-->
+   <!--${App::MineEvt::id}-->
    <attribute name="id" type="std::uint8_t" visibility="0x00" properties="0x00"/>
-   <!--${Shared::MineEvt::MineEvt}-->
+   <!--${App::MineEvt::MineEvt}-->
    <operation name="MineEvt" type="constexpr" visibility="0x00" properties="0x02">
     <documentation>This constructor is called only for statically allocated MineEvt</documentation>
-    <!--${Shared::MineEvt::MineEvt::sig}-->
+    <!--${App::MineEvt::MineEvt::sig}-->
     <parameter name="sig" type="QP::QSignal"/>
-    <!--${Shared::MineEvt::MineEvt::id_p}-->
+    <!--${App::MineEvt::MineEvt::id_p}-->
     <parameter name="id_p" type="std::uint8_t"/>
     <code> : QEvt(sig),
    id(id_p)</code>
    </operation>
   </class>
-  <!--${Shared::ScoreEvt}-->
+  <!--${App::ScoreEvt}-->
   <class name="ScoreEvt" superclass="qpcpp::QEvt">
-   <!--${Shared::ScoreEvt::score}-->
+   <!--${App::ScoreEvt::score}-->
    <attribute name="score" type="std::uint16_t" visibility="0x00" properties="0x00"/>
-   <!--${Shared::ScoreEvt::ScoreEvt}-->
+   <!--${App::ScoreEvt::ScoreEvt}-->
    <operation name="ScoreEvt" type="constexpr" visibility="0x00" properties="0x02">
     <documentation>This constructor is called only for statically allocated MineEvt</documentation>
-    <!--${Shared::ScoreEvt::ScoreEvt::sig}-->
+    <!--${App::ScoreEvt::ScoreEvt::sig}-->
     <parameter name="sig" type="QP::QSignal"/>
-    <!--${Shared::ScoreEvt::ScoreEvt::score_p}-->
+    <!--${App::ScoreEvt::ScoreEvt::score_p}-->
     <parameter name="score_p" type="std::uint16_t"/>
     <code> : QEvt(sig),
    score(score_p)</code>
    </operation>
   </class>
-  <!--${Shared::AO_Tunnel}-->
+  <!--${App::AO_Tunnel}-->
   <attribute name="AO_Tunnel" type="QP::QActive * const" visibility="0x00" properties="0x00">
    <documentation>// opaque pointer</documentation>
    <code>= &amp;Tunnel::inst;</code>
   </attribute>
-  <!--${Shared::AO_Ship}-->
+  <!--${App::AO_Ship}-->
   <attribute name="AO_Ship" type="QP::QActive * const" visibility="0x00" properties="0x00">
    <documentation>// opaque pointer</documentation>
    <code>= &amp;Ship::inst;</code>
   </attribute>
-  <!--${Shared::AO_Missile}-->
+  <!--${App::AO_Missile}-->
   <attribute name="AO_Missile" type="QP::QActive * const" visibility="0x00" properties="0x00">
    <documentation>// opaque pointer</documentation>
    <code>= &amp;Missile::inst;</code>
   </attribute>
-  <!--${Shared::Mine1_getInst}-->
-  <operation name="Mine1_getInst" type="QP::QHsm *" visibility="0x00" properties="0x00">
-   <!--${Shared::Mine1_getInst::id}-->
+  <!--${App::Mine1_getInst}-->
+  <operation name="Mine1_getInst" type="QP::QAsm *" visibility="0x00" properties="0x00">
+   <!--${App::Mine1_getInst::id}-->
    <parameter name="id" type="std::uint8_t"/>
    <code>Q_REQUIRE(id &lt; Q_DIM(Mine1::inst));
 return &amp;Mine1::inst[id];</code>
   </operation>
-  <!--${Shared::Mine2_getInst}-->
-  <operation name="Mine2_getInst" type="QP::QHsm *" visibility="0x00" properties="0x00">
-   <!--${Shared::Mine2_getInst::id}-->
+  <!--${App::Mine2_getInst}-->
+  <operation name="Mine2_getInst" type="QP::QAsm *" visibility="0x00" properties="0x00">
+   <!--${App::Mine2_getInst::id}-->
    <parameter name="id" type="std::uint8_t"/>
    <code>Q_REQUIRE(id &lt; Q_DIM(Mine2::inst));
 return &amp;Mine2::inst[id];</code>
   </operation>
+  <!--${App::QTicker_inst0}-->
+  <attribute name="QTicker_inst0" type="QP::QTicker" visibility="0x00" properties="0x00">
+   <code>= QP::QTicker(0U);</code>
+  </attribute>
  </package>
  <!--${AOs}-->
- <package name="AOs" stereotype="0x02" namespace="GAME::">
+ <package name="AOs" stereotype="0x02" namespace="APP::">
   <!--${AOs::Tunnel}-->
   <class name="Tunnel" superclass="qpcpp::QActive">
    <documentation>Tunnel Active Object</documentation>
@@ -102,12 +154,12 @@ return &amp;Mine2::inst[id];</code>
    <attribute name="m_blinkTimeEvt" type="QP::QTimeEvt" visibility="0x02" properties="0x00"/>
    <!--${AOs::Tunnel::m_screenTimeEvt}-->
    <attribute name="m_screenTimeEvt" type="QP::QTimeEvt" visibility="0x02" properties="0x00"/>
-   <!--${AOs::Tunnel::m_mines[GAME_MINES_MAX]}-->
-   <attribute name="m_mines[GAME_MINES_MAX]" type="QP::QHsm *" visibility="0x02" properties="0x00"/>
-   <!--${AOs::Tunnel::m_mine1_pool[GAME_MINES_MAX]}-->
-   <attribute name="m_mine1_pool[GAME_MINES_MAX]" type="QP::QHsm *" visibility="0x02" properties="0x00"/>
-   <!--${AOs::Tunnel::m_mine2_pool[GAME_MINES_MAX]}-->
-   <attribute name="m_mine2_pool[GAME_MINES_MAX]" type="QP::QHsm *" visibility="0x02" properties="0x00"/>
+   <!--${AOs::Tunnel::m_mines}-->
+   <attribute name="m_mines" type="std::array&lt;QP::QAsm *, GAME_MINES_MAX&gt;" visibility="0x02" properties="0x00"/>
+   <!--${AOs::Tunnel::m_mine1_pool}-->
+   <attribute name="m_mine1_pool" type="std::array&lt;QP::QAsm *, GAME_MINES_MAX&gt;" visibility="0x02" properties="0x00"/>
+   <!--${AOs::Tunnel::m_mine2_pool}-->
+   <attribute name="m_mine2_pool" type="std::array&lt;QP::QAsm *, GAME_MINES_MAX&gt;" visibility="0x02" properties="0x00"/>
    <!--${AOs::Tunnel::m_blink_ctr}-->
    <attribute name="m_blink_ctr" type="std::uint8_t" visibility="0x02" properties="0x00"/>
    <!--${AOs::Tunnel::m_last_mine_x}-->
@@ -655,7 +707,7 @@ QS_SIG_DICTIONARY(DESTROYED_MINE_SIG,   this);
      <!--${AOs::Ship::SM::active::flying}-->
      <state name="flying">
       <entry>m_score = 0U; // reset the score
-ScoreEvt *sev = Q_NEW(ScoreEvt, SCORE_SIG);
+ScoreEvt *sev = QP::QF::q_new&lt;ScoreEvt&gt;(SCORE_SIG);
 sev-&gt;score = m_score;
 AO_Tunnel-&gt;POST(sev, this);
 
@@ -676,7 +728,7 @@ else {
 }
 
 // tell the Tunnel to draw the Ship and test for hits
-ObjectImageEvt *oie = Q_NEW(ObjectImageEvt, SHIP_IMG_SIG);
+ObjectImageEvt *oie = QP::QF::q_new&lt;ObjectImageEvt&gt;(SHIP_IMG_SIG);
 oie-&gt;x   = m_x;
 oie-&gt;y   = m_y &gt;&gt; 2;
 oie-&gt;bmp = SHIP_BMP;
@@ -685,7 +737,7 @@ AO_Tunnel-&gt;POST(oie, this);
 ++m_score; // increment the score for surviving another tick
 
 if ((m_score % 10U) == 0U) { // is the score &quot;round&quot;?
-    ScoreEvt *sev = Q_NEW(ScoreEvt, SCORE_SIG);
+    ScoreEvt *sev = QP::QF::q_new&lt;ScoreEvt&gt;(SCORE_SIG);
     sev-&gt;score = m_score;
     AO_Tunnel-&gt;POST(sev, this);
 }</action>
@@ -695,7 +747,7 @@ if ((m_score % 10U) == 0U) { // is the score &quot;round&quot;?
       </tran>
       <!--${AOs::Ship::SM::active::flying::PLAYER_TRIGGER}-->
       <tran trig="PLAYER_TRIGGER">
-       <action>ObjectPosEvt *ope = Q_NEW(ObjectPosEvt, MISSILE_FIRE_SIG);
+       <action>ObjectPosEvt *ope = QP::QF::q_new&lt;ObjectPosEvt&gt;(MISSILE_FIRE_SIG);
 ope-&gt;x = m_x;
 ope-&gt;y = (m_y &gt;&gt; 2) + SHIP_HEIGHT - 1U;
 AO_Missile-&gt;POST(ope, this);</action>
@@ -737,10 +789,10 @@ AO_Missile-&gt;POST(ope, this);</action>
         <guard>m_exp_ctr &lt; 15U</guard>
         <action>++m_exp_ctr;
 // tell the Tunnel to draw the current stage of Explosion
-ObjectImageEvt *oie = Q_NEW(ObjectImageEvt, EXPLOSION_SIG);
-oie-&gt;bmp = EXPLOSION0_BMP + (m_exp_ctr &gt;&gt; 2);
+ObjectImageEvt *oie = QP::QF::q_new&lt;ObjectImageEvt&gt;(EXPLOSION_SIG);
+oie-&gt;bmp = EXPLOSION0_BMP + (m_exp_ctr &gt;&gt; 2U);
 oie-&gt;x   = m_x; // x of explosion
-oie-&gt;y   = (int8_t)((int)(m_y &gt;&gt; 2) - 4U + SHIP_HEIGHT);
+oie-&gt;y   = static_cast&lt;std::int8_t&gt;((m_y &gt;&gt; 2U) - 4U + SHIP_HEIGHT);
 AO_Tunnel-&gt;POST(oie, this);</action>
         <choice_glyph conn="13,52,5,-1,15">
          <action box="1,0,15,2"/>
@@ -749,7 +801,7 @@ AO_Tunnel-&gt;POST(oie, this);</action>
        <!--${AOs::Ship::SM::active::exploding::TIME_TICK::[else]}-->
        <choice target="../../../1">
         <guard brief="else"/>
-        <action>ScoreEvt *gameOver = Q_NEW(ScoreEvt, GAME_OVER_SIG);
+        <action>ScoreEvt *gameOver =QP::QF::q_new&lt;ScoreEvt&gt;(GAME_OVER_SIG);
 gameOver-&gt;score = m_score;
 AO_Tunnel-&gt;POST(gameOver, this);</action>
         <choice_glyph conn="13,52,4,1,4,21,-42,-4">
@@ -823,7 +875,7 @@ m_y = Q_EVT_CAST(ObjectPosEvt)-&gt;y;</action>
        <guard>m_x + GAME_MISSILE_SPEED_X &lt; GAME_TUNNEL_WIDTH</guard>
        <action brief="...">m_x += GAME_MISSILE_SPEED_X;
 // tell the Tunnel to draw the Missile and test for wall hits
-ObjectImageEvt *oie = Q_NEW(ObjectImageEvt, MISSILE_IMG_SIG);
+ObjectImageEvt *oie = QP::QF::q_new&lt;ObjectImageEvt&gt;(MISSILE_IMG_SIG);
 oie-&gt;x   = m_x;
 oie-&gt;y   = m_y;
 oie-&gt;bmp = MISSILE_BMP;
@@ -870,10 +922,10 @@ AO_Tunnel-&gt;POST(oie, this);</action>
 m_x -= GAME_SPEED_X;   // move the explosion by one step
 
 // tell the Tunnel to render the current stage of Explosion
-ObjectImageEvt *oie = Q_NEW(ObjectImageEvt, EXPLOSION_SIG);
+ObjectImageEvt *oie = QP::QF::q_new&lt;ObjectImageEvt&gt;(EXPLOSION_SIG);
 oie-&gt;x   = m_x + 3U;   // x-pos of explosion
-oie-&gt;y   = (int8_t)((int)m_y - 4U); // y-pos
-oie-&gt;bmp = EXPLOSION0_BMP + (m_exp_ctr &gt;&gt; 2);
+oie-&gt;y   = static_cast&lt;std::int8_t&gt;(m_y - 4U); // y-pos
+oie-&gt;bmp = EXPLOSION0_BMP + (m_exp_ctr &gt;&gt; 2U);
 AO_Tunnel-&gt;POST(oie, this);</action>
        <choice_glyph conn="12,46,5,-1,20">
         <action box="1,0,19,4"/>
@@ -963,7 +1015,7 @@ m_y = Q_EVT_CAST(ObjectPosEvt)-&gt;y;</action>
     <!--${AOs::Mine1::SM::used}-->
     <state name="used">
      <exit brief="...">// tell the Tunnel that this mine is becoming disabled
-MineEvt *mev = Q_NEW(MineEvt, MINE_DISABLED_SIG);
+MineEvt *mev = QP::QF::q_new&lt;MineEvt&gt;(MINE_DISABLED_SIG);
 mev-&gt;id = MINE_ID(this);
 AO_Tunnel-&gt;POST(mev, this);</exit>
      <!--${AOs::Mine1::SM::used::MINE_RECYCLE}-->
@@ -984,10 +1036,10 @@ AO_Tunnel-&gt;POST(mev, this);</exit>
 m_x -= GAME_SPEED_X; // move explosion by 1 step
 
 // tell the Game to render the current stage of Explosion
-ObjectImageEvt *oie = Q_NEW(ObjectImageEvt, EXPLOSION_SIG);
+ObjectImageEvt *oie = QP::QF::q_new&lt;ObjectImageEvt&gt;(EXPLOSION_SIG);
 oie-&gt;x   = m_x + 1U;  // x of explosion
-oie-&gt;y   = (int8_t)((int)m_y - 4 + 2); // y of explosion
-oie-&gt;bmp = EXPLOSION0_BMP + (m_exp_ctr &gt;&gt; 2);
+oie-&gt;y   = static_cast&lt;std::int8_t&gt;(m_y - 4 + 2U); // y of explosion
+oie-&gt;bmp = EXPLOSION0_BMP + (m_exp_ctr &gt;&gt; 2U);
 AO_Tunnel-&gt;POST(oie, this);</action>
         <choice_glyph conn="14,57,5,-1,21">
          <action box="1,0,20,2"/>
@@ -1017,7 +1069,7 @@ AO_Tunnel-&gt;POST(oie, this);</action>
         <guard>m_x &gt;= GAME_SPEED_X</guard>
         <action>m_x -= GAME_SPEED_X; // move the mine 1 step
 // tell the Tunnel to draw the Mine
-ObjectImageEvt *oie = Q_NEW(ObjectImageEvt, MINE_IMG_SIG);
+ObjectImageEvt *oie = QP::QF::q_new&lt;ObjectImageEvt&gt;(MINE_IMG_SIG);
 oie-&gt;x   = m_x;
 oie-&gt;y   = m_y;
 oie-&gt;bmp = MINE1_BMP;
@@ -1078,7 +1130,7 @@ AO_Missile-&gt;POST(&amp;mine1_destroyed, this);</action>
       <state_glyph node="4,24,33,24"/>
      </state>
      <state_glyph node="2,14,39,52">
-      <exit box="1,2,5,2"/>
+      <exit box="0,3,5,2"/>
      </state_glyph>
     </state>
     <state_diagram size="53,68"/>
@@ -1149,7 +1201,7 @@ m_y = Q_EVT_CAST(ObjectPosEvt)-&gt;y;</action>
     <!--${AOs::Mine2::SM::used}-->
     <state name="used">
      <exit brief="...">// tell the Tunnel that this mine is becoming disabled
-MineEvt *mev = Q_NEW(MineEvt, MINE_DISABLED_SIG);
+MineEvt *mev = QP::QF::q_new&lt;MineEvt&gt;(MINE_DISABLED_SIG);
 mev-&gt;id = MINE_ID(this);
 AO_Tunnel-&gt;POST(mev, this);</exit>
      <!--${AOs::Mine2::SM::used::MINE_RECYCLE}-->
@@ -1170,10 +1222,10 @@ AO_Tunnel-&gt;POST(mev, this);</exit>
 m_x -= GAME_SPEED_X; // move explosion by 1 step
 
 // tell the Game to render the current stage of Explosion
-ObjectImageEvt *oie = Q_NEW(ObjectImageEvt, EXPLOSION_SIG);
+ObjectImageEvt *oie = QP::QF::q_new&lt;ObjectImageEvt&gt;(EXPLOSION_SIG);
 oie-&gt;x   = m_x + 1U;  // x of explosion
-oie-&gt;y   = (int8_t)((int)m_y - 4 + 2); // y of explosion
-oie-&gt;bmp = EXPLOSION0_BMP + (m_exp_ctr &gt;&gt; 2);
+oie-&gt;y   = static_cast&lt;std::int8_t&gt;(m_y - 4 + 2U); // y of explosion
+oie-&gt;bmp = EXPLOSION0_BMP + (m_exp_ctr &gt;&gt; 2U);
 AO_Tunnel-&gt;POST(oie, this);</action>
         <choice_glyph conn="14,57,5,-1,21">
          <action box="1,0,20,2"/>
@@ -1203,7 +1255,7 @@ AO_Tunnel-&gt;POST(oie, this);</action>
         <guard>m_x &gt;= GAME_SPEED_X</guard>
         <action>m_x -= GAME_SPEED_X; // move the mine 1 step
 // tell the Tunnel to draw the Mine
-ObjectImageEvt *oie = Q_NEW(ObjectImageEvt, MINE_IMG_SIG);
+ObjectImageEvt *oie = QP::QF::q_new&lt;ObjectImageEvt&gt;(MINE_IMG_SIG);
 oie-&gt;x   = m_x;
 oie-&gt;y   = m_y;
 oie-&gt;bmp = MINE2_BMP;
@@ -1264,7 +1316,7 @@ AO_Missile-&gt;POST(&amp;mine2_destroyed, this);</action>
       <state_glyph node="4,24,33,24"/>
      </state>
      <state_glyph node="2,14,39,52">
-      <exit box="1,2,5,2"/>
+      <exit box="0,3,5,2"/>
      </state_glyph>
     </state>
     <state_diagram size="53,68"/>
@@ -1273,176 +1325,153 @@ AO_Missile-&gt;POST(&amp;mine2_destroyed, this);</action>
  </package>
  <!--${.}-->
  <directory name=".">
-  <!--${.::game.hpp}-->
-  <file name="game.hpp">
-   <text>#ifndef GAME_HPP_
-#define GAME_HPP_
+  <!--${.::app.hpp}-->
+  <file name="app.hpp">
+   <text>#ifndef APP_HPP_
+#define APP_HPP_
 
-namespace GAME {
+namespace APP {
 
-enum GameSignals : QP::QSignal { // signals used in the game
-    TIME_TICK_SIG = QP::Q_USER_SIG, // published from tick ISR
-    PLAYER_TRIGGER_SIG, // published by Player (ISR) to trigger the Missile
-    PLAYER_QUIT_SIG,    // published by Player (ISR) to quit the game
-    GAME_OVER_SIG,      // published by Ship when it finishes exploding
+constexpr std::uint8_t GAME_TUNNEL_WIDTH  {BSP::SCREEN_WIDTH};
+constexpr std::int8_t  GAME_TUNNEL_HEIGHT {BSP::SCREEN_HEIGHT - 10};
+constexpr std::uint8_t GAME_MINES_MAX       { 5U};
+constexpr std::uint8_t GAME_MINES_DIST_MIN  {10U};
+constexpr std::uint8_t GAME_SPEED_X         { 1U};
+constexpr std::uint8_t GAME_MISSILE_SPEED_X { 2U};
+constexpr std::uint8_t GAME_SHIP_X          {10U};
+constexpr std::int8_t  GAME_SHIP_Y          {GAME_TUNNEL_HEIGHT / 2};
+constexpr std::int8_t  GAME_WALLS_GAP_Y     {50};
+constexpr std::int8_t  GAME_WALLS_MIN_GAP_Y {20};
 
-    // insert other published signals here ...
-    MAX_PUB_SIG,        // the last published signal
-
-    PLAYER_SHIP_MOVE_SIG, // posted by Player (ISR) to the Ship to move it
-
-    BLINK_TIMEOUT_SIG,  // signal for Tunnel's blink timeout event
-    SCREEN_TIMEOUT_SIG, // signal for Tunnel's screen timeout event
-
-    TAKE_OFF_SIG,       // from Tunnel to Ship to grant permission to take off
-    HIT_WALL_SIG,       // from Tunnel to Ship when Ship hits the wall
-    HIT_MINE_SIG,       // from Mine to Ship or Missile when it hits the mine
-    SHIP_IMG_SIG,       // from Ship to the Tunnel to draw and check for hits
-    MISSILE_IMG_SIG,    // from Missile the Tunnel to draw and check for hits
-    MINE_IMG_SIG,       // sent by Mine to the Tunnel to draw the mine
-    MISSILE_FIRE_SIG,   // sent by Ship to the Missile to fire
-    DESTROYED_MINE_SIG, // from Missile to Ship when Missile destroyed Mine
-    EXPLOSION_SIG,      // from any exploding object to render the explosion
-    MINE_PLANT_SIG,     // from Tunnel to the Mine to plant it
-    MINE_DISABLED_SIG,  // from Mine to Tunnel when it becomes disabled
-    MINE_RECYCLE_SIG,   // sent by Tunnel to Mine to recycle the mine
-    SCORE_SIG,          // from Ship to Tunnel to display the score
-
-    MAX_SIG             // the last signal (keep always last)
-};
-
-#define GAME_TUNNEL_WIDTH          BSP::SCREEN_WIDTH
-#define GAME_TUNNEL_HEIGHT         (BSP::SCREEN_HEIGHT - 10U)
-#define GAME_MINES_MAX             5U
-#define GAME_MINES_DIST_MIN        10U
-#define GAME_SPEED_X               1U
-#define GAME_MISSILE_SPEED_X       2U
-#define GAME_SHIP_X                10U
-#define GAME_SHIP_Y                (GAME_TUNNEL_HEIGHT / 2U)
-#define GAME_WALLS_GAP_Y           50U
-#define GAME_WALLS_MIN_GAP_Y       20U
-
-enum GameBitmapIds {
-    SHIP_BMP,
-    MISSILE_BMP,
-    MINE1_BMP,
-    MINE2_BMP,
-    MINE2_MISSILE_BMP,
-    EXPLOSION0_BMP,
-    EXPLOSION1_BMP,
-    EXPLOSION2_BMP,
-    EXPLOSION3_BMP,
-    MAX_BMP
-};
-
-} // namespace GAME
+} // namespace APP
 
 // Shared declarations
-$declare${Shared}
+$declare ${App}
 
-#endif  // GAME_HPP_</text>
+#endif  // APP_HPP_</text>
+  </file>
+  <!--${.::bsp.hpp}-->
+  <file name="bsp.hpp">
+   <text>#ifndef BSP_HPP_
+#define BSP_HPP_
+
+namespace BSP {
+
+constexpr std::uint32_t TICKS_PER_SEC { 33U};
+constexpr std::uint32_t SCREEN_WIDTH  {128U};
+constexpr std::uint32_t SCREEN_HEIGHT {128U};
+
+void init(void const * const arg);
+void terminate(std::int16_t result);
+
+void updateScreen();
+void clearFB();
+void clearWalls();
+void paintString(std::uint8_t x, std::uint8_t y, char const *str);
+void paintBitmap(std::uint8_t x, std::uint8_t y, std::uint8_t bmp_id);
+void advanceWalls(std::uint8_t top, std::uint8_t bottom);
+void updateScore(std::uint16_t score);
+
+bool isThrottle(void); // is the throttle button depressed?
+bool doBitmapsOverlap(
+    std::uint8_t bmp_id1, std::uint8_t x1, std::uint8_t y1,
+    std::uint8_t bmp_id2, std::uint8_t x2, std::uint8_t y2);
+bool isWallHit(std::uint8_t bmp_id, std::uint8_t x, std::uint8_t y);
+void displayOn();
+void displayOff();
+
+void randomSeed(std::uint32_t seed);
+std::uint32_t random();
+
+} // namespace BSP
+
+#endif // BSP_HPP_</text>
   </file>
   <!--${.::missile.cpp}-->
   <file name="missile.cpp">
-   <text>#include &quot;qpcpp.hpp&quot;
-#include &quot;bsp.hpp&quot;
-#include &quot;game.hpp&quot;
+   <text>#include &quot;qpcpp.hpp&quot;  // QP/C++ real-time event framework
+#include &quot;bsp.hpp&quot;    // Board Support Package
+#include &quot;app.hpp&quot;    // Application
 
 //Q_DEFINE_THIS_FILE
 
-$declare${AOs::Missile}
-
-// Public-scope shared objects -----------------------------------------------
-$define${Shared::AO_Missile}
-
-// Active object definition --------------------------------------------------
-$define${AOs::Missile}</text>
+$declare ${AOs::Missile}
+$define ${App::AO_Missile}
+$define ${AOs::Missile}</text>
   </file>
   <!--${.::ship.cpp}-->
   <file name="ship.cpp">
-   <text>#include &quot;qpcpp.hpp&quot;
-#include &quot;bsp.hpp&quot;
-#include &quot;game.hpp&quot;
+   <text>#include &quot;qpcpp.hpp&quot;  // QP/C++ real-time event framework
+#include &quot;bsp.hpp&quot;    // Board Support Package
+#include &quot;app.hpp&quot;    // Application
 
 //Q_DEFINE_THIS_FILE
 
-#define SHIP_WIDTH  5U
-#define SHIP_HEIGHT 3U
+constexpr std::uint8_t SHIP_WIDTH  {5U};
+constexpr std::uint8_t SHIP_HEIGHT {3U};
 
-// encapsulated declaration of the Ship active object ------------------------
-$declare${AOs::Ship}
-
-// Public-scope shared objects -----------------------------------------------
-$define${Shared::AO_Ship}
-
-// Active object definition --------------------------------------------------
-$define${AOs::Ship}</text>
+$declare ${AOs::Ship}
+$define ${App::AO_Ship}
+$define ${AOs::Ship}</text>
   </file>
   <!--${.::tunnel.cpp}-->
   <file name="tunnel.cpp">
-   <text>#include &quot;qpcpp.hpp&quot;
-#include &quot;bsp.hpp&quot;
-#include &quot;game.hpp&quot;
-#include &lt;string.h&gt; // for memmove() and memcpy()
+   <text>#include &quot;qpcpp.hpp&quot;  // QP/C++ real-time event framework
+#include &quot;bsp.hpp&quot;    // Board Support Package
+#include &quot;app.hpp&quot;    // Application
+
+#include &lt;string.h&gt;   // for memmove() and memcpy()
 
 Q_DEFINE_THIS_FILE
 
-// declaration of the Tunnel AO ----------------------------------------------
-$declare${AOs::Tunnel}
-
-// Public-scope shared objects -----------------------------------------------
-$define${Shared::AO_Tunnel}
-
-// Active object definition ==================================================
-$define${AOs::Tunnel}</text>
+$declare ${AOs::Tunnel}
+$define ${App::QTicker_inst0}
+$define ${App::AO_Tunnel}
+$define ${AOs::Tunnel}</text>
   </file>
   <!--${.::mine1.cpp}-->
   <file name="mine1.cpp">
-   <text>#include &quot;qpcpp.hpp&quot;
-#include &quot;bsp.hpp&quot;
-#include &quot;game.hpp&quot;
+   <text>#include &quot;qpcpp.hpp&quot;  // QP/C++ real-time event framework
+#include &quot;bsp.hpp&quot;    // Board Support Package
+#include &quot;app.hpp&quot;    // Application
 
 Q_DEFINE_THIS_FILE
 
-// encapsulated declaration of the Mine1 HSM ---------------------------------
-$declare${AOs::Mine1}
+$declare ${AOs::Mine1}
 
-namespace GAME {
+namespace APP {
 
 // helper function to provide the ID of this mine ............................
-static inline uint8_t MINE_ID(Mine1 const * const me) {
-    return static_cast&lt;uint8_t&gt;(me - &amp;Mine1::inst[0]);
+static inline std::uint8_t MINE_ID(Mine1 const * const me) {
+    return static_cast&lt;std::uint8_t&gt;(me - &amp;Mine1::inst[0]);
 }
 
-} // namespace GAME
+} // namespace APP
 
-// Mine1 class definition ----------------------------------------------------
-$define${Shared::Mine1_getInst}
-$define${AOs::Mine1}</text>
+$define ${App::Mine1_getInst}
+$define ${AOs::Mine1}</text>
   </file>
   <!--${.::mine2.cpp}-->
   <file name="mine2.cpp">
-   <text>#include &quot;qpcpp.hpp&quot;
-#include &quot;bsp.hpp&quot;
-#include &quot;game.hpp&quot;
+   <text>#include &quot;qpcpp.hpp&quot;  // QP/C++ real-time event framework
+#include &quot;bsp.hpp&quot;    // Board Support Package
+#include &quot;app.hpp&quot;    // Application
 
 Q_DEFINE_THIS_FILE
 
-// encapsulated declaration of the Mine2 HSM ---------------------------------
-$declare${AOs::Mine2}
+$declare ${AOs::Mine2}
 
-namespace GAME {
+namespace APP {
 
 // helper function to provide the ID of this mine ............................
 static inline std::uint8_t MINE_ID(Mine2 const * const me) {
     return static_cast&lt;std::uint8_t&gt;(me - &amp;Mine2::inst[0]);
 }
 
-} // namespace GAME
+} // namespace APP
 
-// Mine1 class definition ----------------------------------------------------
-$define${Shared::Mine2_getInst}
-$define${AOs::Mine2}</text>
+$define ${App::Mine2_getInst}
+$define ${AOs::Mine2}</text>
   </file>
  </directory>
 </model>

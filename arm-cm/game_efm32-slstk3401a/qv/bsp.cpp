@@ -26,14 +26,15 @@
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"      // QP/C++ real-time event framework
-#include "game.hpp"       // Game Application interface
-#include "bsp.hpp"        // Board Support Package
+#include "qpcpp.hpp"   // QP/C++ real-time event framework
+#include "bsp.hpp"     // Board Support Package
+#include "app.hpp"     // Application
 
-#include "em_device.h"  // the device specific header (SiLabs)
-#include "em_cmu.h"     // Clock Management Unit (SiLabs)
-#include "em_gpio.h"    // GPIO (SiLabs)
-#include "em_usart.h"   // USART (SiLabs)
+#include "em_device.h" // the device specific header (SiLabs)
+#include "em_chip.h"   // Chip errata (SiLabs)
+#include "em_cmu.h"    // Clock Management Unit (SiLabs)
+#include "em_gpio.h"   // GPIO (SiLabs)
+#include "em_usart.h"  // USART (SiLabs)
 #include "display_ls013b7dh03.h" // LS013b7DH03 display (SiLabs/QL)
 // add other drivers if necessary...
 
@@ -51,34 +52,33 @@ constexpr GPIO_Port_TypeDef PB_PORT  {gpioPortF};
 constexpr std::uint32_t PB0_PIN      {6U};
 constexpr std::uint32_t PB1_PIN      {7U};
 
-/* LCD geometry and frame buffer */
-static uint32_t l_fb[BSP::SCREEN_HEIGHT + 1][BSP::SCREEN_WIDTH / 32U];
+// LCD geometry and frame buffer
+static std::uint32_t l_fb[BSP::SCREEN_HEIGHT + 1][BSP::SCREEN_WIDTH / 32U];
 
-/* the walls buffer */
-static uint32_t l_walls[GAME_TUNNEL_HEIGHT + 1][BSP::SCREEN_WIDTH / 32U];
+// the walls buffer
+static std::uint32_t l_walls[APP::GAME_TUNNEL_HEIGHT + 1][BSP::SCREEN_WIDTH / 32U];
 
-static unsigned l_rnd;  /* random seed */
+static unsigned l_rnd;  // random seed
 
-static void paintBits(uint8_t x, uint8_t y, uint8_t const *bits, uint8_t h);
-static void paintBitsClear(uint8_t x, uint8_t y,
-                           uint8_t const *bits, uint8_t h);
+static void paintBits(std::uint8_t x, std::uint8_t y,
+    std::uint8_t const *bits, std::uint8_t h);
+static void paintBitsClear(std::uint8_t x, uint8_t y,
+    std::uint8_t const *bits, std::uint8_t h);
+
 #ifdef Q_SPY
+    enum AppRecords { // application-specific trace records
+        PHILO_STAT = QP::QS_USER,
+        PAUSED_STAT,
+    };
 
-    // QSpy source IDs
-    static QP::QSpyId const l_SysTick_Handler = { 0U };
+    // QS source IDs
+    static QP::QSpyId const l_SysTick_Handler { QP::QS_ID_AP };
 
     static USART_TypeDef * const l_USART0 = ((USART_TypeDef *)(0x40010000UL));
 
     static QP::QSTimeCtr QS_tickTime_;
     static QP::QSTimeCtr QS_tickPeriod_;
-
-    enum AppRecords { // application-specific trace records
-        PHILO_STAT = QP::QS_USER,
-        PAUSED_STAT,
-        CONTEXT_SW,
-    };
-
-#endif
+#endif // Q_SPY
 
 } // unnamed namespace
 
@@ -88,8 +88,7 @@ extern "C" {
 
 Q_NORETURN Q_onError(char const * const module, int_t const id) {
     // NOTE: this implementation of the error handler is intended only
-    // for debugging and MUST be changed for deployment of the application
-    // (assuming that you ship your production code with assertions enabled).
+    // for debugging and MUST be changed for deployment of the application.
     Q_UNUSED_PAR(module);
     Q_UNUSED_PAR(id);
     QS_ASSERTION(module, id, 10000U); // report assertion to QS
@@ -97,15 +96,16 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
 #ifndef NDEBUG
     // light up both LEDs
     GPIO->P[LED_PORT].DOUT |= ((1U << LED0_PIN) | (1U << LED1_PIN));
-    // for debugging, hang on in an endless loop...
-    for (;;) {
+    for (;;) { // for debugging, hang on in an endless loop...
     }
-#endif
+#else
     NVIC_SystemReset();
     for (;;) { // explicitly "no-return"
     }
+#endif
 }
 //............................................................................
+// assertion failure handler for the startup code and libraries
 void assert_failed(char const * const module, int_t const id); // prototype
 void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
@@ -116,9 +116,9 @@ void SysTick_Handler(void); // prototype
 void SysTick_Handler(void) {
 
     //QP::QTimeEvt::TICK_X(0U, &l_SysTick_Handler); // time events at rate 0
-    BSP::the_Ticker0->TRIG(&l_SysTick_Handler); // trigger Ticker0
+    APP::QTicker_inst0.TRIG(&l_SysTick_Handler); // trigger ticker AO
 
-    static QP::QEvt const tickEvt(GAME::TIME_TICK_SIG);
+    static QP::QEvt const tickEvt(APP::TIME_TICK_SIG);
     QP::QF::PUBLISH(&tickEvt, &l_SysTick_Handler); // publish to subscribers
 
     // Perform the debouncing of buttons. The algorithm for debouncing
@@ -139,7 +139,7 @@ void SysTick_Handler(void) {
 
     if ((tmp & (1U << PB0_PIN)) != 0U) {  // debounced PB0 state changed?
         if ((current & (1U << PB0_PIN)) != 0U) { // is PB0 depressed?
-            static QP::QEvt const trigEvt(GAME::PLAYER_TRIGGER_SIG);
+            static QP::QEvt const trigEvt(APP::PLAYER_TRIGGER_SIG);
             QP::QF::PUBLISH(&trigEvt, &l_SysTick_Handler);
         }
     }
@@ -163,7 +163,7 @@ void USART0_RX_IRQHandler(void); // prototype
 void USART0_RX_IRQHandler(void) {
     // while RX FIFO NOT empty
     while ((l_USART0->STATUS & USART_STATUS_RXDATAV) != 0U) {
-        std::uint8_t b = static_cast<uint8_t>(l_USART0->RXDATA);
+        std::uint32_t b = static_cast<uint8_t>(l_USART0->RXDATA);
         QP::QS::rxPut(b);
     }
 
@@ -171,23 +171,19 @@ void USART0_RX_IRQHandler(void) {
 }
 #endif // Q_SPY
 
-//............................................................................
-#ifdef QF_ON_CONTEXT_SW
-// NOTE: the context-switch callback is called with interrupts DISABLED
-void QF_onContextSw(QP::QActive *prev, QP::QActive *next) {
-    QS_BEGIN_INCRIT(CONTEXT_SW, 0U) // in critical section!
-        QS_OBJ(prev);
-        QS_OBJ(next);
-    QS_END_INCRIT()
-}
-#endif // QF_ON_CONTEXT_SW
-
 } // extern "C"
 
 //============================================================================
 namespace BSP {
 
-void init() {
+static QP::QTicker QTicker_inst0(0U); // ticker for tick rate 0
+
+void init(void const * const arg) {
+    Q_UNUSED_PAR(arg);
+
+    // Chip errata
+    CHIP_Init();
+
     // Configure the MPU to prevent NULL-pointer dereferencing ...
     MPU->RBAR = 0x0U                          // base address (NULL)
                 | MPU_RBAR_VALID_Msk          // valid region
@@ -202,10 +198,6 @@ void init() {
 
     // enable the MemManage_Handler for MPU exception
     SCB->SHCSR |= SCB_SHCSR_MEMFAULTENA_Msk;
-
-    // NOTE: SystemInit() has been already called from the startup code
-    // but SystemCoreClock needs to be updated
-    SystemCoreClockUpdate();
 
     // NOTE: The VFP (hardware Floating Point) unit is configured by QV
 
@@ -225,36 +217,74 @@ void init() {
     GPIO_PinModeSet(PB_PORT, PB0_PIN, gpioModeInputPull, 1);
     GPIO_PinModeSet(PB_PORT, PB1_PIN, gpioModeInputPull, 1);
 
-    BSP::randomSeed(1234U);
-
     // Initialize the DISPLAY driver
     if (!Display_init()) {
         Q_ERROR();
     }
 
-    // initialize the QS software tracing...
-    if (!QS_INIT(nullptr)) {
+    // initialize QS software tracing...
+    if (!QS_INIT(arg)) {
         Q_ERROR();
     }
 
-    // dictionaries...
+    // QS dictionaries...
     QS_OBJ_DICTIONARY(&l_SysTick_Handler);
     QS_USR_DICTIONARY(PHILO_STAT);
     QS_USR_DICTIONARY(PAUSED_STAT);
-    QS_USR_DICTIONARY(CONTEXT_SW);
+    QS_OBJ_DICTIONARY(APP::AO_Missile);
+    QS_OBJ_DICTIONARY(APP::AO_Ship);
+    QS_OBJ_DICTIONARY(APP::AO_Tunnel);
+    QS_OBJ_DICTIONARY(&QTicker_inst0);
+
+    // signal dictionaries for globally published events...
+    QS_SIG_DICTIONARY(APP::TIME_TICK_SIG,      nullptr);
+    QS_SIG_DICTIONARY(APP::PLAYER_TRIGGER_SIG, nullptr);
+    QS_SIG_DICTIONARY(APP::PLAYER_QUIT_SIG,    nullptr);
+    QS_SIG_DICTIONARY(APP::GAME_OVER_SIG,      nullptr);
 
     // setup the QS filters...
     QS_GLB_FILTER(QP::QS_SM_RECORDS); // state machine records
     QS_GLB_FILTER(QP::QS_AO_RECORDS); // active object records
     QS_GLB_FILTER(QP::QS_UA_RECORDS); // all user records
+
+    // initialize the event pools...
+    //static QF_MPOOL_EL(QP::QEvt) smlPoolSto[10];
+    //QP::QF::poolInit(smlPoolSto, sizeof(smlPoolSto), sizeof(smlPoolSto[0]));
+    static QF_MPOOL_EL(APP::ObjectImageEvt) medPoolSto[2*APP::GAME_MINES_MAX +20];
+    QP::QF::poolInit(medPoolSto, sizeof(medPoolSto), sizeof(medPoolSto[0]));
+
+    // init publish-subscribe
+    static QP::QSubscrList subscrSto[APP::MAX_PUB_SIG];
+    QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
+
+    randomSeed(1234U);
+
+    // start AOs...
+    APP::QTicker_inst0.start(1U, // priority
+                             0, 0, 0, 0);
+
+    static QP::QEvtPtr  tunnelQueueSto[APP::GAME_MINES_MAX + 5];
+    APP::AO_Tunnel ->start(2U,       // priority
+                      tunnelQueueSto, Q_DIM(tunnelQueueSto), // evt queue
+                      nullptr, 0U);  // no per-thread stack
+
+    static QP::QEvtPtr  shipQueueSto[3];
+    APP::AO_Ship   ->start(3U,       // priority
+                      shipQueueSto, Q_DIM(shipQueueSto), // evt queue
+                      nullptr, 0U);  // no per-thread stack
+
+    static QP::QEvtPtr  missileQueueSto[2];
+    APP::AO_Missile->start(4U,       // priority
+                      missileQueueSto, Q_DIM(missileQueueSto), // evt queue
+                      nullptr, 0U);  // no per-thread stack
 }
-//..........................................................................*/
+//.........................................................................
 void updateScreen(void) {
     GPIO->P[LED_PORT].DOUT |=  (1U << LED1_PIN);
     Display_sendPA(&l_fb[0][0], 0, LS013B7DH03_HEIGHT);
     GPIO->P[LED_PORT].DOUT &= ~(1U << LED1_PIN);
 }
-//..........................................................................*/
+//.........................................................................
 void clearFB() {
     uint_fast8_t y;
     for (y = 0U; y < SCREEN_HEIGHT; ++y) {
@@ -264,21 +294,21 @@ void clearFB() {
         l_fb[y][3] = 0U;
     }
 }
-//..........................................................................*/
+//.........................................................................
 void clearWalls() {
     uint_fast8_t y;
-    for (y = 0U; y < GAME_TUNNEL_HEIGHT; ++y) {
+    for (y = 0U; y < APP::GAME_TUNNEL_HEIGHT; ++y) {
         l_walls[y][0] = 0U;
         l_walls[y][1] = 0U;
         l_walls[y][2] = 0U;
         l_walls[y][3] = 0U;
     }
 }
-//..........................................................................*/
+//.........................................................................
 bool isThrottle(void) { // is the throttle button depressed?
     return (GPIO->P[PB_PORT].DIN & (1U << PB1_PIN)) == 0U;
 }
-//..........................................................................*/
+//.........................................................................
 void paintString(uint8_t x, uint8_t y, char const *str) {
     static uint8_t const font5x7[95][7] = {
         { 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U }, //
@@ -494,7 +524,7 @@ static uint8_t const explosion3_bits[] = {
     0x49, 0x2A, 0x14, 0x6B, 0x14, 0x2A, 0x49
 };
 
-static Bitmap const l_bitmap[GAME::MAX_BMP] = {
+static Bitmap const l_bitmap[APP::MAX_BMP] = {
     { ship_bits,       Q_DIM(ship_bits) },
     { missile_bits,    Q_DIM(missile_bits) },
     { mine1_bits,      Q_DIM(mine1_bits) },
@@ -506,15 +536,15 @@ static Bitmap const l_bitmap[GAME::MAX_BMP] = {
     { explosion3_bits, Q_DIM(explosion3_bits) }
 };
 
-//..........................................................................*/
+//.........................................................................
 void paintBitmap(uint8_t x, uint8_t y, uint8_t bmp_id) {
     Bitmap const *bmp = &l_bitmap[bmp_id];
     paintBits(x, y, bmp->bits, bmp->height);
 }
-//..........................................................................*/
+//.........................................................................
 void advanceWalls(uint8_t top, uint8_t bottom) {
-    uint_fast8_t y;
-    for (y = 0U; y < GAME_TUNNEL_HEIGHT; ++y) {
+    std::int_fast8_t y;
+    for (y = 0U; y < APP::GAME_TUNNEL_HEIGHT; ++y) {
         // shift the walls one pixel to the left
         l_walls[y][0] = (l_walls[y][0] >> 1) | (l_walls[y][1] << 31);
         l_walls[y][1] = (l_walls[y][1] >> 1) | (l_walls[y][2] << 31);
@@ -525,7 +555,7 @@ void advanceWalls(uint8_t top, uint8_t bottom) {
         if (y <= top) {
             l_walls[y][3] |= (1U << 31);
         }
-        if (y >= (GAME_TUNNEL_HEIGHT - bottom)) {
+        if (y >= (APP::GAME_TUNNEL_HEIGHT - bottom)) {
             l_walls[y][3] |= (1U << 31);
         }
 
@@ -536,7 +566,7 @@ void advanceWalls(uint8_t top, uint8_t bottom) {
         l_fb[y][3] = l_walls[y][3];
     }
 }
-//..........................................................................*/
+//.........................................................................
 bool doBitmapsOverlap(uint8_t bmp_id1, uint8_t x1, uint8_t y1,
                           uint8_t bmp_id2, uint8_t x2, uint8_t y2)
 {
@@ -600,8 +630,8 @@ bool doBitmapsOverlap(uint8_t bmp_id1, uint8_t x1, uint8_t y1,
     }
     return false; // the bitmaps do not overlap
 }
-//..........................................................................*/
-bool isWallHit(std::uint8_t bmp_id, uint8_t x, uint8_t y) {
+//............................................................................
+bool isWallHit(std::uint8_t bmp_id, std::uint8_t x, std::uint8_t y) {
     Bitmap const *bmp = &l_bitmap[bmp_id];
     uint32_t shift = (x & 0x1FU);
     uint32_t *walls = &l_walls[y][x >> 5];
@@ -618,7 +648,7 @@ bool isWallHit(std::uint8_t bmp_id, uint8_t x, uint8_t y) {
     return false;
 }
 
-//..........................................................................*/
+//.........................................................................
 void updateScore(std::uint16_t score) {
     uint8_t seg[5];
     char str[5];
@@ -654,18 +684,16 @@ uint32_t random() { // a very cheap pseudo-random-number generator
     float volatile x = 3.1415926F;
     x = x + 2.7182818F;
 
-    // no need to lock the scheduler around l_rnd in QV
-
+    // lock the scheduler around l_rnd up to the Tunnel priority
     // "Super-Duper" Linear Congruential Generator (LCG)
     // LCG(2^32, 3*7*11*13*23, 0, seed)
-    //
-    uint32_t rnd = l_rnd * (3U*7U*11U*13U*23U);
+    uint32_t const rnd = l_rnd * (3U*7U*11U*13U*23U);
     l_rnd = rnd; // set for the next time
 
-    return (rnd >> 8);
+    return rnd >> 8U;
 }
 //............................................................................
-void randomSeed(uint32_t seed) {
+void randomSeed(std::uint32_t seed) {
     l_rnd = seed;
 }
 
@@ -684,7 +712,7 @@ static void paintBits(uint8_t x, uint8_t y, uint8_t const *bits, uint8_t h) {
         }
     }
 }
-//..........................................................................*/
+//.........................................................................
 static void paintBitsClear(uint8_t x, uint8_t y,
                            uint8_t const *bits, uint8_t h)
 {
@@ -826,7 +854,7 @@ bool QS::onStartup(void const *arg) {
 
     // Finally enable the UART
     USART_Enable(l_USART0, usartEnable);
-
+    SystemCoreClockUpdate();
     QS_tickPeriod_ = SystemCoreClock / BSP::TICKS_PER_SEC;
     QS_tickTime_ = QS_tickPeriod_; // to start the timestamp at zero
 
@@ -845,7 +873,9 @@ QSTimeCtr QS::onGetTime() { // NOTE: invoked with interrupts DISABLED
     }
 }
 //............................................................................
-//! callback function to execute a user command
+// NOTE:
+// No critical section in QS_onFlush() to avoid nesting of critical sections
+// in case QS_onFlush() is called from Q_onError().
 void QS::onFlush() {
     for (;;) {
         std::uint16_t b = getByte();
@@ -865,7 +895,7 @@ void QS::onReset() {
 }
 //............................................................................
 void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
-               std::uint32_t param2, std::uint32_t param3)
+    std::uint32_t param2, std::uint32_t param3)
 {
     Q_UNUSED_PAR(cmdId);
     Q_UNUSED_PAR(param1);
@@ -909,4 +939,3 @@ void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
 // of the LED is proportional to the frequency of the idle loop.
 // Please note that the LED is toggled with interrupts locked, so no interrupt
 // execution time contributes to the brightness of the User LED.
-

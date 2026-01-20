@@ -44,7 +44,7 @@
 #-----------------------------------------------------------------------------
 # project:
 #
-PROJECT := dpp
+PROJECT := dpp_comp
 
 VPATH := .
 
@@ -53,8 +53,8 @@ INCLUDES := -I.
 C_SRCS :=
 
 CPP_SRCS := \
-	bsp.cpp \
 	main.cpp \
+	bsp.cpp \
 	philo.cpp \
 	table.cpp
 

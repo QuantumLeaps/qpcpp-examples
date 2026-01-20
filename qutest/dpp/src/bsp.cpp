@@ -27,24 +27,23 @@
 // <info@state-machine.com>
 //============================================================================
 #include "qpcpp.hpp"        // QP/C++ real-time event framework
-#include "dpp.hpp"          // DPP Application interface
 #include "bsp.hpp"          // Board Support Package
+#include "app.hpp"          // Application
 
 //============================================================================
 namespace { // unnamed namespace for local stuff with internal linkage
 
-Q_DEFINE_THIS_MODULE("bsp")
+Q_DEFINE_THIS_FILE  // file name for assertions
 
 // Local objects -------------------------------------------------------------
 static std::uint32_t l_rnd; // random seed
 
 #ifdef Q_SPY
-
     enum AppRecords { // application-specific trace records
         BSP_CALL = QP::QS_USER,
     };
 
-#endif
+#endif // Q_SPY
 
 } // unnamed namespace
 
@@ -52,7 +51,9 @@ static std::uint32_t l_rnd; // random seed
 //============================================================================
 namespace BSP {
 
-void init(void) {
+void init(void const * const arg) {
+    Q_UNUSED_PAR(arg);
+
     BSP::randomSeed(1234U);
 
     QS_FUN_DICTIONARY(&BSP::displayPaused);

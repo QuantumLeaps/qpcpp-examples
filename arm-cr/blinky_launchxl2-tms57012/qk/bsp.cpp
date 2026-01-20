@@ -1,39 +1,34 @@
 //============================================================================
 // Product: "Blinky" on LAUCHXL2-TMS570LS12 board, preemptive QK kernel
-// Last Updated for Version: 5.8.1
-// Date of the Last Update:  2016-12-12
 //
-//                    Q u a n t u m     L e a P s
-//                    ---------------------------
-//                    innovating embedded systems
+// Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 //
-// Copyright (C) Quantum Leaps, LLC. All rights reserved.
+//                    Q u a n t u m  L e a P s
+//                    ------------------------
+//                    Modern Embedded Software
 //
-// This program is open source software: you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as published
-// by the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 //
-// Alternatively, this program may be distributed and modified under the
-// terms of Quantum Leaps commercial licenses, which expressly supersede
-// the GNU General Public License and are specifically designed for
-// licensees interested in retaining the proprietary status of their code.
+// This software is dual-licensed under the terms of the open-source GNU
+// General Public License (GPL) or under the terms of one of the closed-
+// source Quantum Leaps commercial licenses.
 //
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
+// Redistributions in source code must retain this top-level comment block.
+// Plagiarizing this software to sidestep the license obligations is illegal.
 //
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <www.gnu.org/licenses/>.
+// NOTE:
+// The GPL does NOT permit the incorporation of this code into proprietary
+// programs. Please contact Quantum Leaps for commercial licensing options,
+// which expressly supersede the GPL and are designed explicitly for
+// closed-source distribution.
 //
-// Contact information:
-// https://state-machine.com
+// Quantum Leaps contact information:
+// <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"
-#include "blinky.hpp"
-#include "bsp.hpp"
+#include "qpcpp.hpp"        // QP/C++ real-time event framework
+#include "bsp.hpp"          // Board Support Package
+#include "app.hpp"          // Application
 
 #include "sys_common.h"
 #include "sys_core.h"
@@ -42,125 +37,302 @@
 #include "gio.h"
 #include "rti.h"
 #include "het.h"
+#include "sci.h"
 // add other drivers if necessary...
 
-//Q_DEFINE_THIS_FILE
+//============================================================================
+namespace { // unnamed namespace for local stuff with internal linkage
 
-#ifdef Q_SPY
-    #error Simple Blinky Application does not provide Spy build configuration
-#endif
+Q_DEFINE_THIS_FILE  // file name for assertions
 
-// Local-scope objects -------------------------------------------------------
-#define LED2_PIN    1
-#define LED2_PORT   gioPORTB
+// Local objects -------------------------------------------------------------
+constexpr std::uint32_t LED2_PIN  {1U};
+constexpr gioPORT_t    *LED2_PORT {gioPORTB};
 
-#define LED3_PIN    2
-#define LED3_PORT   gioPORTB
+constexpr std::uint32_t LED3_PIN  {2U};
+constexpr gioPORT_t    *LED3_PORT {gioPORTB};
 
 // NOTE: Switch-A is multiplexed on the same port/pin as LED3,
 // so you can use one or the other but not both simultaneously.
 //
-#define SWA_PIN     2
-#define SWA_PORT    gioPORTB
+//constexpr std::uint32_t SWA_PIN   {2U};
+//constexpr gioPORT_t    *SWA_PORT  {gioPORTB};
 
-#define SWB_PIN     15
-#define SWB_PORT    hetREG1
+constexpr std::uint32_t SWB_PIN   {15U};
+constexpr hetBASE_t    *SWB_PORT  {hetREG1};
 
-#define VIM_RAM     ((t_isrFuncPTR *)0xFFF82000U)
+constexpr t_isrFuncPTR *VIM_RAM   {reinterpret_cast<t_isrFuncPTR *>(0xFFF82000U)};
 
-// ISRs used in this project =================================================
+// Local-scope objects -----------------------------------------------------
+
+#ifdef Q_SPY
+    enum AppRecords { // application-specific trace records
+        LED_STAT = QP::QS_USER,
+    };
+
+    // QSpy source IDs...
+    static QP::QSpyId const l_rtiCompare0 = { QP::QS_ID_AP };
+    static QP::QSpyId const l_ssiTest = { QP::QS_ID_AP + 1U };
+#endif // Q_SPY
+
+} // unnamed namespace
+
+//============================================================================
+// Error handler
+
 extern "C" {
 
+Q_NORETURN Q_onError(char const * const module, int_t const id) {
+    // NOTE: this implementation of the error handler is intended only
+    // for debugging and MUST be changed for deployment of the application.
+    Q_UNUSED_PAR(module);
+    Q_UNUSED_PAR(id);
+    QS_ASSERTION(module, id, 10000U); // report assertion to QS
+
+#ifndef NDEBUG
+    for (;;) { // for debugging, hang on in an endless loop...
+    }
+#else
+    systemREG1->SYSECR = 0; // perform system reset
+    for (;;) { // explicitly "no-return"
+    }
+#endif
+}
 //............................................................................
+// assertion failure handler for the startup code and libraries
+void assert_failed(char const * const module, int_t const id); // prototype
+void assert_failed(char const * const module, int_t const id) {
+    Q_onError(module, id);
+}
+
+// ISRs used in the application ==============================================
+// CAUTION: ISRs MUST be both __stackless and __arm!
 QK_IRQ_BEGIN(rtiCompare0)
     rtiREG1->INTFLAG = 1U;    // clear the interrutp source
-    QP::QTimeEvt::TICK_X(0U, nullptr); // process time events for rate 0
+    QP::QTimeEvt::TICK_X(0U, &l_rtiCompare0); // time events at rate 0
 QK_IRQ_END()
+
+//............................................................................
+QK_IRQ_BEGIN(ssiTest)  // System Software Interrupt for testing
+    systemREG1->SSIF = 0x01; // clear the SSI0 source
+    // for testing...
+    static QP::QEvt const tstEvt{ APP::TIMEOUT_SIG };
+    APP::AO_Blinky->POST(&tstEvt, &l_ssiTest);
+QK_IRQ_END()
+
+//............................................................................
+#ifdef Q_SPY
+// ISR for receiving bytes from the QSPY Back-End
+// NOTE: This ISR is "QP-unaware" meaning that it does not interact with
+// the QP and is not disabled. Such ISRs don't need to be defined with
+// QK_IRQ_BEGIN()/QK_IRQ_END().
+
+#if defined __IAR_SYSTEMS_ICC__
+    FIQ
+#elif defined __TI_ARM__
+    #pragma CODE_STATE(32)
+    #pragma INTERRUPT(FIQ)
+#else
+    #error Unsupported compiler
+#endif
+void sciHighLevel(void) {
+    uint32_t vec = scilinREG->INTVECT0;
+    if (vec == 11U) { // SCI receive interrupt
+        std::uint32_t b = scilinREG->RD;
+        QP::QS::rxPut(b);
+    }
+}
+#endif // Q_SPY
 
 } // extern "C"
 
-// BSP functions =============================================================
-void BSP_init(void) {
+//============================================================================
+namespace BSP {
+
+//............................................................................
+void init(void const * const arg) {
+    Q_UNUSED_PAR(arg);
+
     // configure the LEDs
     gioInit();
-    LED2_PORT->DIR |= (1U << LED2_PIN);  // set as output
-    LED3_PORT->DIR |= (1U << LED3_PIN);  // set as output
+    LED2_PORT->DIR |= (1U << LED2_PIN); // set as output
+    LED3_PORT->DIR |= (1U << LED3_PIN); // set as output
 
     // configure the Buttons
-    SWB_PORT->DIR  &= (1U << SWB_PIN);   // set as input
-}
-//............................................................................
-void BSP_ledOff(void) {
-    LED2_PORT->DCLR = (1U << LED2_PIN);
-}
-//............................................................................
-void BSP_ledOn(void) {
-    // exercise the FPU with some floating point computations
-    float volatile x = 3.1415926F;
-    x = x + 2.7182818F;
+    SWB_PORT->DIR  &= (1U << SWB_PIN);    // set as input
 
+    // initialize QS software tracing...
+    if (!QS_INIT(arg)) {
+        Q_ERROR();
+    }
+
+    // QS dictionaries...
+    QS_OBJ_DICTIONARY(&l_rtiCompare0);
+    QS_OBJ_DICTIONARY(&l_ssiTest);
+    QS_SIG_DICTIONARY(APP::TIMEOUT_SIG, nullptr);
+    QS_USR_DICTIONARY(LED_STAT);
+
+    // setup the QS filters...
+    QS_GLB_FILTER(QP::QS_GRP_ALL);  // enable all QS trace records
+    QS_GLB_FILTER(-QP::QS_QF_TICK); // exclude the tick record
+
+    // mutable events not used -- no need to call QP::QF::poolInit()
+    // publish-subscribe not used -- no need to call QP::QActive::psInit()
+}
+//............................................................................
+void ledOn() {
     LED2_PORT->DSET = (1U << LED2_PIN);
+    // application-specific trace record
+    QS_BEGIN_ID(LED_STAT, APP::AO_Blinky->getPrio())
+        QS_STR("ON"); // LED status
+    QS_END()
+}
+//............................................................................
+void ledOff() {
+    LED2_PORT->DCLR = (1U << LED2_PIN);
+    // application-specific trace record
+    QS_BEGIN_ID(LED_STAT, APP::AO_Blinky->getPrio())
+        QS_STR("OFF"); // LED status
+    QS_END()
 }
 
+} // namespace BSP
 
-// QF callbacks ==============================================================
-void QF::onStartup(void) {
+//============================================================================
+namespace QP {
+
+// QF callbacks...
+void QF::onStartup() {
+    // start AOs...
+    static QEvtPtr blinkyQueueSto[10];
+    APP::AO_Blinky->start(
+        1U,                    // QP prio. of the AO
+        blinkyQueueSto,        // event queue storage
+        Q_DIM(blinkyQueueSto), // queue length [events]
+        nullptr, 0U);          // no stack storage
+
     rtiInit(); // configure RTI with UC counter of 7
     rtiSetPeriod(rtiCOUNTER_BLOCK0,
-                 (uint32)((RTI_FREQ*1E6/(7+1))/BSP_TICKS_PER_SEC));
-    rtiEnableNotification(rtiNOTIFICATION_COMPARE0); // enable interrupt
+        static_cast<std::uint32_t>((RTI_FREQ*1E6/(7+1))/BSP::TICKS_PER_SEC));
+    rtiEnableNotification(rtiNOTIFICATION_COMPARE0);
     rtiStartCounter(rtiCOUNTER_BLOCK0);
 
     VIM_RAM[2 + 1] = (t_isrFuncPTR)&rtiCompare0; // install the IRQ
-    vimREG->FIRQPR0 &= ~(1U << 2);   // designate interrupt as IRQ, NOTE00
-    vimREG->REQMASKSET0 = (1U << 2); // enable RTI interrupt
+    vimREG->FIRQPR0 &= ~(1U << 2U);   // designate interrupt as IRQ, NOTE0
+    vimREG->REQMASKSET0 = (1U << 2U); // enable RTI interrupt
+
+    VIM_RAM[21 + 1] = (t_isrFuncPTR)&ssiTest ; // install the IRQ
+    vimREG->FIRQPR0 &= ~(1U << 21);   // designate interrupt as IRQ, NOTE0
+    vimREG->REQMASKSET0 = (1U << 21); // enable interrupt
 
     QF_INT_ENABLE_ALL(); // enable all interrupts (IRQ and FIQ)
 }
 //............................................................................
-void QF::onCleanup(void) {
+void QF::onCleanup() {
+    QS_EXIT();
 }
-
 //............................................................................
-void QK::onIdle(void) {
-   // toggle LED1 on and then off, see NOTE01
+void QK::onIdle() {
+    // toggle User LED on and then off, see NOTE01
     QF_INT_DISABLE();
     LED3_PORT->DSET = (1U << LED3_PIN);
     LED3_PORT->DCLR = (1U << LED3_PIN);
     QF_INT_ENABLE();
 
-#ifdef NDEBUG
+#ifdef Q_SPY
+    QS::rxParse();  // parse all the received bytes
+
+    //if (sciIsTxReady(scilinREG)) {
+    if ((scilinREG->FLR & (uint32)SCI_TX_INT) != 0U) { // is TX empty?
+        QF_INT_DISABLE();
+        std::uint16_t b = QS::getByte();
+        QF_INT_ENABLE();
+
+        if (b != QS_EOD) {  // not End-Of-Data?
+            //sciSendByte(scilinREG, b);
+            scilinREG->TD = b; // put into the TD register
+        }
+    }
+#elif defined NDEBUG
     // Put the CPU and peripherals to the low-power mode.
     // you might need to customize the clock management for your application,
     // see the datasheet for your particular Cortex-R MCU.
-    //
     _gotoCPUIdle_(); // wait for interrupt
 #endif
 }
 
+//============================================================================
+// QS callbacks...
+#ifdef Q_SPY
+
 //............................................................................
-extern "C" Q_NORETURN Q_onError(char const * const module, int_t const loc) {
-    //
-    // NOTE: add here your application-specific error handling
-    //
-    (void)module;
-    (void)loc;
-    QS_ASSERTION(module, loc, static_cast<uint32_t>(10000U));
-    systemREG1->SYSECR = 0; // perform system reset
-    for (;;) { // explicitly no return
+bool QS::onStartup(void const *arg) {
+    Q_UNUSED_PAR(arg);
+
+    static std::uint8_t qsTxBuf[2*1024]; // buffer for QS-TX channel
+    initBuf(qsTxBuf, sizeof(qsTxBuf));
+
+    static std::uint8_t qsRxBuf[100];    // buffer for QS-RX channel
+    rxInitBuf(qsRxBuf, sizeof(qsRxBuf));
+
+    sciInit();
+    VIM_RAM[13 + 1] = (t_isrFuncPTR)&sciHighLevel; // install the ISR
+    vimREG->FIRQPR0 |= (1U << 13U);   // designate interrupt as FIQ
+    vimREG->REQMASKSET0 = (1U << 13U); // enable interrupt
+
+    return 1U; // return success
+}
+//............................................................................
+void QS::onCleanup() {
+}
+//............................................................................
+QSTimeCtr QS::onGetTime() { // NOTE: invoked with interrupts DISABLED
+    return rtiREG1->CNT[0].FRCx; // free running RTI counter0
+}
+//............................................................................
+// NOTE:
+// No critical section in QS_onFlush() to avoid nesting of critical sections
+// in case QS::onFlush() is called from Q_onError().
+void QS::onFlush() {
+    for (;;) {
+        std::uint16_t b = getByte();
+        if (b != QS_EOD) {
+            while ((scilinREG->FLR & (uint32)SCI_TX_INT) == 0U) {
+            }
+            scilinREG->TD = b;
+        }
+        else {
+            break;
+        }
     }
 }
+//............................................................................
+void QS::onReset() {
+    systemREG1->SYSECR = 0U; // perform system reset
+}
+//............................................................................
+void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
+    std::uint32_t param2, std::uint32_t param3)
+{
+    Q_UNUSED_PAR(cmdId);
+    Q_UNUSED_PAR(param1);
+    Q_UNUSED_PAR(param2);
+    Q_UNUSED_PAR(param3);
+}
+
+#endif // Q_SPY
+
+} // namespace QP
 
 //============================================================================
-// NOTE00:
+// NOTE0:
 // The FIQ-type interrupts are never disabled in this QP port, therefore
 // they can always preempt any code, including the IRQ-handlers (ISRs).
 // Therefore, FIQ-type interrupts are "kernel-unaware" and must NEVER call
 // any QP services, such as posting events.
 //
-// NOTE01:
+// NOTE1:
 // One of the LEDs is used to visualize the idle loop activity. The brightness
 // of the LED is proportional to the frequency of invcations of the idle loop.
 // Please note that the LED is toggled with interrupts locked, so no interrupt
 // execution time contributes to the brightness of the User LED.
-//

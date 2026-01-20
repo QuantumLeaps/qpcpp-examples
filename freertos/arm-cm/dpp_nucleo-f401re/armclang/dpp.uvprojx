@@ -395,11 +395,6 @@
               <FilePath>..\bsp.hpp</FilePath>
             </File>
             <File>
-              <FileName>dpp.hpp</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\dpp.hpp</FilePath>
-            </File>
-            <File>
               <FileName>FreeRTOSConfig.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\FreeRTOSConfig.h</FilePath>
@@ -1056,11 +1051,6 @@
               <FilePath>..\bsp.hpp</FilePath>
             </File>
             <File>
-              <FileName>dpp.hpp</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\dpp.hpp</FilePath>
-            </File>
-            <File>
               <FileName>FreeRTOSConfig.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\FreeRTOSConfig.h</FilePath>
@@ -1715,11 +1705,6 @@
               <FileName>bsp.hpp</FileName>
               <FileType>5</FileType>
               <FilePath>..\bsp.hpp</FilePath>
-            </File>
-            <File>
-              <FileName>dpp.hpp</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\dpp.hpp</FilePath>
             </File>
             <File>
               <FileName>FreeRTOSConfig.h</FileName>

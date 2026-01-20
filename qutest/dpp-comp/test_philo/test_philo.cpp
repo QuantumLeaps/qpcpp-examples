@@ -28,7 +28,7 @@
 //============================================================================
 #include "qpcpp.hpp"
 #include "bsp.hpp"
-#include "dpp.hpp"
+#include "app.hpp"
 
 namespace { // unnamed namespace
 
@@ -60,7 +60,7 @@ int main(void)
     }
 #endif
 
-    BSP::init();     // initialize the BSP
+    BSP::init(nullptr); // initialize the BSP and start the AOs
 
     // object dictionaries...
     QS_OBJ_DICTIONARY(&Table_dummy);

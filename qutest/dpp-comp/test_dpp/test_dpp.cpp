@@ -28,7 +28,7 @@
 //============================================================================
 #include "qpcpp.hpp"
 #include "bsp.hpp"
-#include "dpp.hpp"
+#include "app.hpp"
 
 //#include "safe_std.h" // portable "safe" <stdio.h>/<string.h> facilities
 
@@ -54,7 +54,7 @@ int main(void)
     }
 #endif
 
-    BSP::init();      // initialize the BSP
+    BSP::init(nullptr); // initialize the BSP and start the AOs
 
     // pause execution of the test and wait for the test script to continue
     QS_TEST_PAUSE();

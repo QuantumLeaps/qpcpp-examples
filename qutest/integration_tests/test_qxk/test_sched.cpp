@@ -152,7 +152,7 @@ ThrX ThrX::inst[NUM_X];
 int main() {
 
     QP::QF::init();  // initialize the framework and the underlying QXK kernel
-    BSP::init(); // initialize the Board Support Package
+    BSP::init(nullptr); // initialize the Board Support Package
 
     // initialize publish-subscribe...
     static QP::QSubscrList subscrSto[MAX_PUB_SIG];

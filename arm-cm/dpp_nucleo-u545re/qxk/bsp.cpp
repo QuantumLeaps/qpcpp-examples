@@ -26,25 +26,14 @@
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"      // QP/C++ real-time event framework
-#include "dpp.hpp"        // DPP Application interface
-#include "bsp.hpp"        // Board Support Package
+#include "qpcpp.hpp"        // QP/C++ real-time event framework
+#include "bsp.hpp"          // Board Support Package
+#include "app.hpp"          // Application
 
 #include "stm32u545xx.h"  // CMSIS-compliant header file for the MCU used
 // add other drivers if necessary...
 
-//============================================================================
-namespace { // unnamed namespace for local stuff with internal linkage
-
-Q_DEFINE_THIS_FILE
-
-// Local-scope objects -------------------------------------------------------
-// LED pins available on the board (just one user LED LD2--Green on PA.5)
-constexpr std::uint32_t LD2_PIN     {5U};
-
-// Button pins available on the board (just one user Button B1 on PC.13)
-constexpr std::uint32_t B1_PIN      {13U};
-
+// Local-scope defines -------------------------------------------------------
 // macros from STM32Cube LL:
 #define SET_BIT(REG, BIT)     ((REG) |= (BIT))
 #define CLEAR_BIT(REG, BIT)   ((REG) &= ~(BIT))
@@ -55,32 +44,41 @@ constexpr std::uint32_t B1_PIN      {13U};
 #define MODIFY_REG(REG, CLEARMASK, SETMASK) \
     WRITE_REG((REG), ((READ_REG(REG) & (~(CLEARMASK))) | (SETMASK)))
 
+//============================================================================
+namespace { // unnamed namespace for local stuff with internal linkage
 
-static std::uint32_t l_rndSeed;
+Q_DEFINE_THIS_FILE  // file name for assertions
+
+// Local objects -------------------------------------------------------------
+// LED pins available on the board (just one user LED LD2--Green on PA.5)
+constexpr std::uint32_t LD2_PIN     {5U};
+
+// Button pins available on the board (just one user Button B1 on PC.13)
+constexpr std::uint32_t B1_PIN      {13U};
+
+static std::uint32_t l_rnd; // random seed
 
 #ifdef Q_SPY
+    enum AppRecords { // application-specific trace records
+        PHILO_STAT = QP::QS_USER,
+        PAUSED_STAT,
+    };
 
-// QSpy source IDs
-static QP::QSpyId const l_SysTick_Handler = { 0U };
-static QP::QSpyId const l_EXTI0_1_IRQHandler = { 0U };
-
-enum AppRecords { // application-specific trace records
-    PHILO_STAT = QP::QS_USER,
-    PAUSED_STAT,
-    CONTEXT_SW,
-};
-#endif
+    // QSpy source IDs
+    static QP::QSpyId const l_SysTick_Handler { QP::QS_ID_AP };
+    static QP::QSpyId const l_EXTI0_1_IRQHandler { QP::QS_ID_AP + 1U };
+#endif // Q_SPY
 
 } // unnamed namespace
 
 //============================================================================
-// Error handler and ISRs...
+// Error handler
+
 extern "C" {
 
 Q_NORETURN Q_onError(char const * const module, int_t const id) {
     // NOTE: this implementation of the error handler is intended only
-    // for debugging and MUST be changed for deployment of the application
-    // (assuming that you ship your production code with assertions enabled).
+    // for debugging and MUST be changed for deployment of the application.
     Q_UNUSED_PAR(module);
     Q_UNUSED_PAR(id);
     QS_ASSERTION(module, id, 10000U); // report assertion to QS
@@ -88,15 +86,16 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
 #ifndef NDEBUG
     // light up the user LED
     GPIOA->BSRR = (1U << LD2_PIN);  // turn LED on
-    // for debugging, hang on in an endless loop...
-    for (;;) {
+    for (;;) { // for debugging, hang on in an endless loop...
     }
-#endif
+#else
     NVIC_SystemReset();
     for (;;) { // explicitly "no-return"
     }
+#endif
 }
 //............................................................................
+// assertion failure handler for the startup code and libraries
 void assert_failed(char const * const module, int_t const id); // prototype
 void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
@@ -170,17 +169,6 @@ void USART1_IRQHandler(void) { // used in QS-RX (kernel UNAWARE interrupt)
 }
 #endif // Q_SPY
 
-//............................................................................
-#ifdef QF_ON_CONTEXT_SW
-// NOTE: the context-switch callback is called with interrupts DISABLED
-void QF_onContextSw(QP::QActive *prev, QP::QActive *next) {
-    QS_BEGIN_INCRIT(CONTEXT_SW, 0U) // in critical section!
-        QS_OBJ(prev);
-        QS_OBJ(next);
-    QS_END_INCRIT()
-}
-#endif // QF_ON_CONTEXT_SW
-
 } // extern "C"
 
 //============================================================================
@@ -231,8 +219,10 @@ static void STM32U545RE_MPU_setup(void) {
     __DSB();
     __ISB();
 }
-//..........................................................................
-void init() {
+//............................................................................
+void init(void const * const arg) {
+    Q_UNUSED_PAR(arg);
+
     // setup the MPU...
     STM32U545RE_MPU_setup();
 
@@ -245,10 +235,6 @@ void init() {
 
     // enable PWR clock interface
     SET_BIT(RCC->AHB3ENR, RCC_AHB3ENR_PWREN);
-
-    // NOTE: SystemInit() has been already called from the startup code
-    // but SystemCoreClock needs to be updated
-    SystemCoreClockUpdate();
 
     // NOTE: The VFP (hardware Floating Point) unit is configured by QXK
 
@@ -280,34 +266,30 @@ void init() {
                GPIO_MODER_MODE0 << (B1_PIN * GPIO_MODER_MODE1_Pos),
                0U << (B1_PIN * GPIO_MODER_MODE1_Pos)); // MODE_0
 
-    BSP::randomSeed(1234U); // seed the random number generator
-
-    // initialize the QS software tracing...
-    if (!QS_INIT(nullptr)) {
+    // initialize QS software tracing...
+    if (!QS_INIT(arg)) {
         Q_ERROR();
     }
 
-    // dictionaries...
+    // QS dictionaries...
     QS_OBJ_DICTIONARY(&l_SysTick_Handler);
     QS_USR_DICTIONARY(PHILO_STAT);
     QS_USR_DICTIONARY(PAUSED_STAT);
-    QS_USR_DICTIONARY(CONTEXT_SW);
-
     QS_ONLY(APP::produce_sig_dict());
 
     // setup the QS filters...
-    QS_GLB_FILTER(QP::QS_GRP_ALL);   // all records
-    QS_GLB_FILTER(-QP::QS_QF_TICK);      // exclude the clock tick
-}
-//............................................................................
-void start() {
-    // initialize event pools
+    QS_GLB_FILTER(QP::QS_GRP_ALL);  // enable all QS trace records
+    QS_GLB_FILTER(-QP::QS_QF_TICK); // exclude the tick record
+
+    // initialize event pools for mutable events
     static QF_MPOOL_EL(APP::TableEvt) smlPoolSto[2*APP::N_PHILO];
     QP::QF::poolInit(smlPoolSto, sizeof(smlPoolSto), sizeof(smlPoolSto[0]));
 
     // initialize publish-subscribe
     static QP::QSubscrList subscrSto[APP::MAX_PUB_SIG];
     QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
+
+    randomSeed(1234U); // seed the random number generator
 
     // start AOs/threads...
     static QP::QEvtPtr xThread1QueueSto[5];
@@ -345,7 +327,12 @@ void start() {
         nullptr, 0U);                // no stack storage
 }
 //............................................................................
-void displayPhilStat(uint8_t n, char const *stat) {
+void terminate(std::int16_t const result) {
+    Q_UNUSED_PAR(result);
+    QP::QF::stop();
+}
+//............................................................................
+void displayPhilStat(std::uint8_t const n, char const * const stat) {
     Q_UNUSED_PAR(n);
 
     if (stat[0] == 'e') {
@@ -355,7 +342,7 @@ void displayPhilStat(uint8_t n, char const *stat) {
         GPIOA->BRR  = (1U << LD2_PIN); // turn LED off
     }
 
-    // app-specific trace record...
+    // application-specific trace record
     QS_BEGIN_ID(PHILO_STAT, APP::AO_Table->getPrio())
         QS_U8(1, n);  // Philosopher number
         QS_STR(stat); // Philosopher status
@@ -373,25 +360,23 @@ void displayPaused(std::uint8_t const paused) {
 
     // application-specific trace record
     QS_BEGIN_ID(PAUSED_STAT, APP::AO_Table->getPrio())
-        QS_U8(1, paused);  // Paused status
+        QS_U8(1U, paused);  // Paused status
     QS_END()
 }
 //............................................................................
-void randomSeed(std::uint32_t seed) {
-    l_rndSeed = seed;
+void randomSeed(std::uint32_t const seed) {
+    l_rnd = seed;
 }
 //............................................................................
 std::uint32_t random() { // a very cheap pseudo-random-number generator
-
     QP::QSchedStatus lockStat = QP::QXK::schedLock(APP::N_PHILO);
     // "Super-Duper" Linear Congruential Generator (LCG)
     // LCG(2^32, 3*7*11*13*23, 0, seed)
-    //
-    std::uint32_t rnd = l_rndSeed * (3U*7U*11U*13U*23U);
-    l_rndSeed = rnd; // set for the next time
+    std::uint32_t const rnd = l_rnd * (3U*7U*11U*13U*23U);
+    l_rnd = rnd; // set for the next time
     QP::QXK::schedUnlock(lockStat);
 
-    return (rnd >> 8U);
+    return rnd >> 8U;
 }
 //............................................................................
 void ledOn() {
@@ -400,10 +385,6 @@ void ledOn() {
 //............................................................................
 void ledOff() {
     GPIOA->BRR = (1U << LD2_PIN);  // turn LED off
-}
-//............................................................................
-void terminate(int16_t result) {
-    Q_UNUSED_PAR(result);
 }
 
 } // namespace BSP
@@ -414,6 +395,7 @@ namespace QP {
 // QF callbacks...
 void QF::onStartup() {
     // set up the SysTick timer to fire at BSP::TICKS_PER_SEC rate
+    SystemCoreClockUpdate();
     SysTick_Config(SystemCoreClock / BSP::TICKS_PER_SEC);
 
     // assign all priority bits for preemption-prio. and none to sub-prio.
@@ -434,6 +416,7 @@ void QF::onStartup() {
 }
 //............................................................................
 void QF::onCleanup() {
+    QS_EXIT();
 }
 //............................................................................
 void QXK::onIdle() {
@@ -472,7 +455,7 @@ void QXK::onIdle() {
 #ifdef Q_SPY
 
 //............................................................................
-static std::uint16_t const QS_UARTPrescTable[12] = {
+static constexpr std::uint16_t QS_UARTPrescTable[12] = {
     1U, 2U, 4U, 6U, 8U, 10U, 12U, 16U, 32U, 64U, 128U, 256U
 };
 
@@ -551,6 +534,7 @@ bool QS::onStartup(void const *arg) {
         0U);  // hardware-flow=NO
 
     // baud rate
+    SystemCoreClockUpdate();
     USART1->BRR = QS_UART_DIV_SAMPLING16(
                        SystemCoreClock, // USART1 clock
                        115200U,         // baud rate
@@ -631,7 +615,7 @@ void QS::onReset() {
 }
 //............................................................................
 void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
-               std::uint32_t param2, std::uint32_t param3)
+    std::uint32_t param2, std::uint32_t param3)
 {
     Q_UNUSED_PAR(cmdId);
     Q_UNUSED_PAR(param1);
@@ -668,4 +652,3 @@ void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
 // of the LED is proportional to the frequency of the idle loop.
 // Please note that the LED is toggled with interrupts locked, so no interrupt
 // execution time contributes to the brightness of the User LED.
-//

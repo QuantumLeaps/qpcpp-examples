@@ -226,9 +226,6 @@
                 </option>
                 <option>
                     <name>CCDefines</name>
-                    <state>QF_ON_CONTEXT_SW</state>
-                    <state>QXK_USE_IRQ_HANDLER=LCD_IRQHandler</state>
-                    <state>QXK_USE_IRQ_NUM=30</state>
                     <state>STM32L053xx</state>
                 </option>
                 <option>
@@ -2076,7 +2073,7 @@
                 </option>
                 <option>
                     <name>IlinkTrustzoneImportLibraryOut</name>
-                    <state>###Unitialized###</state>
+                    <state>dpp-qxk_import_lib.o</state>
                 </option>
                 <option>
                     <name>OILinkExtraOption</name>
@@ -2389,7 +2386,6 @@
                 <option>
                     <name>CCDefines</name>
                     <state>Q_SPY</state>
-                    <state>QF_ON_CONTEXT_SW</state>
                     <state>STM32L053xx</state>
                 </option>
                 <option>
@@ -3592,9 +3588,6 @@
                     </data>
                 </settings>
             </configuration>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\..\..\..\..\ports\arm-cm\qxk\iar\qp_port.hpp</name>
         </file>
     </group>
     <group>

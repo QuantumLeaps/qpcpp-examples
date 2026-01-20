@@ -27,8 +27,8 @@
 // <info@state-machine.com>
 //============================================================================
 #include "qpcpp.hpp"  // QP/C++ framework API
-#include "bsp.hpp"    // Board Support Package interface
-#include "gizmo.hpp"  // Gizmo AO
+#include "bsp.hpp"    // Board Support Package
+#include "app.hpp"    // Application
 
 using namespace QP;
 
@@ -54,7 +54,7 @@ int main(void)
     }
 #endif
 
-    BSP::init(); // initialize the BSP
+    BSP::init(nullptr); // initialize the BSP and start the AOs
 
     // pause execution of the test and wait for the test script to continue
     QS_TEST_PAUSE();

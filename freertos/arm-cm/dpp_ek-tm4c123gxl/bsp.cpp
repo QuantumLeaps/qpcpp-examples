@@ -26,9 +26,9 @@
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"      // QP/C++ real-time event framework
-#include "dpp.hpp"        // DPP Application interface
-#include "bsp.hpp"        // Board Support Package
+#include "qpcpp.hpp"        // QP/C++ real-time event framework
+#include "bsp.hpp"          // Board Support Package
+#include "app.hpp"          // Application
 
 #include "TM4C123GH6PM.h"  // the device specific header (TI)
 #include "sysctl.h"        // system control driver (TI)
@@ -55,6 +55,10 @@ constexpr std::uint32_t RTOS_AWARE_ISR_CMSIS_PRI
 static std::uint32_t l_rndSeed;
 
 #ifdef Q_SPY
+    enum AppRecords { // application-specific trace records
+        PHILO_STAT = QP::QS_USER,
+        PAUSED_STAT,
+    };
 
     // QSpy source IDs
     QP::QSpyId const l_TickHook = { 0U };
@@ -64,24 +68,18 @@ static std::uint32_t l_rndSeed;
     constexpr std::uint32_t UART_FR_TXFE        {1U << 7U};
     constexpr std::uint32_t UART_FR_RXFE        {1U << 4U};
     constexpr std::uint32_t UART_TXFIFO_DEPTH   {16U};
-
-    enum AppRecords { // application-specific trace records
-        PHILO_STAT = QP::QS_USER,
-        PAUSED_STAT,
-    };
-
-#endif
+#endif // Q_SPY
 
 } // unnamed namespace
 
 //============================================================================
 // Error handler
+
 extern "C" {
 
 Q_NORETURN Q_onError(char const * const module, int_t const id) {
     // NOTE: this implementation of the error handler is intended only
-    // for debugging and MUST be changed for deployment of the application
-    // (assuming that you ship your production code with assertions enabled).
+    // for debugging and MUST be changed for deployment of the application.
     Q_UNUSED_PAR(module);
     Q_UNUSED_PAR(id);
     QS_ASSERTION(module, id, 10000U); // report assertion to QS
@@ -89,15 +87,16 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
 #ifndef NDEBUG
     // light up all LEDs
     GPIOF_AHB->DATA_Bits[LED_GREEN | LED_RED | LED_BLUE] = 0xFFU;
-    // for debugging, hang on in an endless loop...
-    for (;;) {
+    for (;;) { // for debugging, hang on in an endless loop...
     }
-#endif
+#else
     NVIC_SystemReset();
     for (;;) { // explicitly "no-return"
     }
+#endif
 }
 //............................................................................
+// assertion failure handler for the startup code and libraries
 void assert_failed(char const * const module, int_t const id); // prototype
 void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
@@ -254,10 +253,12 @@ void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
 
 } // extern "C"
 
-// BSP functions =============================================================
+//============================================================================
 namespace BSP {
 
-void init() {
+void init(void const * const arg) {
+    Q_UNUSED_PAR(arg);
+
     // Configure the MPU to prevent NULL-pointer dereferencing ...
     MPU->RBAR = 0x0U                          // base address (NULL)
                 | MPU_RBAR_VALID_Msk          // valid region
@@ -272,10 +273,6 @@ void init() {
 
     // enable the MemManage_Handler for MPU exception
     SCB->SHCSR |= SCB_SHCSR_MEMFAULTENA_Msk;
-
-    // NOTE: SystemInit() has been already called from the startup code
-    // but SystemCoreClock needs to be updated
-    SystemCoreClockUpdate();
 
     // NOTE: VFP (hardware Floating Point) unit is configured by FreeRTOS
 
@@ -304,10 +301,8 @@ void init() {
     *(uint32_t volatile *)&GPIOF_AHB->CR = 0x00U;
     GPIOF_AHB->LOCK = 0x0; // lock GPIOCR register for SW2
 
-    BSP::randomSeed(1234U);
-
-    // initialize the QS software tracing...
-    if (!QS_INIT(nullptr)) {
+    // initialize QS software tracing...
+    if (!QS_INIT(arg)) {
         Q_ERROR();
     }
 
@@ -316,16 +311,13 @@ void init() {
     QS_OBJ_DICTIONARY(&l_GPIOPortA_IRQHandler);
     QS_USR_DICTIONARY(PHILO_STAT);
     QS_USR_DICTIONARY(PAUSED_STAT);
-
     QS_ONLY(APP::produce_sig_dict());
 
     // setup the QS filters...
-    QS_GLB_FILTER(QP::QS_GRP_ALL);   // all records
-    QS_GLB_FILTER(-QP::QS_QF_TICK);      // exclude the clock tick
-}
-//............................................................................
-void start() {
-    // initialize event pools
+    QS_GLB_FILTER(QP::QS_GRP_ALL);  // enable all QS trace records
+    QS_GLB_FILTER(-QP::QS_QF_TICK); // exclude the tick record
+
+    // initialize event pools for mutable events
     static QF_MPOOL_EL(APP::TableEvt) smlPoolSto[2*APP::N_PHILO];
     QP::QF::poolInit(smlPoolSto, sizeof(smlPoolSto), sizeof(smlPoolSto[0]));
 
@@ -333,26 +325,7 @@ void start() {
     static QP::QSubscrList subscrSto[APP::MAX_PUB_SIG];
     QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
 
-    // start AOs/threads...
-    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10];
-    static StackType_t philoStack[APP::N_PHILO][configMINIMAL_STACK_SIZE];
-    for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
-        APP::AO_Philo[n]->start(
-            Q_PRIO(n + 3U, 3U),      // QP prio., FreeRTOS prio.
-            philoQueueSto[n],        // event queue storage
-            Q_DIM(philoQueueSto[n]), // queue length [events]
-            philoStack[n],           // stack storage
-            sizeof(philoStack[n]));  // stack size [bytes]
-    }
-
-    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
-    static StackType_t tableStack[configMINIMAL_STACK_SIZE];
-    APP::AO_Table->start(
-        Q_PRIO(APP::N_PHILO + 7U, 7U), // QP prio., FreeRTOS prio.
-        tableQueueSto,               // event queue storage
-        Q_DIM(tableQueueSto),        // queue length [events]
-        tableStack,                  // stack storage
-        sizeof(tableStack));         // stack size [bytes]
+    randomSeed(1234U); // seed the random number generator
 }
 //............................................................................
 void displayPhilStat(std::uint8_t n, char const *stat) {
@@ -360,7 +333,7 @@ void displayPhilStat(std::uint8_t n, char const *stat) {
 
     GPIOF_AHB->DATA_Bits[LED_GREEN] = ((stat[0] == 'e') ? LED_GREEN : 0U);
 
-    // app-specific trace record...
+    // application-specific trace record
     QS_BEGIN_ID(PHILO_STAT, APP::AO_Table->getPrio())
         QS_U8(1, n);  // Philosopher number
         QS_STR(stat); // Philosopher status
@@ -388,11 +361,11 @@ std::uint32_t random() { // a very cheap pseudo-random-number generator
     vTaskSuspendAll(); // lock FreeRTOS scheduler
     // "Super-Duper" Linear Congruential Generator (LCG)
     // LCG(2^32, 3*7*11*13*23, 0, seed)
-    std::uint32_t rnd = l_rndSeed * (3U*7U*11U*13U*23U);
+    std::uint32_t const rnd = l_rndSeed * (3U*7U*11U*13U*23U);
     l_rndSeed = rnd; // set for the next time
     xTaskResumeAll(); // unlock the FreeRTOS scheduler
 
-    return (rnd >> 8U);
+    return rnd >> 8U;
 }
 //............................................................................
 void terminate(std::int16_t result) {
@@ -413,8 +386,28 @@ void ledOff() {
 namespace QP {
 
 // QF callbacks...
-
 void QF::onStartup() {
+    // start AOs/threads...
+    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10];
+    static StackType_t philoStack[APP::N_PHILO][configMINIMAL_STACK_SIZE];
+    for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
+        APP::AO_Philo[n]->start(
+            Q_PRIO(n + 3U, 3U),      // QP prio., FreeRTOS prio.
+            philoQueueSto[n],        // event queue storage
+            Q_DIM(philoQueueSto[n]), // queue length [events]
+            philoStack[n],           // stack storage
+            sizeof(philoStack[n]));  // stack size [bytes]
+    }
+
+    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
+    static StackType_t tableStack[configMINIMAL_STACK_SIZE];
+    APP::AO_Table->start(
+        Q_PRIO(APP::N_PHILO + 7U, 7U), // QP prio., FreeRTOS prio.
+        tableQueueSto,               // event queue storage
+        Q_DIM(tableQueueSto),        // queue length [events]
+        tableStack,                  // stack storage
+        sizeof(tableStack));         // stack size [bytes]
+
     // set up the SysTick timer to fire at BSP::TICKS_PER_SEC rate
     //SysTick_Config(SystemCoreClock / BSP::TICKS_PER_SEC); // done in FreeRTOS
 
@@ -470,6 +463,7 @@ bool QS::onStartup(void const *arg) {
     GPIOA->PCTL  |= 0x11U;
 
     // configure the UART for the desired baud rate, 8-N-1 operation
+    SystemCoreClockUpdate();
     tmp = (((SystemCoreClock * 8U) / UART_BAUD_RATE) + 1U) / 2U;
     UART0->IBRD   = tmp / 64U;
     UART0->FBRD   = tmp % 64U;
@@ -527,7 +521,7 @@ void QS::onReset() {
 }
 //............................................................................
 void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
-               std::uint32_t param2, std::uint32_t param3)
+    std::uint32_t param2, std::uint32_t param3)
 {
     Q_UNUSED_PAR(cmdId);
     Q_UNUSED_PAR(param1);
@@ -569,4 +563,3 @@ void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
 // of the LED is proportional to the frequency of invcations of the idle loop.
 // Please note that the LED is toggled with interrupts locked, so no interrupt
 // execution time contributes to the brightness of the User LED.
-

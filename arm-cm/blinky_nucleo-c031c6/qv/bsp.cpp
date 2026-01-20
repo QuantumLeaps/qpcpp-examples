@@ -26,9 +26,9 @@
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"             // QP/C++ real-time event framework
-#include "blinky.hpp"            // Blinky Application interface
-#include "bsp.hpp"               // Board Support Package
+#include "qpcpp.hpp"        // QP/C++ real-time event framework
+#include "bsp.hpp"          // Board Support Package
+#include "app.hpp"          // Application
 
 #include "stm32c0xx.h"  // CMSIS-compliant header file for the MCU used
 // add other drivers if necessary...
@@ -36,33 +36,35 @@
 //============================================================================
 namespace { // unnamed namespace for local stuff with internal linkage
 
-Q_DEFINE_THIS_FILE
+Q_DEFINE_THIS_FILE  // file name for assertions
 
-// Local-scope objects -------------------------------------------------------
+// Local objects -------------------------------------------------------------
 constexpr std::uint32_t LD4_PIN     {5U};
 constexpr std::uint32_t B1_PIN      {13U};
 
 #ifdef Q_SPY
-
-    // QSpy source IDs
-    static QP::QSpyId const l_SysTick_Handler = { 0U };
+    enum AppRecords { // application-specific trace records
+        LED_STAT = QP::QS_USER,
+    };
 
     QP::QSTimeCtr QS_tickTime_;
     QP::QSTimeCtr QS_tickPeriod_;
 
+    // QSpy source IDs
+    static QP::QSpyId const l_SysTick_Handler = { QP::QS_ID_AP };
+    static QP::QSpyId const l_EXTI0_1_IRQHandler = { QP::QS_ID_AP + 1U };
 #endif
 
-} // unnamed local namespace
+} // unnamed namespace
 
 //============================================================================
-// Error handler and ISRs...
+// Error handler
 
 extern "C" {
 
 Q_NORETURN Q_onError(char const * const module, int_t const id) {
     // NOTE: this implementation of the error handler is intended only
-    // for debugging and MUST be changed for deployment of the application
-    // (assuming that you ship your production code with assertions enabled).
+    // for debugging and MUST be changed for deployment of the application.
     Q_UNUSED_PAR(module);
     Q_UNUSED_PAR(id);
     QS_ASSERTION(module, id, 10000U); // report assertion to QS
@@ -70,27 +72,26 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
 #ifndef NDEBUG
     // light up the user LED
     GPIOA->BSRR = (1U << LD4_PIN);  // turn LED on
-    // for debugging, hang on in an endless loop...
-    for (;;) {
+    for (;;) { // for debugging, hang on in an endless loop...
     }
-#endif
+#else
     NVIC_SystemReset();
     for (;;) { // explicitly "no-return"
     }
+#endif
 }
 //............................................................................
-// assertion failure handler for the STM32 library, including the startup code
+// assertion failure handler for the startup code and libraries
 void assert_failed(char const * const module, int_t const id); // prototype
 void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
 }
 
 // ISRs used in the application ==============================================
-
 void SysTick_Handler(void); // prototype
 void SysTick_Handler(void) {
 
-    QP::QTimeEvt::TICK_X(0U, nullptr); // process time events at rate 0
+    QP::QTimeEvt::TICK_X(0U, &l_SysTick_Handler); // time events at rate 0
 
 #ifdef Q_SPY
     std::uint32_t volatile tmp = SysTick->CTRL; // clear CTRL_COUNTFLAG
@@ -100,13 +101,43 @@ void SysTick_Handler(void) {
 
     QV_ARM_ERRATUM_838869();
 }
+//............................................................................
+// interrupt handler for testing preemptions in QK
+void EXTI0_1_IRQHandler(void); // prototype
+void EXTI0_1_IRQHandler(void) {
+    // for testing..
+    static QP::QEvt const testEvt(APP::TIMEOUT_SIG);
+    APP::AO_Blinky->POST(&testEvt, &l_EXTI0_1_IRQHandler);
+
+    QV_ARM_ERRATUM_838869();
+}
+
+//............................................................................
+#ifdef Q_SPY
+// ISR for receiving bytes from the QSPY Back-End
+// NOTE: This ISR is "QF-unaware" meaning that it does not interact with
+// the QF/QK and is not disabled. Such ISRs don't need to call
+// QK_ISR_ENTRY/QK_ISR_EXIT and they cannot post or publish events.
+
+void USART2_IRQHandler(void); // prototype
+void USART2_IRQHandler(void) { // used in QS-RX (kernel UNAWARE interrutp)
+    if ((USART2->ISR & (1U << 5U)) != 0U) {
+        std::uint8_t b = USART2->RDR;
+        QP::QS::rxPut(b);
+    }
+
+    QV_ARM_ERRATUM_838869();
+}
+#endif // Q_SPY
 
 } // extern "C"
 
 //============================================================================
 namespace BSP {
 
-void init() {
+void init(void const * const arg) {
+    Q_UNUSED_PAR(arg);
+
     // Configure the MPU to prevent NULL-pointer dereferencing ...
     MPU->RBAR = 0x0U                          // base address (NULL)
                 | MPU_RBAR_VALID_Msk          // valid region
@@ -118,12 +149,6 @@ void init() {
                 | MPU_CTRL_ENABLE_Msk;        // enable the MPU
     __ISB();
     __DSB();
-
-    // NOTE: SystemInit() has been already called from the startup code
-    // but SystemCoreClock needs to be updated
-    SystemCoreClockUpdate();
-
-    // NOTE: The VFP (hardware Floating Point) unit is configured by QV
 
     // enable GPIOA clock port for the LED LD4
     RCC->IOPENR |= (1U << 0U);
@@ -143,48 +168,46 @@ void init() {
     GPIOC->MODER &= ~(3U << 2U*B1_PIN);
     GPIOC->PUPDR &= ~(3U << 2U*B1_PIN);
 
-    // initialize the QS software tracing...
-    if (!QS_INIT(nullptr)) {
+    // initialize QS software tracing...
+    if (!QS_INIT(arg)) {
         Q_ERROR();
     }
 
-    // dictionaries...
+    // QS dictionaries...
     QS_OBJ_DICTIONARY(&l_SysTick_Handler);
+    QS_SIG_DICTIONARY(APP::TIMEOUT_SIG, nullptr);
+    QS_USR_DICTIONARY(LED_STAT);
 
     // setup the QS filters...
-    QS_GLB_FILTER(QP::QS_GRP_ALL);   // all records
-    QS_GLB_FILTER(-QP::QS_QF_TICK);      // exclude the clock tick
-}
-//............................................................................
-void start() {
-    // initialize event pools
-    static QF_MPOOL_EL(QP::QEvt) smlPoolSto[20];
-    QP::QF::poolInit(smlPoolSto, sizeof(smlPoolSto), sizeof(smlPoolSto[0]));
+    QS_GLB_FILTER(QP::QS_GRP_ALL);  // enable all QS trace records
+    QS_GLB_FILTER(-QP::QS_QF_TICK); // exclude the tick record
 
-    // initialize publish-subscribe
-    static QP::QSubscrList subscrSto[APP::MAX_PUB_SIG];
-    QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
+    // no dynamic events -- no need to call QF_poolInit();
+    // no publish-subscribe -- no need to call QActive_psInit();
 
-    // start Active Objects...
-
-    static QP::QEvtPtr blinkyQueueSto[5];
+    // start AOs...
+    static QP::QEvtPtr blinkyQueueSto[10];
     APP::AO_Blinky->start(
-        1U,                         // QP prio. of the AO
-        blinkyQueueSto,              // event queue storage
-        Q_DIM(blinkyQueueSto),       // queue length [events]
-        nullptr, 0U);                // no stack storage
+        1U,                      // QP prio. of the AO
+        blinkyQueueSto,          // event queue storage
+        Q_DIM(blinkyQueueSto),   // queue length [events]
+        nullptr, 0U);            // no stack storage
 }
 //............................................................................
 void ledOn() {
     GPIOA->BSRR = (1U << LD4_PIN);  // turn LED on
+    // application-specific trace record
+    QS_BEGIN_ID(LED_STAT, APP::AO_Blinky->getPrio())
+        QS_STR("ON"); // LED status
+    QS_END()
 }
 //............................................................................
 void ledOff() {
     GPIOA->BSRR = (1U << (LD4_PIN + 16U));  // turn LED off
-}
-//............................................................................
-void terminate(int16_t result) {
-    Q_UNUSED_PAR(result);
+    // application-specific trace record
+    QS_BEGIN_ID(LED_STAT, APP::AO_Blinky->getPrio())
+        QS_STR("OFF"); // LED status
+    QS_END()
 }
 
 } // namespace BSP
@@ -195,6 +218,7 @@ namespace QP {
 // QF callbacks...
 void QF::onStartup() {
     // set up the SysTick timer to fire at BSP::TICKS_PER_SEC rate
+    SystemCoreClockUpdate();
     SysTick_Config(SystemCoreClock / BSP::TICKS_PER_SEC);
 
     // assign all priority bits for preemption-prio. and none to sub-prio.
@@ -202,16 +226,20 @@ void QF::onStartup() {
 
     // set priorities of ALL ISRs used in the system, see NOTE1
     NVIC_SetPriority(USART2_IRQn,    0U); // kernel UNAWARE interrupt
+    NVIC_SetPriority(EXTI0_1_IRQn,   QF_AWARE_ISR_CMSIS_PRI + 0U);
     NVIC_SetPriority(SysTick_IRQn,   QF_AWARE_ISR_CMSIS_PRI + 1U);
     // ...
 
     // enable IRQs...
+    NVIC_EnableIRQ(EXTI0_1_IRQn);
+
 #ifdef Q_SPY
     NVIC_EnableIRQ(USART2_IRQn); // UART2 interrupt used for QS-RX
 #endif
 }
 //............................................................................
 void QF::onCleanup() {
+    QS_EXIT();
 }
 //............................................................................
 void QV::onIdle() { // NOTE: called with interrupts DISABLED
@@ -223,8 +251,7 @@ void QV::onIdle() { // NOTE: called with interrupts DISABLED
     QF_INT_ENABLE();
     QS::rxParse();  // parse all the received bytes
 
-    // while Transmit Data Register Empty or TX-FIFO Not Full
-    if ((USART2->ISR & USART_ISR_TXE_TXFNF_Msk) != 0U) { // is TXE empty?
+    if ((USART2->ISR & (1U << 7U)) != 0U) { // is TXE empty?
         QF_INT_DISABLE();
         std::uint16_t b = QS::getByte();
         QF_INT_ENABLE();
@@ -247,16 +274,10 @@ void QV::onIdle() { // NOTE: called with interrupts DISABLED
 // QS callbacks...
 #ifdef Q_SPY
 
-namespace {
 //............................................................................
-static std::uint16_t const UARTPrescTable[12] = {
+static uint16_t const UARTPrescTable[12] = {
     1U, 2U, 4U, 6U, 8U, 10U, 12U, 16U, 32U, 64U, 128U, 256U
 };
-
-// USART2 pins PA.2 and PA.3
-constexpr std::uint32_t USART2_TX_PIN {2U};
-constexpr std::uint32_t USART2_RX_PIN {3U};
-} // namespace
 
 #define UART_DIV_SAMPLING16(__PCLK__, __BAUD__, __CLOCKPRESCALER__) \
   ((((__PCLK__)/UARTPrescTable[(__CLOCKPRESCALER__)]) \
@@ -264,14 +285,18 @@ constexpr std::uint32_t USART2_RX_PIN {3U};
 
 #define UART_PRESCALER_DIV1  0U
 
+// USART2 pins PA.2 and PA.3
+constexpr std::uint32_t USART2_TX_PIN {2U};
+constexpr std::uint32_t USART2_RX_PIN {3U};
+
 //............................................................................
 bool QS::onStartup(void const *arg) {
     Q_UNUSED_PAR(arg);
 
-    static std::uint8_t qsTxBuf[2*1024]; // buffer for QS-TX channel
+    static std::uint8_t qsTxBuf[2*1024]; // buffer for QS transmit channel
     initBuf(qsTxBuf, sizeof(qsTxBuf));
 
-    static std::uint8_t qsRxBuf[100];    // buffer for QS-RX channel
+    static std::uint8_t qsRxBuf[100];    // buffer for QS receive channel
     rxInitBuf(qsRxBuf, sizeof(qsRxBuf));
 
     // enable peripheral clock for USART2
@@ -285,6 +310,7 @@ bool QS::onStartup(void const *arg) {
     GPIOA->MODER  |=  (( 2U << 2U*USART2_RX_PIN) | ( 2U << 2U*USART2_TX_PIN));
 
     // baud rate
+    SystemCoreClockUpdate();
     USART2->BRR  = UART_DIV_SAMPLING16(
                        SystemCoreClock, 115200U, UART_PRESCALER_DIV1);
     USART2->CR3  = 0x0000U |      // no flow control
@@ -322,9 +348,9 @@ void QS::onFlush() {
     for (;;) {
         std::uint16_t b = getByte();
         if (b != QS_EOD) {
-            while ((USART2->ISR & USART_ISR_TXE_TXFNF_Msk) == 0U) {
+            while ((USART2->ISR & (1U << 7U)) == 0U) { // while TXE not empty
             }
-            USART2->TDR = b;
+            USART2->TDR = b; // put into the DR register
         }
         else {
             break;
@@ -348,29 +374,6 @@ void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
 #endif // Q_SPY
 
 } // namespace QP
-
-//----------------------------------------------------------------------------
-#ifdef Q_SPY
-
-extern "C" {
-//............................................................................
-// ISR for receiving bytes from the QSPY Back-End
-// NOTE: This ISR is "QF-unaware".
-
-void USART2_IRQHandler(void); // prototype
-void USART2_IRQHandler(void) { // used in QS-RX (kernel UNAWARE interrupt)
-    // is RX register NOT empty?
-    if ((USART2->ISR & USART_ISR_RXNE_RXFNE_Msk) != 0U) {
-        std::uint8_t b = USART2->RDR;
-        QP::QS::rxPut(b);
-    }
-
-    QV_ARM_ERRATUM_838869();
-}
-
-} // extern "C"
-
-#endif // Q_SPY
 
 //============================================================================
 // NOTE0:
@@ -401,4 +404,3 @@ void USART2_IRQHandler(void) { // used in QS-RX (kernel UNAWARE interrupt)
 // of the LED is proportional to the frequency of the idle loop.
 // Please note that the LED is toggled with interrupts locked, so no interrupt
 // execution time contributes to the brightness of the User LED.
-//

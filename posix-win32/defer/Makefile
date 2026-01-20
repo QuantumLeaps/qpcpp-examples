@@ -53,6 +53,7 @@ INCLUDES := -I.
 C_SRCS :=
 
 CPP_SRCS := \
+	main.cpp \
 	bsp.cpp \
 	defer.cpp
 

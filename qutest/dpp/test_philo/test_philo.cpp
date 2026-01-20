@@ -26,9 +26,9 @@
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"
-#include "bsp.hpp"
-#include "dpp.hpp"
+#include "qpcpp.hpp"        // QP/C++ real-time event framework
+#include "bsp.hpp"          // Board Support Package
+#include "app.hpp"          // Application
 
 namespace { // unnamed namespace
 
@@ -61,7 +61,7 @@ int main(void)
     }
 #endif
 
-    BSP::init();    // initialize the BSP
+    BSP::init(nullptr); // initialize the BSP and start the AOs
 
     // object dictionaries...
     QS_OBJ_DICTIONARY(&Table_dummy);
@@ -93,7 +93,7 @@ int main(void)
     return QP::QF::run(); // run the QF application
 }
 
-
+//============================================================================
 namespace QP {
 
 //............................................................................
@@ -105,13 +105,13 @@ void QS::onTestTeardown(void) {
 
 //............................................................................
 // callback function to execute user commands
-void QS::onCommand(uint8_t cmdId,
-                   uint32_t param1, uint32_t param2, uint32_t param3)
+void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
+    std::uint32_t param2, std::uint32_t param3)
 {
-    (void)cmdId;
-    (void)param1;
-    (void)param2;
-    (void)param3;
+    Q_UNUSED_PAR(cmdId);
+    Q_UNUSED_PAR(param1);
+    Q_UNUSED_PAR(param2);
+    Q_UNUSED_PAR(param3);
 
     switch (cmdId) {
        case 0U: {
@@ -133,19 +133,19 @@ void QS::onCommand(uint8_t cmdId,
 
 //============================================================================
 // callback function to "massage" the event, if necessary
-void QS::onTestEvt(QP::QEvt *e) {
+void QS::onTestEvt(QEvt *e) {
     (void)e;
 #ifdef Q_HOST  // is this test compiled for a desktop Host computer?
-#else // this test is compiled for an embedded Target system
-#endif
+#else // embedded Target
+#endif // embedded Target
 }
 //............................................................................
 // callback function to output the posted QP events (not used here)
-void QS::onTestPost(void const *sender, QP::QActive *recipient,
-                    QP::QEvt const *e, bool status)
+void QS::onTestPost(void const *sender, QActive *recipient,
+    QP::QEvt const *e, bool status)
 {
-    (void)sender;
-    (void)status;
+    Q_UNUSED_PAR(sender);
+    Q_UNUSED_PAR(status);
     switch (e->sig) {
         case APP::EAT_SIG:
         case APP::DONE_SIG:

@@ -26,9 +26,9 @@
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"      // QP/C++ real-time event framework
-#include "dpp.hpp"        // DPP Application interface
-#include "bsp.hpp"        // Board Support Package
+#include "qpcpp.hpp"        // QP/C++ real-time event framework
+#include "bsp.hpp"          // Board Support Package
+#include "app.hpp"          // Application
 
 #include <msp430f5529.h>  // MSP430 variant used
 // add other drivers if necessary...
@@ -50,48 +50,48 @@ constexpr std::uint32_t BTN_S1     {1U << 1U};
 static std::uint32_t l_rndSeed;
 
 #ifdef Q_SPY
-    // UART1 pins TX:P4.4, RX:P4.5
-    constexpr std::uint32_t TXD    {1U << 4U};
-    constexpr std::uint32_t RXD    {1U << 5U};
+    enum AppRecords { // application-specific trace records
+        PHILO_STAT = QP::QS_USER,
+        PAUSED_STAT,
+    };
 
     // QSpy source IDs
     static QP::QSpyId const l_timer0_ISR = { 0U };
 
+    // UART1 pins TX:P4.4, RX:P4.5
+    constexpr std::uint32_t TXD    {1U << 4U};
+    constexpr std::uint32_t RXD    {1U << 5U};
+
     static QP::QSTimeCtr QS_tickTime_;
-
-    enum AppRecords { // application-specific trace records
-        PHILO_STAT = QP::QS_USER,
-        PAUSED_STAT,
-        CONTEXT_SW,
-    };
-
-#endif
+#endif // Q_SPY
 
 } // unnamed namespace
 
 //============================================================================
-// Error handler and ISRs...
+// Error handler
+
 extern "C" {
 
 Q_NORETURN Q_onError(char const * const module, int_t const id) {
     // NOTE: this implementation of the error handler is intended only
-    // for debugging and MUST be changed for deployment of the application
-    // (assuming that you ship your production code with assertions enabled).
+    // for debugging and MUST be changed for deployment of the application.
     Q_UNUSED_PAR(module);
     Q_UNUSED_PAR(id);
     QS_ASSERTION(module, id, 10000U); // report assertion to QS
 
 #ifndef NDEBUG
+    // light up the user LED
     P4OUT |=  LED2;  // turn LED2 on
-    // for debugging, hang on in an endless loop...
-    for (;;) {
+    for (;;) { // for debugging, hang on in an endless loop...
     }
-#endif
+#else
     WDTCTL = 0xDEAD;
     for (;;) { // explicitly "no-return"
     }
+#endif
 }
 //............................................................................
+// assertion failure handler for the startup code and libraries
 void assert_failed(char const * const module, int_t const id); // prototype
 void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
@@ -142,17 +142,6 @@ void assert_failed(char const * const module, int_t const id) {
 }
 #endif // Q_SPY
 
-//............................................................................
-#ifdef QF_ON_CONTEXT_SW
-// NOTE: the context-switch callback is called with interrupts DISABLED
-void QF_onContextSw(QP::QActive *prev, QP::QActive *next) {
-    QS_BEGIN_INCRIT(CONTEXT_SW, 0U) // in critical section!
-        QS_OBJ(prev);
-        QS_OBJ(next);
-    QS_END_INCRIT()
-}
-#endif // QF_ON_CONTEXT_SW
-
 } // extern "C"
 
 //============================================================================
@@ -160,7 +149,9 @@ void QF_onContextSw(QP::QActive *prev, QP::QActive *next) {
 
 namespace BSP {
 
-void init() {
+void init(void const * const arg) {
+    Q_UNUSED_PAR(arg);
+
     WDTCTL = WDTPW | WDTHOLD; // stop watchdog timer
 
     // leave the MCK and SMCLK at default DCO setting
@@ -171,32 +162,30 @@ void init() {
 
     BSP::randomSeed(1234U);
 
-    // initialize the QS software tracing...
-    if (!QS_INIT(nullptr)) {
+    // initialize QS software tracing...
+    if (!QS_INIT(arg)) {
         Q_ERROR();
     }
 
-    // dictionaries...
+    // QS dictionaries...
     QS_OBJ_DICTIONARY(&l_timer0_ISR);
     QS_USR_DICTIONARY(PHILO_STAT);
     QS_USR_DICTIONARY(PAUSED_STAT);
-    QS_USR_DICTIONARY(CONTEXT_SW);
-
     QS_ONLY(APP::produce_sig_dict());
 
     // setup the QS filters...
-    QS_GLB_FILTER(QP::QS_GRP_ALL);   // all records
-    QS_GLB_FILTER(-QP::QS_QF_TICK);      // exclude the clock tick
-}
-//............................................................................
-void start() {
-    // initialize event pools
+    QS_GLB_FILTER(QP::QS_GRP_ALL);  // enable all QS trace records
+    QS_GLB_FILTER(-QP::QS_QF_TICK); // exclude the tick record
+
+    // initialize event pools for mutable events
     static QF_MPOOL_EL(APP::TableEvt) smlPoolSto[2*APP::N_PHILO];
     QP::QF::poolInit(smlPoolSto, sizeof(smlPoolSto), sizeof(smlPoolSto[0]));
 
     // initialize publish-subscribe
     static QP::QSubscrList subscrSto[APP::MAX_PUB_SIG];
     QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
+
+    randomSeed(1234U); // seed the random number generator
 
     // start AOs/threads...
     static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10];
@@ -220,7 +209,12 @@ void start() {
         nullptr, 0U);                // no stack storage
 }
 //............................................................................
-void displayPhilStat(std::uint8_t n, char const *stat) {
+void terminate(std::int16_t const result) {
+    Q_UNUSED_PAR(result);
+    QP::QF::stop();
+}
+//............................................................................
+void displayPhilStat(std::uint8_t const n, char const * const stat) {
     Q_UNUSED_PAR(n);
 
     if (stat[0] == 'e') { // is Philo eating?
@@ -230,7 +224,7 @@ void displayPhilStat(std::uint8_t n, char const *stat) {
         P1OUT &= ~LED1;  // turn LED1 off
     }
 
-    // app-specific trace record...
+    // application-specific trace record
     QS_BEGIN_ID(PHILO_STAT, APP::AO_Table->getPrio())
         QS_U8(1, n);  // Philosopher number
         QS_STR(stat); // Philosopher status
@@ -248,7 +242,7 @@ void displayPaused(std::uint8_t const paused) {
 
     // application-specific trace record
     QS_BEGIN_ID(PAUSED_STAT, APP::AO_Table->getPrio())
-        QS_U8(1, paused);  // Paused status
+        QS_U8(1U, paused);  // Paused status
     QS_END()
 }
 //............................................................................
@@ -260,14 +254,10 @@ std::uint32_t random() { // a cheap pseudo-random-number generator
 
     // "Super-Duper" Linear Congruential Generator (LCG)
     // LCG(2^32, 3*7*11*13*23, 0, seed)
-    std::uint32_t rnd = l_rndSeed * (3U*7U*11U*13U*23U);
+    std::uint32_t const rnd = l_rndSeed * (3U*7U*11U*13U*23U);
     l_rndSeed = rnd; // set for the next time
 
-    return (rnd >> 8U);
-}
-//............................................................................
-void terminate(std::int16_t result) {
-    Q_UNUSED_PAR(result);
+    return rnd >> 8U;
 }
 //............................................................................
 void ledOn() {
@@ -292,6 +282,7 @@ void QF::onStartup() {
 }
 //............................................................................
 void QF::onCleanup() {
+    QS_EXIT();
 }
 //............................................................................
 void QV::onIdle() { // CAUTION: called with interrupts DISABLED, see NOTE1
@@ -394,7 +385,7 @@ void QS::onReset() {
 }
 //............................................................................
 void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
-               std::uint32_t param2, std::uint32_t param3)
+    std::uint32_t param2, std::uint32_t param3)
 {
     Q_UNUSED_PAR(cmdId);
     Q_UNUSED_PAR(param1);
@@ -419,4 +410,3 @@ void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
 // of the LED is proportional to the frequency of invcations of the idle loop.
 // Please note that the LED is toggled with interrupts locked, so no interrupt
 // execution time contributes to the brightness of the User LED.
-//

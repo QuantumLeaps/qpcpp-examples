@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<model version="7.0.2" links="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm7.xsd">
+<model version="7.0.3" links="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm7.xsd">
  <documentation>Dining Philosopher Problem example with the &quot;Orthogonal Component&quot; state pattern (see https://www.state-machine.com/doc/Pattern_Orthogonal.pdf)
 
 The model demonstrates the following features:
@@ -9,13 +9,12 @@ The model demonstrates the following features:
 3. External packages with separate QM-package model files
 4. CompTimeEvt class for private time evnents of Components
 5. Container to Component communication via synchronous event dispatching
-6. Component to Container communication via asynchronous event
-   posting using the LIFO policy.</documentation>
+6. Component to Container communication via asynchronous event posting using the LIFO policy.</documentation>
  <!--${qpcpp}-->
  <framework name="qpcpp"/>
- <!--${Shared}-->
- <package name="Shared" stereotype="0x01" namespace="APP::">
-  <!--${Shared::AppSignals}-->
+ <!--${App}-->
+ <package name="App" stereotype="0x01" namespace="APP::">
+  <!--${App::AppSignals}-->
   <attribute name="AppSignals" type="enum" visibility="0x04" properties="0x00">
    <code>: QP::QSignal {
     EAT_SIG = QP::Q_USER_SIG, // published by Table to let a Philo eat
@@ -30,7 +29,7 @@ The model demonstrates the following features:
     MAX_SIG         // the last signal
 };</code>
   </attribute>
-  <!--${Shared::produce_sig_dict}-->
+  <!--${App::produce_sig_dict}-->
   <operation name="produce_sig_dict?def Q_SPY" type="void" visibility="0x00" properties="0x02">
    <code>QS_SIG_DICTIONARY(EAT_SIG,     nullptr);
 QS_SIG_DICTIONARY(DONE_SIG,    nullptr);
@@ -41,31 +40,31 @@ QS_SIG_DICTIONARY(TEST_SIG,    nullptr);
 QS_SIG_DICTIONARY(TIMEOUT_SIG, nullptr);
 QS_SIG_DICTIONARY(HUNGRY_SIG,  nullptr);</code>
   </operation>
-  <!--${Shared::N_PHILO}-->
+  <!--${App::N_PHILO}-->
   <attribute name="N_PHILO" type="constexpr std::uint8_t" visibility="0x04" properties="0x00">
    <code>{5};</code>
   </attribute>
-  <!--${Shared::TableEvt}-->
+  <!--${App::TableEvt}-->
   <class name="TableEvt" superclass="qpcpp::QEvt">
-   <!--${Shared::TableEvt::philoId}-->
+   <!--${App::TableEvt::philoId}-->
    <attribute name="philoId" type="std::uint8_t" visibility="0x00" properties="0x00"/>
-   <!--${Shared::TableEvt::TableEvt}-->
+   <!--${App::TableEvt::TableEvt}-->
    <operation name="TableEvt" type="constexpr" visibility="0x00" properties="0x02">
-    <!--${Shared::TableEvt::TableEvt::sig}-->
+    <!--${App::TableEvt::TableEvt::sig}-->
     <parameter name="sig" type="QP::QSignal"/>
-    <!--${Shared::TableEvt::TableEvt::id}-->
+    <!--${App::TableEvt::TableEvt::id}-->
     <parameter name="id" type="std::uint8_t"/>
     <code> : QEvt(sig),
    philoId(id)</code>
    </operation>
-   <!--${Shared::TableEvt::init}-->
+   <!--${App::TableEvt::init}-->
    <operation name="init" type="void" visibility="0x00" properties="0x02">
-    <!--${Shared::TableEvt::init::id}-->
+    <!--${App::TableEvt::init::id}-->
     <parameter name="id" type="std::uint8_t"/>
     <code>philoId = id;</code>
    </operation>
   </class>
-  <!--${Shared::AO_Table}-->
+  <!--${App::AO_Table}-->
   <attribute name="AO_Table" type="QP::QActive * const" visibility="0x00" properties="0x00">
    <code>= &amp;Table::inst;</code>
   </attribute>
@@ -78,10 +77,10 @@ QS_SIG_DICTIONARY(HUNGRY_SIG,  nullptr);</code>
    <attribute name="inst" type="Table" visibility="0x00" properties="0x01">
     <documentation>The only static instance of the Table class (Singleton pattern)</documentation>
    </attribute>
-   <!--${Cont::Table::m_fork[N_PHILO]}-->
-   <attribute name="m_fork[N_PHILO]" type="std::uint8_t" visibility="0x02" properties="0x00"/>
-   <!--${Cont::Table::m_isHungry[N_PHILO]}-->
-   <attribute name="m_isHungry[N_PHILO]" type="bool" visibility="0x02" properties="0x00"/>
+   <!--${Cont::Table::m_fork}-->
+   <attribute name="m_fork" type="std::array&lt;std::uint8_t, N_PHILO&gt;" visibility="0x02" properties="0x00"/>
+   <!--${Cont::Table::m_isHungry}-->
+   <attribute name="m_isHungry" type="std::array&lt;bool, N_PHILO&gt;" visibility="0x02" properties="0x00"/>
    <!--${Cont::Table::Table}-->
    <operation name="Table" type="" visibility="0x00" properties="0x00">
     <code>  : QActive(Q_STATE_CAST(&amp;Table::initial))
@@ -248,7 +247,7 @@ if (m_isHungry[m] &amp;&amp; (m_fork[n] == FREE)) {
         <action box="0,-2,7,2"/>
        </tran_glyph>
       </tran>
-      <state_glyph node="4,24,34,26">
+      <state_glyph color="2" node="4,24,34,26">
        <entry box="0,3,27,2"/>
       </state_glyph>
      </state>
@@ -294,12 +293,12 @@ m_fork[n] = FREE;</action>
         <action box="0,-2,6,2"/>
        </tran_glyph>
       </tran>
-      <state_glyph node="4,52,34,24">
+      <state_glyph color="1" node="4,52,34,24">
        <entry box="0,3,18,4"/>
        <exit box="0,7,18,4"/>
       </state_glyph>
      </state>
-     <state_glyph node="2,6,42,72"/>
+     <state_glyph color="3" node="2,6,42,72"/>
     </state>
     <state_diagram size="48,82"/>
    </statechart>
@@ -325,21 +324,21 @@ When creating a Time-Event, you must commit it to a specific active object 'act'
     <parameter name="sig" type="QP::QSignal const"/>
     <!--${Comp::CompTimeEvt::CompTimeEvt::tickRate}-->
     <parameter name="tickRate" type="std::uint_fast8_t const"/>
-    <code> : QTimeEvt(act, sig, tickRate),
-   compNum(num)</code>
+    <code>  : QTimeEvt(act, sig, tickRate),
+    compNum(num)</code>
    </operation>
   </class>
   <!--${Comp::Philo}-->
-  <class name="Philo" superclass="qpcpp::QHsm">
-   <!--${Comp::Philo::inst[N_PHILO]}-->
-   <attribute name="inst[N_PHILO]" type="Philo" visibility="0x00" properties="0x01"/>
+  <class name="Philo" superclass="qpcpp::QMsm">
+   <!--${Comp::Philo::inst}-->
+   <attribute name="inst" type="std::array&lt;Philo, N_PHILO&gt;" visibility="0x00" properties="0x01"/>
    <!--${Comp::Philo::m_timeEvt}-->
    <attribute name="m_timeEvt" type="CompTimeEvt" visibility="0x02" properties="0x00"/>
    <!--${Comp::Philo::class Table}-->
    <attribute name="class Table" type="friend" visibility="0x02" properties="0x00"/>
    <!--${Comp::Philo::Philo}-->
    <operation name="Philo" type="" visibility="0x00" properties="0x00">
-    <code>  : QHsm(&amp;initial),
+    <code>  : QMsm(&amp;initial),
     m_timeEvt(AO_Table, getId(), TIMEOUT_SIG, 0U)</code>
    </operation>
    <!--${Comp::Philo::getId}-->
@@ -373,7 +372,7 @@ if (!registered) {
     <!--${Comp::Philo::SM::thinking}-->
     <state name="thinking">
      <entry>m_timeEvt.armX(think_time(), 0U);</entry>
-     <exit>(void)m_timeEvt.disarm();</exit>
+     <exit>static_cast&lt;void&gt;(m_timeEvt.disarm());</exit>
      <!--${Comp::Philo::SM::thinking::TIMEOUT}-->
      <tran trig="TIMEOUT" target="../../2">
       <tran_glyph conn="2,14,3,1,20,12,-4">
@@ -394,9 +393,9 @@ if (!registered) {
     <!--${Comp::Philo::SM::hungry}-->
     <state name="hungry">
      <entry>#ifdef QEVT_PAR_INIT
-TableEvt const *pe = Q_NEW(TableEvt, HUNGRY_SIG, getId());
+TableEvt const *pe = QP::QF::q_new&lt;TableEvt&gt;(HUNGRY_SIG, getId());
 #else
-TableEvt *pe = Q_NEW(TableEvt, HUNGRY_SIG);
+TableEvt *pe = QP::QF::q_new&lt;TableEvt&gt;(HUNGRY_SIG);
 pe-&gt;philoId = getId();
 #endif
 AO_Table-&gt;postLIFO(pe);</entry>
@@ -406,7 +405,7 @@ AO_Table-&gt;postLIFO(pe);</entry>
        <action box="0,-2,14,2"/>
       </tran_glyph>
      </tran>
-     <state_glyph node="2,24,16,12">
+     <state_glyph color="1" node="2,24,16,12">
       <entry box="0,3,5,2"/>
      </state_glyph>
     </state>
@@ -417,9 +416,9 @@ AO_Table-&gt;postLIFO(pe);</entry>
 
 // asynchronously post event to the Container
 #ifdef QEVT_PAR_INIT
-TableEvt const *pe = Q_NEW(TableEvt, DONE_SIG, getId());
+TableEvt const *pe = QP::QF::q_new&lt;TableEvt&gt;(DONE_SIG, getId());
 #else
-TableEvt *pe = Q_NEW(TableEvt, DONE_SIG);
+TableEvt *pe = QP::QF::q_new&lt;TableEvt&gt;(DONE_SIG);
 pe-&gt;philoId = getId();
 #endif
 AO_Table-&gt;postLIFO(pe);</exit>
@@ -429,7 +428,7 @@ AO_Table-&gt;postLIFO(pe);</exit>
        <action box="0,-2,12,2"/>
       </tran_glyph>
      </tran>
-     <state_glyph node="2,38,16,14">
+     <state_glyph color="2" node="2,38,16,14">
       <entry box="0,3,5,2"/>
       <exit box="0,5,5,2"/>
      </state_glyph>
@@ -437,8 +436,8 @@ AO_Table-&gt;postLIFO(pe);</exit>
     <state_diagram size="28,54"/>
    </statechart>
   </class>
-  <!--${Comp::SM_Philo[N_PHILO]}-->
-  <attribute name="SM_Philo[N_PHILO]" type="QP::QAsm * const" visibility="0x00" properties="0x00">
+  <!--${Comp::SM_Philo}-->
+  <attribute name="SM_Philo" type="std::array&lt;QP::QAsm * const, N_PHILO&gt;" visibility="0x00" properties="0x00">
    <code>= { // opaque pointers to Philo instances
     &amp;Philo::inst[0],
     &amp;Philo::inst[1],
@@ -450,28 +449,57 @@ AO_Table-&gt;postLIFO(pe);</exit>
  </package>
  <!--${.}-->
  <directory name=".">
-  <!--${.::dpp.hpp}-->
-  <file name="dpp.hpp">
-   <text>#ifndef DPP_HPP_
-#define DPP_HPP_
+  <!--${.::app.hpp}-->
+  <file name="app.hpp">
+   <text>#ifndef APP_HPP_
+#define APP_HPP_
 
-$declare ${Shared}
+$declare ${App}
 
 $declare ${Comp::CompTimeEvt}
-$declare ${Comp::SM_Philo[N_PHILO]}
+$declare ${Comp::SM_Philo}
 
-#endif // DPP_HPP_</text>
+#endif // APP_HPP_</text>
+  </file>
+  <!--${.::bsp.hpp}-->
+  <file name="bsp.hpp">
+   <text>#ifndef BSP_HPP_
+#define BSP_HPP_
+
+namespace BSP {
+
+constexpr std::uint32_t TICKS_PER_SEC {100U};
+
+void init(void const * const arg);
+void start();
+void displayPaused(std::uint8_t const paused);
+void displayPhilStat(std::uint8_t const n, char const *stat);
+void terminate(std::int16_t const result);
+
+void randomSeed(std::uint32_t const seed);
+std::uint32_t random();
+
+// for testing...
+void wait4SW1();
+void ledOn();
+void ledOff();
+
+} // namespace BSP
+
+#endif // BSP_HPP_</text>
   </file>
   <!--${.::philo.cpp}-->
   <file name="philo.cpp">
-   <text>#include &quot;qpcpp.hpp&quot;
-#include &quot;dpp.hpp&quot;
-#include &quot;bsp.hpp&quot;
+   <text>#include &quot;qpcpp.hpp&quot;           // QP/C++ real-time event framework
+#include &quot;bsp.hpp&quot;             // Board Support Package
+#include &quot;app.hpp&quot;             // Application interface
+
+$declare ${Comp::Philo}
 
 //----------------------------------------------------------------------------
 namespace { // unnamed namespace for local definitions with internal linkage
 
-Q_DEFINE_THIS_FILE
+//Q_DEFINE_THIS_FILE
 
 // helper function to provide a randomized think time for Philos
 static inline QP::QTimeEvtCtr think_time() {
@@ -486,18 +514,14 @@ static inline QP::QTimeEvtCtr eat_time() {
 }
 
 } // unnamed namespace
-//----------------------------------------------------------------------------
 
-$declare ${Comp::Philo}
-
-// definition of the whole &quot;Comp&quot; package
 $define ${Comp}</text>
   </file>
   <!--${.::table.cpp}-->
   <file name="table.cpp">
-   <text>#include &quot;qpcpp.hpp&quot;
-#include &quot;dpp.hpp&quot;
-#include &quot;bsp.hpp&quot;
+   <text>#include &quot;qpcpp.hpp&quot;           // QP/C++ real-time event framework
+#include &quot;bsp.hpp&quot;             // Board Support Package
+#include &quot;app.hpp&quot;             // Application interface
 
 namespace {
 
@@ -525,7 +549,7 @@ static char const * const EATING   = &quot;eating  &quot;;
 
 $declare ${Cont::Table}
 
-$define ${Shared::AO_Table}
+$define ${App::AO_Table}
 $define ${Cont}</text>
   </file>
  </directory>
