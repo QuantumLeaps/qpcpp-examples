@@ -1,5 +1,5 @@
 //============================================================================
-// BSP for "real-time" Example
+// BSP for "real-time" Example, NUCLEO-C031C6 board, FreeRTOS kernel
 //
 // Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 //
@@ -40,6 +40,9 @@
 Q_DEFINE_THIS_MODULE("bsp") // for functional-safety assertions
 
 // Local-scope defines -----------------------------------------------------
+// "RTOS-aware" interrupt priorities for FreeRTOS on ARM Cortex-M, NOTE1
+#define RTOS_AWARE_ISR_CMSIS_PRI \
+    (configMAX_SYSCALL_INTERRUPT_PRIORITY >> (8-__NVIC_PRIO_BITS))
 
 // test pins on GPIO PA (output)
 #define TST1_PIN  7U
@@ -55,7 +58,8 @@ Q_DEFINE_THIS_MODULE("bsp") // for functional-safety assertions
 #define B1_PIN    13U
 
 //============================================================================
-// Error handler and ISRs...
+// Error handler
+
 extern "C" {
 
 Q_NORETURN Q_onError(char const * const module, int_t const id) {
@@ -85,15 +89,23 @@ void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
 }
 
-// ISRs used in the application ============================================
+//............................................................................
+#ifdef __UVISION_VERSION
+// dummy initialization of the ctors (not used in C)
+void _init(void);
+void _init(void) {
+}
+#endif // __UVISION_VERSION
 
-void SysTick_Handler(void); // prototype
-void SysTick_Handler(void) {
+// ISRs "hooks" used in the application ======================================
+
+void vApplicationTickHook(void) {
     BSP::d1on();
 
-    QK_ISR_ENTRY(); // inform QK about entering an ISR
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
-    QP::QTimeEvt::TICK_X(0U, nullptr); // time events at rate 0
+    // process time events at rate 0
+    QP::QTimeEvt::TICK_X_FROM_ISR(0U, &xHigherPriorityTaskWoken, nullptr);
 
     // Perform the debouncing of buttons. The algorithm for debouncing
     // adapted from the book "Embedded Systems Dictionary" by Jack Ganssle
@@ -128,9 +140,50 @@ void SysTick_Handler(void) {
         }
     }
 
-    QK_ISR_EXIT(); // inform QK about exiting an ISR
+    // notify FreeRTOS to perform context switch from ISR, if needed
+    portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
 
     BSP::d1off();
+}
+
+//............................................................................
+void vApplicationIdleHook(void) {
+    BSP::d7on(); // LED LD4
+    BSP::d7off();
+}
+//............................................................................
+void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
+    (void)xTask;
+    (void)pcTaskName;
+    Q_ERROR();
+}
+//............................................................................
+// configSUPPORT_STATIC_ALLOCATION is set to 1, so the application must
+// provide an implementation of vApplicationGetIdleTaskMemory() to provide
+// the memory that is used by the Idle task.
+void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
+                                    StackType_t **ppxIdleTaskStackBuffer,
+                                    uint32_t *pulIdleTaskStackSize )
+{
+    // If the buffers to be provided to the Idle task are declared inside
+    // this function then they must be declared static - otherwise they will
+    // be allocated on the stack and so not exists after this function exits.
+    //
+    static StaticTask_t xIdleTaskTCB;
+    static StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
+
+    // Pass out a pointer to the StaticTask_t structure in which the
+    // Idle task's state will be stored.
+    *ppxIdleTaskTCBBuffer = &xIdleTaskTCB;
+
+    // Pass out the array that will be used as the Idle task's stack.
+    *ppxIdleTaskStackBuffer = uxIdleTaskStack;
+
+    // Pass out the size of the array pointed to by *ppxIdleTaskStackBuffer.
+    // Note that, as the array is necessarily of type StackType_t,
+    // configMINIMAL_STACK_SIZE is specified in words, not bytes.
+    //
+    *pulIdleTaskStackSize = Q_DIM(uxIdleTaskStack);
 }
 
 } // extern "C"
@@ -194,37 +247,45 @@ void init() {
 }
 //............................................................................
 void start() {
-    // instantiate and start QP/C++ active objects...
+    // start QP/C++ active objects...
     static QP::QEvtPtr periodic1QSto[10]; // Event queue storage
+    static StackType_t periodic1Stack[256];
     APP::AO_Periodic1->start(
-        Q_PRIO(1U, 1U),        // QF-prio/pre-thre.
+        1U,                    // QF-prio
         periodic1QSto,         // storage for the AO's queue
         Q_DIM(periodic1QSto),  // queue length
-        nullptr, 0U,           // stack storage, size (not used)
+        periodic1Stack,        // stack storage (needed for FreeRTOS)
+        sizeof(periodic1Stack),// stack size (needed for FreeRTOS)
         getEvtPeriodic1(0U));  // initialization param
 
     static QP::QEvtPtr sporadic2QSto[8]; // Event queue storage
+    static StackType_t sporadic2Stack[256];
     APP::AO_Sporadic2->start(
-        Q_PRIO(2U, 3U),        // QF-prio/pre-thre.
+        2U,                    // QF-prio/pre-thre.
         sporadic2QSto,         // storage for the AO's queue
         Q_DIM(sporadic2QSto),  // queue length
-        nullptr, 0U,           // stack storage, size (not used)
+        sporadic2Stack,        // stack storage (needed for FreeRTOS)
+        sizeof(sporadic2Stack),// stack size (needed for FreeRTOS)
         nullptr);              // initialization param -- not used
 
     static QP::QEvtPtr sporadic3QSto[8]; // Event queue storage
+    static StackType_t sporadic3Stack[256];
     APP::AO_Sporadic3->start(
-        Q_PRIO(3U, 3U),        // QF-prio/pre-thre.
+        3U,                    // QF-prio/pre-thre.
         sporadic3QSto,         // storage for the AO's queue
         Q_DIM(sporadic3QSto),  // queue length
-        nullptr, 0U,           // stack storage, size (not used)
+        sporadic3Stack,        // stack storage (needed for FreeRTOS)
+        sizeof(sporadic3Stack),// stack size (needed for FreeRTOS)
         nullptr);              // initialization param -- not used
 
     static QP::QEvtPtr periodic4QSto[8]; // Event queue storage
+    static StackType_t periodic4Stack[256];
     APP::AO_Periodic4->start(
-        Q_PRIO(4U, 4U),        // QF-prio/pre-thre.
+        4U,                    // QF-prio
         periodic4QSto,         // storage for the AO's queue
         Q_DIM(periodic4QSto),  // queue length
-        nullptr, 0U,           // stack storage, size (not used)
+        periodic4Stack,        // stack storage (needed for FreeRTOS)
+        sizeof(periodic4Stack),// stack size (needed for FreeRTOS)
         getEvtPeriodic4(0U));  // initialization event
 }
 //............................................................................
@@ -288,18 +349,6 @@ void QF::onStartup() {
 }
 //............................................................................
 void QF::onCleanup() {
-}
-//............................................................................
-void QK::onIdle() {
-    BSP::d7on(); // LED LD2
-#ifdef NDEBUG
-    // Put the CPU and peripherals to the low-power mode.
-    // you might need to customize the clock management for your application,
-    // see the datasheet for your particular Cortex-M MCU.
-    //
-    __WFI(); // Wait-For-Interrupt
-#endif
-    BSP::d7off();
 }
 
 } // namespace QP

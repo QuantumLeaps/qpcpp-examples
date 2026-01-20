@@ -1,5 +1,5 @@
 //============================================================================
-// BSP for "real-time" Example
+// BSP for "real-time" Example, NUCLEO-C031C6 board, Zephyr RTOS
 //
 // Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 //
@@ -30,32 +30,39 @@
 #include "bsp.hpp"             // Board Support Package
 #include "app.hpp"             // Application interface
 
-#include "stm32c0xx.h"  // CMSIS-compliant header file for the MCU used
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/sys/reboot.h>
 // add other drivers if necessary...
 
 #ifdef Q_SPY
     #error QP/Spy software tracing not available in this application
 #endif
 
-Q_DEFINE_THIS_MODULE("bsp") // for functional-safety assertions
+// Local-scope objects -----------------------------------------------------
+namespace { // anonymous local namespace
 
-// Local-scope defines -----------------------------------------------------
+Q_DEFINE_THIS_FILE // define the name of this file for assertions
 
 // test pins on GPIO PA (output)
-#define TST1_PIN  7U
-#define TST2_PIN  6U
-#define TST3_PIN  4U
-#define TST4_PIN  1U
-#define TST5_PIN  0U
-#define TST6_PIN  9U
-#define TST7_PIN  5U // LED LD2-Green
+constexpr std::uint32_t TST1_PIN  {7U};
+constexpr std::uint32_t TST2_PIN  {6U};
+constexpr std::uint32_t TST3_PIN  {4U};
+constexpr std::uint32_t TST4_PIN  {1U};
+constexpr std::uint32_t TST5_PIN  {0U};
+constexpr std::uint32_t TST6_PIN  {9U};
+constexpr std::uint32_t TST7_PIN  {5U}; // LED LD2-Green
 
 // Button pins available on the board (just one user Button B1 on PC.13)
 // button on GPIO PC (input)
-#define B1_PIN    13U
+constexpr std::uint32_t B1_PIN    {13U};
+
+static struct k_timer zephyr_tick_timer;
+
+} // anonymous local namespace
 
 //============================================================================
-// Error handler and ISRs...
+// Error handler
+
 extern "C" {
 
 Q_NORETURN Q_onError(char const * const module, int_t const id) {
@@ -65,16 +72,13 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
     Q_UNUSED_PAR(module);
     Q_UNUSED_PAR(id);
     QS_ASSERTION(module, id, 10000U); // report assertion to QS
+    Q_PRINTK("\nERROR in %s:%d\n", module, id);
 
 #ifndef NDEBUG
-    // light up the user LED
-    GPIOA->BSRR = (1U << TST7_PIN);  // turn LED on
-    // for debugging, hang on in an endless loop...
-    for (;;) {
-    }
+    k_panic(); // debug build: halt the system for error search...
 #endif
 
-    NVIC_SystemReset();
+    sys_reboot(SYS_REBOOT_COLD); // release build: reboot the system
     for (;;) { // explicitly "no-return"
     }
 }
@@ -85,13 +89,12 @@ void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
 }
 
-// ISRs used in the application ============================================
+//............................................................................
+static void custom_tick_callback(struct k_timer *tid); // prototype
+static void custom_tick_callback(struct k_timer *tid) {
+    Q_UNUSED_PAR(tid);
 
-void SysTick_Handler(void); // prototype
-void SysTick_Handler(void) {
     BSP::d1on();
-
-    QK_ISR_ENTRY(); // inform QK about entering an ISR
 
     QP::QTimeEvt::TICK_X(0U, nullptr); // time events at rate 0
 
@@ -99,12 +102,12 @@ void SysTick_Handler(void) {
     // adapted from the book "Embedded Systems Dictionary" by Jack Ganssle
     // and Michael Barr, page 71.
     static struct {
-        uint32_t depressed;
-        uint32_t previous;
+        std::uint32_t depressed;
+        std::uint32_t previous;
     } buttons = { 0U, 0U };
 
-    uint32_t current = ~GPIOC->IDR; // read Port C with state of Button B1
-    uint32_t tmp = buttons.depressed; // save the depressed buttons
+    std::uint32_t current = ~GPIOC->IDR; // read Port C with state of Button B1
+    std::uint32_t tmp = buttons.depressed; // save the depressed buttons
     buttons.depressed |= (buttons.previous & current); // set depressed
     buttons.depressed &= (buttons.previous | current); // clear released
     buttons.previous   = current; // update the history
@@ -128,8 +131,6 @@ void SysTick_Handler(void) {
         }
     }
 
-    QK_ISR_EXIT(); // inform QK about exiting an ISR
-
     BSP::d1off();
 }
 
@@ -139,6 +140,8 @@ void SysTick_Handler(void) {
 namespace BSP {
 
 void init() {
+    // NOTE: the CPU clock is configured in Zephyr (48MHz)
+
     // Configure the MPU to prevent NULL-pointer dereferencing ...
     MPU->RBAR = 0x0U                          // base address (NULL)
                 | MPU_RBAR_VALID_Msk          // valid region
@@ -150,19 +153,6 @@ void init() {
                 | MPU_CTRL_ENABLE_Msk;        // enable the MPU
     __ISB();
     __DSB();
-
-    // configure the CPU clock to HSI/1 (48MHz)
-    FLASH->ACR = (FLASH->ACR & ~FLASH_ACR_LATENCY) | 0x1U;
-
-    RCC->CR |= RCC_CR_HSEON;
-    while ((RCC->CR & RCC_CR_HSERDY) != 0U) {
-    }
-    RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_HPRE) | 0x0U; // RCC_HCLK_DIV_1
-    RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_SW) | 0x1U; // source HSE
-    while ((RCC->CFGR & RCC_CFGR_SWS) != 0x8U) {
-    }
-    RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_PPRE) | 0x0U; // APB1 prescaler=1
-    SystemCoreClockUpdate();
 
     // enable GPIO port PA clock
     RCC->IOPENR |= (1U << 0U);
@@ -195,36 +185,44 @@ void init() {
 //............................................................................
 void start() {
     // instantiate and start QP/C++ active objects...
-    static QP::QEvtPtr periodic1QSto[10]; // Event queue storage
+    static QP::QEvt const *periodic1QSto[10]; // Event queue storage
+    static K_THREAD_STACK_DEFINE(periodic1Stack, 512);
     APP::AO_Periodic1->start(
-        Q_PRIO(1U, 1U),        // QF-prio/pre-thre.
+        Q_PRIO(1U, 4U),        // QF-prio/Zephyr-prio
         periodic1QSto,         // storage for the AO's queue
         Q_DIM(periodic1QSto),  // queue length
-        nullptr, 0U,           // stack storage, size (not used)
+        periodic1Stack,        // stack storage (needed for FreeRTOS)
+        K_THREAD_STACK_SIZEOF(periodic1Stack), // stack size [Zephyr]
         getEvtPeriodic1(0U));  // initialization param
 
-    static QP::QEvtPtr sporadic2QSto[8]; // Event queue storage
+    static QP::QEvt const *sporadic2QSto[8]; // Event queue storage
+    static K_THREAD_STACK_DEFINE(sporadic2Stack, 512);
     APP::AO_Sporadic2->start(
-        Q_PRIO(2U, 3U),        // QF-prio/pre-thre.
+        Q_PRIO(2U, 3U),        // QF-prio/Zephyr-prio
         sporadic2QSto,         // storage for the AO's queue
         Q_DIM(sporadic2QSto),  // queue length
-        nullptr, 0U,           // stack storage, size (not used)
-        nullptr);              // initialization param -- not used
+        sporadic2Stack,        // stack storage (needed for FreeRTOS)
+        K_THREAD_STACK_SIZEOF(sporadic2Stack), // stack size [Zephyr]
+        (void const *)0);      // initialization param -- not used
 
-    static QP::QEvtPtr sporadic3QSto[8]; // Event queue storage
+    static QP::QEvt const *sporadic3QSto[8]; // Event queue storage
+    static K_THREAD_STACK_DEFINE(sporadic3Stack, 512);
     APP::AO_Sporadic3->start(
-        Q_PRIO(3U, 3U),        // QF-prio/pre-thre.
+        Q_PRIO(3U, 2U),        // QF-prio/Zephyr-prio
         sporadic3QSto,         // storage for the AO's queue
         Q_DIM(sporadic3QSto),  // queue length
-        nullptr, 0U,           // stack storage, size (not used)
-        nullptr);              // initialization param -- not used
+        sporadic3Stack,        // stack storage (needed for FreeRTOS)
+        K_THREAD_STACK_SIZEOF(sporadic3Stack), // stack size [Zephyr]
+        (void const *)0);      // initialization param -- not used
 
-    static QP::QEvtPtr periodic4QSto[8]; // Event queue storage
+    static QP::QEvt const *periodic4QSto[8]; // Event queue storage
+    static K_THREAD_STACK_DEFINE(periodic4Stack, 512);
     APP::AO_Periodic4->start(
-        Q_PRIO(4U, 4U),        // QF-prio/pre-thre.
+        Q_PRIO(4U, 1U),        // QF-prio/Zephyr-prio
         periodic4QSto,         // storage for the AO's queue
         Q_DIM(periodic4QSto),  // queue length
-        nullptr, 0U,           // stack storage, size (not used)
+        periodic4Stack,        // stack storage (needed for FreeRTOS)
+        K_THREAD_STACK_SIZEOF(periodic4Stack), // stack size [Zephyr]
         getEvtPeriodic4(0U));  // initialization event
 }
 //............................................................................
@@ -275,31 +273,20 @@ QP::QEvt const *getEvtPeriodic4(uint8_t num) {
 // QF callbacks ==============================================================
 namespace QP {
 
+//............................................................................
 void QF::onStartup() {
-    SystemCoreClockUpdate();
-
-    // set up the SysTick timer to fire at TICKS_PER_SEC rate
-    SysTick_Config((SystemCoreClock / BSP::TICKS_PER_SEC) + 1U);
-
-    // set priorities of ISRs used in the system
-    // NOTE: all interrupts are "kernel aware" in Cortex-M0+
-    NVIC_SetPriority(SysTick_IRQn, 0U);
-    // ...
+    k_timer_init(&zephyr_tick_timer, &custom_tick_callback, NULL);
+    k_timer_start(&zephyr_tick_timer, K_TICKS(1), K_TICKS(1));
 }
 //............................................................................
 void QF::onCleanup() {
 }
 //............................................................................
-void QK::onIdle() {
-    BSP::d7on(); // LED LD2
-#ifdef NDEBUG
-    // Put the CPU and peripherals to the low-power mode.
-    // you might need to customize the clock management for your application,
-    // see the datasheet for your particular Cortex-M MCU.
-    //
-    __WFI(); // Wait-For-Interrupt
-#endif
+#ifdef QF_IDLE
+void QF::onIdle(void) {
+    BSP::d7on();
     BSP::d7off();
 }
+#endif
 
 } // namespace QP

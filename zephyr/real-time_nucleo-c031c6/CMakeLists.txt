@@ -4,13 +4,15 @@
 cmake_minimum_required(VERSION 3.20.0)
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
-project(dpp)
+project(real-time)
 
 target_sources(app PRIVATE
  src/main.cpp
  src/bsp.cpp
- src/philo.cpp
- src/table.cpp
+ src/periodic1.cpp
+ src/periodic4.cpp
+ src/sporadic2.cpp
+ src/sporadic3.cpp
 )
 
 # QPCPP framework directory
@@ -51,18 +53,4 @@ target_sources(app PRIVATE
 # application-level "idle thread"...
 if(QIDLE)
 add_compile_definitions(QF_IDLE)
-endif()
-
-# QPCPP configuration with QSPY...
-if(QSPY)
-add_compile_definitions(Q_SPY)
-add_compile_definitions(QF_IDLE)
-
-target_sources(app PRIVATE
- ${QPCPP_DIR}/src/qs/qs.cpp
- ${QPCPP_DIR}/src/qs/qs_rx.cpp
- ${QPCPP_DIR}/src/qs/qs_fp.cpp
- ${QPCPP_DIR}/src/qs/qs_64bit.cpp
- ${QPCPP_DIR}/src/qs/qstamp.cpp
-)
 endif()

@@ -1,33 +1,29 @@
 //============================================================================
-// Product: Blinky example, Zephyr RTOS kernel
-// Last updated for: @ref qpcpp_7_3_0
-// Last updated on  2023-08-24
+// Example, Zephyr RTOS kernel
+//
+// Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 //
 //                   Q u a n t u m  L e a P s
 //                   ------------------------
 //                   Modern Embedded Software
 //
-// Copyright (C) 2005 Quantum Leaps, LLC. <state-machine.com>
+// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 //
-// This program is open source software: you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as published
-// by the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// This software is dual-licensed under the terms of the open source GNU
+// General Public License version 3 (or any later version), or alternatively,
+// under the terms of one of the closed source Quantum Leaps commercial
+// licenses.
 //
-// Alternatively, this program may be distributed and modified under the
-// terms of Quantum Leaps commercial licenses, which expressly supersede
-// the GNU General Public License and are specifically designed for
-// licensees interested in retaining the proprietary status of their code.
+// The terms of the open source GNU General Public License version 3
+// can be found at: <www.gnu.org/licenses/gpl-3.0>
 //
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
+// The terms of the closed source Quantum Leaps commercial licenses
+// can be found at: <www.state-machine.com/licensing>
 //
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <www.gnu.org/licenses/>.
+// Redistributions in source code must retain this top-level comment block.
+// Plagiarizing this software to sidestep the license obligations is illegal.
 //
-// Contact information:
+// Quantum Leaps contact information:
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
@@ -67,18 +63,19 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
     // (assuming that you ship your production code with assertions enabled).
     Q_UNUSED_PAR(module);
     Q_UNUSED_PAR(id);
-    QS_ASSERTION(module, id, 10000U);
+    QS_ASSERTION(module, id, 10000U); // report assertion to QS
     Q_PRINTK("\nERROR in %s:%d\n", module, id);
 
 #ifndef NDEBUG
     k_panic(); // debug build: halt the system for error search...
-#else
-    sys_reboot(SYS_REBOOT_COLD); // release build: reboot the system
 #endif
-    for (;;) { // explicitly no-return
+
+    sys_reboot(SYS_REBOOT_COLD); // release build: reboot the system
+    for (;;) { // explicitly "no-return"
     }
 }
 //............................................................................
+// assertion failure handler for the STM32 library, including the startup code
 void assert_failed(char const * const module, int_t const id); // prototype
 void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
@@ -116,28 +113,32 @@ void start() {
     // start AOs/threads...
 
     static QP::QEvtPtr blinkyQueueSto[10];
-    static K_THREAD_STACK_DEFINE(blinkyStack, 1024);
+    static K_THREAD_STACK_DEFINE(blinkyStack, 512);
     APP::AO_Blinky->start(
-        1U,                         // QP prio. of the AO
-        blinkyQueueSto,             // event queue storage
-        Q_DIM(blinkyQueueSto),      // queue length [events]
-        blinkyStack,                // private stack for embOS
+        1U,                       // QP prio. of the AO
+        blinkyQueueSto,           // event queue storage
+        Q_DIM(blinkyQueueSto),    // queue length [events]
+        blinkyStack,              // private stack for embOS
         K_THREAD_STACK_SIZEOF(blinkyStack), // stack size [Zephyr]
-        nullptr);                   // no initialization param
+        nullptr);                 // no initialization param
 }
 //............................................................................
 void ledOn() {
     gpio_pin_set_dt(&l_led0, true);
+    Q_PRINTK("BSP_ledOn\n");
 }
 //............................................................................
 void ledOff() {
     gpio_pin_set_dt(&l_led0, false);
+    Q_PRINTK("BSP_ledOff\n");
 }
 
 } // namespace BSP
 
 //============================================================================
 namespace QP {
+
+// QF callbacks...
 
 //............................................................................
 void QF::onStartup() {

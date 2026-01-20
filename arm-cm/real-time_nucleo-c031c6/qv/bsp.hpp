@@ -1,13 +1,11 @@
 //============================================================================
 // "real-time" example to demonstrate timing in QP/C++
-// Last Updated for Version: 7.3.0
-// Date of the Last Update:  2023-10-02
+//
+// Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 //
 //                   Q u a n t u m  L e a P s
 //                   ------------------------
 //                   Modern Embedded Software
-//
-// Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 //
 // SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 //
@@ -29,12 +27,12 @@
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#ifndef HPP_
-#define HPP_
+#ifndef BSP_HPP_
+#define BSP_HPP_
 
 namespace BSP {
 
-constexpr std::uint32_t TICKS_PER_SEC {1000U};
+constexpr std::uint32_t TICKS_PER_SEC {5000U};
 
 void init();
 void start();
@@ -66,4 +64,4 @@ QP::QEvt const *getEvtPeriodic4(std::uint8_t num);
 
 } // namespace BSP
 
-#endif // HPP_
+#endif // BSP_HPP_

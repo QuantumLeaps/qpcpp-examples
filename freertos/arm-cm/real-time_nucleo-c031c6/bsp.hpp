@@ -1,5 +1,5 @@
 //============================================================================
-// Product: Board Support Package example
+// "real-time" example to demonstrate timing in QP/C
 //
 // Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 //
@@ -23,7 +23,7 @@
 // Redistributions in source code must retain this top-level comment block.
 // Plagiarizing this software to sidestep the license obligations is illegal.
 //
-// Contact information:
+// Quantum Leaps contact information:
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
@@ -32,21 +32,35 @@
 
 namespace BSP {
 
-constexpr std::uint32_t TICKS_PER_SEC {CONFIG_SYS_CLOCK_TICKS_PER_SEC};
+constexpr std::uint32_t TICKS_PER_SEC {configTICK_RATE_HZ};
 
 void init();
 void start();
-void displayPaused(std::uint8_t const paused);
-void displayPhilStat(std::uint8_t const n, char const *stat);
-void terminate(std::int16_t const result);
 
-void randomSeed(std::uint32_t const seed); // random seed
-std::uint32_t random(void); // pseudo-random generator
+void d1on();
+void d1off();
 
-// for testing...
-void wait4SW1(void);
-void ledOn(void);
-void ledOff(void);
+void d2on();
+void d2off();
+
+void d3on();
+void d3off();
+
+void d4on();
+void d4off();
+
+void d5on();
+void d5off();
+
+void d6on();
+void d6off();
+
+void d7on();
+void d7off();
+
+// immutable events for Periodic active objects
+QP::QEvt const *getEvtPeriodic1(std::uint8_t num);
+QP::QEvt const *getEvtPeriodic4(std::uint8_t num);
 
 } // namespace BSP
 
