@@ -33,6 +33,10 @@
 #include "stm32c0xx.h"  // CMSIS-compliant header file for the MCU used
 // add other drivers if necessary...
 
+#ifdef Q_SPY
+    #error QP/Spy software tracing not available in this application
+#endif
+
 Q_DEFINE_THIS_MODULE("bsp") // for functional-safety assertions
 
 // Local-scope defines -----------------------------------------------------
@@ -49,11 +53,6 @@ Q_DEFINE_THIS_MODULE("bsp") // for functional-safety assertions
 // Button pins available on the board (just one user Button B1 on PC.13)
 // button on GPIO PC (input)
 #define B1_PIN    13U
-
-#ifdef Q_SPY
-// QSpy source IDs
-static QP::QSpyId const l_SysTick_Handler = { 0U };
-#endif
 
 //============================================================================
 // Error handler and ISRs...
@@ -76,6 +75,8 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
 #endif
 
     NVIC_SystemReset();
+    for (;;) { // explicitly "no-return"
+    }
 }
 //............................................................................
 // assertion failure handler for the STM32 library, including the startup code
@@ -92,7 +93,7 @@ void SysTick_Handler(void) {
 
     QK_ISR_ENTRY(); // inform QK about entering an ISR
 
-    QP::QTimeEvt::TICK_X(0U, &l_SysTick_Handler); // time events at rate 0
+    QP::QTimeEvt::TICK_X(0U, nullptr); // time events at rate 0
 
     // Perform the debouncing of buttons. The algorithm for debouncing
     // adapted from the book "Embedded Systems Dictionary" by Jack Ganssle
@@ -118,12 +119,12 @@ void SysTick_Handler(void) {
             // immutable forward-press event
             static APP::SporadicSpecEvt const
                 sporadicB(APP::SPORADIC_B_SIG, 89U, 0U);
-            APP::AO_Sporadic2->POST(&sporadicA, &l_SysTick_Handler);
-            APP::AO_Sporadic2->POST(&sporadicB, &l_SysTick_Handler);
+            APP::AO_Sporadic2->POST(&sporadicA, nullptr);
+            APP::AO_Sporadic2->POST(&sporadicB, nullptr);
         }
         else { // B1 is released
-            APP::AO_Periodic4->POST(BSP::getEvtPeriodic4(0U), &l_SysTick_Handler);
-            APP::AO_Periodic1->POST(BSP::getEvtPeriodic1(0U), &l_SysTick_Handler);
+            APP::AO_Periodic4->POST(BSP::getEvtPeriodic4(0U), nullptr);
+            APP::AO_Periodic1->POST(BSP::getEvtPeriodic1(0U), nullptr);
         }
     }
 
@@ -149,6 +150,19 @@ void init() {
                 | MPU_CTRL_ENABLE_Msk;        // enable the MPU
     __ISB();
     __DSB();
+
+    // configure the CPU clock to HSI/1 (48MHz)
+    FLASH->ACR = (FLASH->ACR & ~FLASH_ACR_LATENCY) | 0x1U;
+
+    RCC->CR |= RCC_CR_HSEON;
+    while ((RCC->CR & RCC_CR_HSERDY) != 0U) {
+    }
+    RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_HPRE) | 0x0U; // RCC_HCLK_DIV_1
+    RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_SW) | 0x1U; // source HSE
+    while ((RCC->CFGR & RCC_CFGR_SWS) != 0x8U) {
+    }
+    RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_PPRE) | 0x0U; // APB1 prescaler=1
+    SystemCoreClockUpdate();
 
     // enable GPIO port PA clock
     RCC->IOPENR |= (1U << 0U);
@@ -195,7 +209,7 @@ void start() {
         sporadic2QSto,         // storage for the AO's queue
         Q_DIM(sporadic2QSto),  // queue length
         nullptr, 0U,           // stack storage, size (not used)
-        (void const *)0);      // initialization param -- not used
+        nullptr);              // initialization param -- not used
 
     static QP::QEvtPtr sporadic3QSto[8]; // Event queue storage
     APP::AO_Sporadic3->start(
@@ -203,7 +217,7 @@ void start() {
         sporadic3QSto,         // storage for the AO's queue
         Q_DIM(sporadic3QSto),  // queue length
         nullptr, 0U,           // stack storage, size (not used)
-        (void const *)0);      // initialization param -- not used
+        nullptr);              // initialization param -- not used
 
     static QP::QEvtPtr periodic4QSto[8]; // Event queue storage
     APP::AO_Periodic4->start(
@@ -214,26 +228,26 @@ void start() {
         getEvtPeriodic4(0U));  // initialization event
 }
 //............................................................................
-void d1on()  { GPIOA->BSRR = (1U << TST1_PIN);         }
-void d1off() { GPIOA->BSRR = (1U << (TST1_PIN + 16U)); }
+void d1on()  { GPIOA->BSRR = (1U << TST1_PIN); __NOP(); __NOP(); }
+void d1off() { GPIOA->BSRR = (1U << (TST1_PIN + 16U)); __NOP(); __NOP(); }
 //............................................................................
-void d2on()  { GPIOA->BSRR = (1U << TST2_PIN);         }
-void d2off() { GPIOA->BSRR = (1U << (TST2_PIN + 16U)); }
+void d2on()  { GPIOA->BSRR = (1U << TST2_PIN); __NOP(); __NOP(); }
+void d2off() { GPIOA->BSRR = (1U << (TST2_PIN + 16U)); __NOP(); __NOP(); }
 //............................................................................
-void d3on()  { GPIOA->BSRR = (1U << TST3_PIN);         }
-void d3off() { GPIOA->BSRR = (1U << (TST3_PIN + 16U)); }
+void d3on()  { GPIOA->BSRR = (1U << TST3_PIN); __NOP(); __NOP(); }
+void d3off() { GPIOA->BSRR = (1U << (TST3_PIN + 16U)); __NOP(); __NOP(); }
 //............................................................................
-void d4on()  { GPIOA->BSRR = (1U << TST4_PIN);         }
-void d4off() { GPIOA->BSRR = (1U << (TST4_PIN + 16U)); }
+void d4on()  { GPIOA->BSRR = (1U << TST4_PIN); __NOP(); __NOP(); }
+void d4off() { GPIOA->BSRR = (1U << (TST4_PIN + 16U)); __NOP(); __NOP(); }
 //............................................................................
-void d5on()  { GPIOA->BSRR = (1U << TST5_PIN);         }
-void d5off() { GPIOA->BSRR = (1U << (TST5_PIN + 16U)); }
+void d5on()  { GPIOA->BSRR = (1U << TST5_PIN); __NOP(); __NOP(); }
+void d5off() { GPIOA->BSRR = (1U << (TST5_PIN + 16U)); __NOP(); __NOP(); }
 //............................................................................
-void d6on()  { GPIOA->BSRR = (1U << TST6_PIN);         } // LED2
-void d6off() { GPIOA->BSRR = (1U << (TST6_PIN + 16U)); }
+void d6on()  { GPIOA->BSRR = (1U << TST6_PIN); __NOP(); __NOP(); }
+void d6off() { GPIOA->BSRR = (1U << (TST6_PIN + 16U)); __NOP(); __NOP(); }
 //............................................................................
-void d7on()  { GPIOA->BSRR = (1U << TST7_PIN);         }
-void d7off() { GPIOA->BSRR = (1U << (TST7_PIN + 16U)); }
+void d7on()  { GPIOA->BSRR = (1U << TST7_PIN); __NOP(); __NOP(); }
+void d7off() { GPIOA->BSRR = (1U << (TST7_PIN + 16U)); __NOP(); __NOP(); }
 
 //............................................................................
 QP::QEvt const *getEvtPeriodic1(uint8_t num) {

@@ -48,19 +48,21 @@ target_sources(app PRIVATE
  ${QPCPP_DIR}/zephyr/qf_port.cpp
 )
 
+# application-level "idle thread"...
+if(QIDLE)
+add_compile_definitions(QF_IDLE)
+endif()
+
 # QPCPP configuration with QSPY...
 if(QSPY)
-
 add_compile_definitions(Q_SPY)
+add_compile_definitions(QF_IDLE)
 
 target_sources(app PRIVATE
  ${QPCPP_DIR}/src/qs/qs.cpp
  ${QPCPP_DIR}/src/qs/qs_rx.cpp
  ${QPCPP_DIR}/src/qs/qs_fp.cpp
- ${QPCPP_DIR}/src/qs/qutest.cpp
  ${QPCPP_DIR}/src/qs/qs_64bit.cpp
  ${QPCPP_DIR}/src/qs/qstamp.cpp
 )
-
 endif()
-

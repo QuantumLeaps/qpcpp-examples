@@ -1,0 +1,354 @@
+//============================================================================
+// BSP for "real-time" Example, NUCLEO-C031C6 board, FreeRTOS kernel
+//
+// Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
+//
+//                    Q u a n t u m  L e a P s
+//                    ------------------------
+//                    Modern Embedded Software
+//
+// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
+//
+// This software is dual-licensed under the terms of the open-source GNU
+// General Public License (GPL) or under the terms of one of the closed-
+// source Quantum Leaps commercial licenses.
+//
+// Redistributions in source code must retain this top-level comment block.
+// Plagiarizing this software to sidestep the license obligations is illegal.
+//
+// NOTE:
+// The GPL does NOT permit the incorporation of this code into proprietary
+// programs. Please contact Quantum Leaps for commercial licensing options,
+// which expressly supersede the GPL and are designed explicitly for
+// closed-source distribution.
+//
+// Quantum Leaps contact information:
+// <www.state-machine.com/licensing>
+// <info@state-machine.com>
+//============================================================================
+#include "qpcpp.hpp"           // QP/C++ real-time event framework
+#include "bsp.hpp"             // Board Support Package
+#include "app.hpp"             // Application interface
+
+#include "stm32c0xx.h"  // CMSIS-compliant header file for the MCU used
+// add other drivers if necessary...
+
+#ifdef Q_SPY
+    #error QP/Spy software tracing not available in this application
+#endif
+
+Q_DEFINE_THIS_MODULE("bsp") // for functional-safety assertions
+
+// Local-scope defines -----------------------------------------------------
+// "RTOS-aware" interrupt priorities for FreeRTOS on ARM Cortex-M, NOTE1
+#define RTOS_AWARE_ISR_CMSIS_PRI \
+    (configMAX_SYSCALL_INTERRUPT_PRIORITY >> (8-__NVIC_PRIO_BITS))
+
+// test pins on GPIO PA (output)
+#define TST1_PIN  7U
+#define TST2_PIN  6U
+#define TST3_PIN  4U
+#define TST4_PIN  1U
+#define TST5_PIN  0U
+#define TST6_PIN  9U
+#define TST7_PIN  5U // LED LD2-Green
+
+// Button pins available on the board (just one user Button B1 on PC.13)
+// button on GPIO PC (input)
+#define B1_PIN    13U
+
+//============================================================================
+// Error handler
+
+extern "C" {
+
+Q_NORETURN Q_onError(char const * const module, int_t const id) {
+    // NOTE: this implementation of the error handler is intended only
+    // for debugging and MUST be changed for deployment of the application
+    // (assuming that you ship your production code with assertions enabled).
+    Q_UNUSED_PAR(module);
+    Q_UNUSED_PAR(id);
+    QS_ASSERTION(module, id, 10000U); // report assertion to QS
+
+#ifndef NDEBUG
+    // light up the user LED
+    GPIOA->BSRR = (1U << TST7_PIN);  // turn LED on
+    // for debugging, hang on in an endless loop...
+    for (;;) {
+    }
+#endif
+
+    NVIC_SystemReset();
+    for (;;) { // explicitly "no-return"
+    }
+}
+//............................................................................
+// assertion failure handler for the STM32 library, including the startup code
+void assert_failed(char const * const module, int_t const id); // prototype
+void assert_failed(char const * const module, int_t const id) {
+    Q_onError(module, id);
+}
+
+//............................................................................
+#ifdef __UVISION_VERSION
+// dummy initialization of the ctors (not used in C)
+void _init(void);
+void _init(void) {
+}
+#endif // __UVISION_VERSION
+
+// ISRs "hooks" used in the application ======================================
+
+void vApplicationTickHook(void) {
+    BSP::d1on();
+
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+    // process time events at rate 0
+    QP::QTimeEvt::TICK_X_FROM_ISR(0U, &xHigherPriorityTaskWoken, nullptr);
+
+    // Perform the debouncing of buttons. The algorithm for debouncing
+    // adapted from the book "Embedded Systems Dictionary" by Jack Ganssle
+    // and Michael Barr, page 71.
+    static struct {
+        uint32_t depressed;
+        uint32_t previous;
+    } buttons = { 0U, 0U };
+
+    uint32_t current = ~GPIOC->IDR; // read Port C with state of Button B1
+    uint32_t tmp = buttons.depressed; // save the depressed buttons
+    buttons.depressed |= (buttons.previous & current); // set depressed
+    buttons.depressed &= (buttons.previous | current); // clear released
+    buttons.previous   = current; // update the history
+    tmp ^= buttons.depressed;     // changed debounced depressed
+    current = buttons.depressed;
+
+    if ((tmp & (1U << B1_PIN)) != 0U) { // debounced B1 state changed?
+        if ((current & (1U << B1_PIN)) != 0U) { // is B1 depressed?
+            // immutable sporadic-press event
+            static APP::SporadicSpecEvt const
+                sporadicA(APP::SPORADIC_A_SIG, 189U, 0U);
+            // immutable forward-press event
+            static APP::SporadicSpecEvt const
+                sporadicB(APP::SPORADIC_B_SIG, 89U, 0U);
+            APP::AO_Sporadic2->POST(&sporadicA, nullptr);
+            APP::AO_Sporadic2->POST(&sporadicB, nullptr);
+        }
+        else { // B1 is released
+            APP::AO_Periodic4->POST(BSP::getEvtPeriodic4(0U), nullptr);
+            APP::AO_Periodic1->POST(BSP::getEvtPeriodic1(0U), nullptr);
+        }
+    }
+
+    // notify FreeRTOS to perform context switch from ISR, if needed
+    portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
+
+    BSP::d1off();
+}
+
+//............................................................................
+void vApplicationIdleHook(void) {
+    BSP::d7on(); // LED LD4
+    BSP::d7off();
+}
+//............................................................................
+void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
+    (void)xTask;
+    (void)pcTaskName;
+    Q_ERROR();
+}
+//............................................................................
+// configSUPPORT_STATIC_ALLOCATION is set to 1, so the application must
+// provide an implementation of vApplicationGetIdleTaskMemory() to provide
+// the memory that is used by the Idle task.
+void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
+                                    StackType_t **ppxIdleTaskStackBuffer,
+                                    uint32_t *pulIdleTaskStackSize )
+{
+    // If the buffers to be provided to the Idle task are declared inside
+    // this function then they must be declared static - otherwise they will
+    // be allocated on the stack and so not exists after this function exits.
+    //
+    static StaticTask_t xIdleTaskTCB;
+    static StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
+
+    // Pass out a pointer to the StaticTask_t structure in which the
+    // Idle task's state will be stored.
+    *ppxIdleTaskTCBBuffer = &xIdleTaskTCB;
+
+    // Pass out the array that will be used as the Idle task's stack.
+    *ppxIdleTaskStackBuffer = uxIdleTaskStack;
+
+    // Pass out the size of the array pointed to by *ppxIdleTaskStackBuffer.
+    // Note that, as the array is necessarily of type StackType_t,
+    // configMINIMAL_STACK_SIZE is specified in words, not bytes.
+    //
+    *pulIdleTaskStackSize = Q_DIM(uxIdleTaskStack);
+}
+
+} // extern "C"
+
+// BSP functions =============================================================
+namespace BSP {
+
+void init() {
+    // Configure the MPU to prevent NULL-pointer dereferencing ...
+    MPU->RBAR = 0x0U                          // base address (NULL)
+                | MPU_RBAR_VALID_Msk          // valid region
+                | (MPU_RBAR_REGION_Msk & 7U); // region #7
+    MPU->RASR = (7U << MPU_RASR_SIZE_Pos)     // 2^(7+1) region
+                | (0x0U << MPU_RASR_AP_Pos)   // no-access region
+                | MPU_RASR_ENABLE_Msk;        // region enable
+    MPU->CTRL = MPU_CTRL_PRIVDEFENA_Msk       // enable background region
+                | MPU_CTRL_ENABLE_Msk;        // enable the MPU
+    __ISB();
+    __DSB();
+
+    // configure the CPU clock to HSI/1 (48MHz)
+    FLASH->ACR = (FLASH->ACR & ~FLASH_ACR_LATENCY) | 0x1U;
+
+    RCC->CR |= RCC_CR_HSEON;
+    while ((RCC->CR & RCC_CR_HSERDY) != 0U) {
+    }
+    RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_HPRE) | 0x0U; // RCC_HCLK_DIV_1
+    RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_SW) | 0x1U; // source HSE
+    while ((RCC->CFGR & RCC_CFGR_SWS) != 0x8U) {
+    }
+    RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_PPRE) | 0x0U; // APB1 prescaler=1
+    SystemCoreClockUpdate();
+
+    // enable GPIO port PA clock
+    RCC->IOPENR |= (1U << 0U);
+
+    // set all used GPIOA pins as push-pull output, no pull-up, pull-down
+    GPIOA->MODER &=
+        ~((3U << 2U*TST1_PIN) | (3U << 2U*TST2_PIN) | (3U << 2U*TST3_PIN) |
+          (3U << 2U*TST4_PIN) | (3U << 2U*TST5_PIN) | (3U << 2U*TST6_PIN) |
+          (3U << 2U*TST7_PIN));
+    GPIOA->MODER |=
+         ((1U << 2U*TST1_PIN) | (1U << 2U*TST2_PIN) | (1U << 2U*TST3_PIN) |
+          (1U << 2U*TST4_PIN) | (1U << 2U*TST5_PIN) | (1U << 2U*TST6_PIN) |
+          (1U << 2U*TST7_PIN));
+    GPIOA->OTYPER &=
+        ~((1U <<    TST1_PIN) | (1U <<    TST2_PIN) | (1U <<    TST3_PIN) |
+          (1U <<    TST4_PIN) | (1U <<    TST5_PIN) | (1U <<    TST6_PIN) |
+          (1U <<    TST7_PIN));
+    GPIOA->PUPDR &=
+        ~((3U << 2U*TST1_PIN) | (3U << 2U*TST2_PIN) | (3U << 2U*TST3_PIN) |
+          (3U << 2U*TST4_PIN) | (3U << 2U*TST5_PIN) | (3U << 2U*TST6_PIN) |
+          (3U << 2U*TST7_PIN));
+
+    // enable GPIOC clock port for the Button B1
+    RCC->IOPENR |=  (1U << 2U);
+
+    // configure Button B1 pin on GPIOC as input, no pull-up, pull-down
+    GPIOC->MODER &= ~(3U << 2U*B1_PIN);
+    GPIOC->PUPDR &= ~(3U << 2U*B1_PIN);
+}
+//............................................................................
+void start() {
+    // start QP/C++ active objects...
+    static QP::QEvtPtr periodic1QSto[10]; // Event queue storage
+    static StackType_t periodic1Stack[256];
+    APP::AO_Periodic1->start(
+        1U,                    // QF-prio
+        periodic1QSto,         // storage for the AO's queue
+        Q_DIM(periodic1QSto),  // queue length
+        periodic1Stack,        // stack storage (needed for FreeRTOS)
+        sizeof(periodic1Stack),// stack size (needed for FreeRTOS)
+        getEvtPeriodic1(0U));  // initialization param
+
+    static QP::QEvtPtr sporadic2QSto[8]; // Event queue storage
+    static StackType_t sporadic2Stack[256];
+    APP::AO_Sporadic2->start(
+        2U,                    // QF-prio/pre-thre.
+        sporadic2QSto,         // storage for the AO's queue
+        Q_DIM(sporadic2QSto),  // queue length
+        sporadic2Stack,        // stack storage (needed for FreeRTOS)
+        sizeof(sporadic2Stack),// stack size (needed for FreeRTOS)
+        nullptr);              // initialization param -- not used
+
+    static QP::QEvtPtr sporadic3QSto[8]; // Event queue storage
+    static StackType_t sporadic3Stack[256];
+    APP::AO_Sporadic3->start(
+        3U,                    // QF-prio/pre-thre.
+        sporadic3QSto,         // storage for the AO's queue
+        Q_DIM(sporadic3QSto),  // queue length
+        sporadic3Stack,        // stack storage (needed for FreeRTOS)
+        sizeof(sporadic3Stack),// stack size (needed for FreeRTOS)
+        nullptr);              // initialization param -- not used
+
+    static QP::QEvtPtr periodic4QSto[8]; // Event queue storage
+    static StackType_t periodic4Stack[256];
+    APP::AO_Periodic4->start(
+        4U,                    // QF-prio
+        periodic4QSto,         // storage for the AO's queue
+        Q_DIM(periodic4QSto),  // queue length
+        periodic4Stack,        // stack storage (needed for FreeRTOS)
+        sizeof(periodic4Stack),// stack size (needed for FreeRTOS)
+        getEvtPeriodic4(0U));  // initialization event
+}
+//............................................................................
+void d1on()  { GPIOA->BSRR = (1U << TST1_PIN); __NOP(); __NOP(); }
+void d1off() { GPIOA->BSRR = (1U << (TST1_PIN + 16U)); __NOP(); __NOP(); }
+//............................................................................
+void d2on()  { GPIOA->BSRR = (1U << TST2_PIN); __NOP(); __NOP(); }
+void d2off() { GPIOA->BSRR = (1U << (TST2_PIN + 16U)); __NOP(); __NOP(); }
+//............................................................................
+void d3on()  { GPIOA->BSRR = (1U << TST3_PIN); __NOP(); __NOP(); }
+void d3off() { GPIOA->BSRR = (1U << (TST3_PIN + 16U)); __NOP(); __NOP(); }
+//............................................................................
+void d4on()  { GPIOA->BSRR = (1U << TST4_PIN); __NOP(); __NOP(); }
+void d4off() { GPIOA->BSRR = (1U << (TST4_PIN + 16U)); __NOP(); __NOP(); }
+//............................................................................
+void d5on()  { GPIOA->BSRR = (1U << TST5_PIN); __NOP(); __NOP(); }
+void d5off() { GPIOA->BSRR = (1U << (TST5_PIN + 16U)); __NOP(); __NOP(); }
+//............................................................................
+void d6on()  { GPIOA->BSRR = (1U << TST6_PIN); __NOP(); __NOP(); }
+void d6off() { GPIOA->BSRR = (1U << (TST6_PIN + 16U)); __NOP(); __NOP(); }
+//............................................................................
+void d7on()  { GPIOA->BSRR = (1U << TST7_PIN); __NOP(); __NOP(); }
+void d7off() { GPIOA->BSRR = (1U << (TST7_PIN + 16U)); __NOP(); __NOP(); }
+
+//............................................................................
+QP::QEvt const *getEvtPeriodic1(uint8_t num) {
+    // immutable PERIODIC_SPEC events for Periodic1
+    static APP::PeriodicSpecEvt const periodicSpec1[] {
+        APP::PeriodicSpecEvt(APP::PERIODIC_SPEC_SIG, 40U, 5U),
+        APP::PeriodicSpecEvt(APP::PERIODIC_SPEC_SIG, 30U, 7U)
+    };
+    Q_REQUIRE_ID(500, num < Q_DIM(periodicSpec1)); // must be in range
+    return &periodicSpec1[num];
+}
+//............................................................................
+QP::QEvt const *getEvtPeriodic4(uint8_t num) {
+    // immutable PERIODIC_SPEC events for Periodic4
+    static APP::PeriodicSpecEvt const periodicSpec4[] {
+        APP::PeriodicSpecEvt(APP::PERIODIC_SPEC_SIG, 20U, 2U),
+        APP::PeriodicSpecEvt(APP::PERIODIC_SPEC_SIG, 10U, 1U)
+    };
+    Q_REQUIRE_ID(600, num < Q_DIM(periodicSpec4)); // must be in range
+    return &periodicSpec4[num];
+}
+
+} // namespace BSP
+
+// QF callbacks ==============================================================
+namespace QP {
+
+void QF::onStartup() {
+    SystemCoreClockUpdate();
+
+    // set up the SysTick timer to fire at TICKS_PER_SEC rate
+    SysTick_Config((SystemCoreClock / BSP::TICKS_PER_SEC) + 1U);
+
+    // set priorities of ISRs used in the system
+    // NOTE: all interrupts are "kernel aware" in Cortex-M0+
+    NVIC_SetPriority(SysTick_IRQn, 0U);
+    // ...
+}
+//............................................................................
+void QF::onCleanup() {
+}
+
+} // namespace QP

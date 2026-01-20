@@ -34,7 +34,6 @@
 
 // <o>QP API compatibility version (QP_API_VERSION)
 //   <0=>  0   (Maximum compatibility)
-//   <680=>680 (QP 6.8.0 or newer)
 //   <691=>691 (QP 6.9.1 or newer)
 //   <734=>7.3.4 (QP 7.3.4 or newer)
 //   <9999=>9999 (Latest only)
@@ -47,7 +46,7 @@
 // <i>backwards compatibility. Conversely, QP_API_VERSION==9999 means
 // <i>that no backwards compatibility layer should be enabled.
 // <i>Default: 0 (All supported)
-#define QP_API_VERSION 9999
+#define QP_API_VERSION 0
 
 //..........................................................................
 // <h>QP Functional Safety (FuSa) Subsystem (Q_UNSAFE)
@@ -87,7 +86,7 @@
 // <o>Maximum # Active Objects (QF_MAX_ACTIVE) <1-64>
 // <i>Maximum # Active Objects in the system <1..64>
 // <i>Default: 32
-#define QF_MAX_ACTIVE  32U
+#define QF_MAX_ACTIVE  CONFIG_NUM_PREEMPT_PRIORITIES
 
 // <o>Maximum # event pools (QF_MAX_EPOOL)
 // <0=>0 no event pools
