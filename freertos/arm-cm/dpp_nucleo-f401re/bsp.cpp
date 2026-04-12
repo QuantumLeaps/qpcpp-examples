@@ -26,11 +26,11 @@
 // <www.state-machine.com/licensing>
 // <info@state-machine.com>
 //============================================================================
-#include "qpcpp.hpp"        // QP/C++ real-time event framework
-#include "bsp.hpp"          // Board Support Package
-#include "app.hpp"          // Application
+#include "qpcpp.hpp"    // QP/C++ real-time event framework
+#include "bsp.hpp"      // Board Support Package
+#include "app.hpp"      // Application
 
-#include "stm32f4xx.h"    // CMSIS-compliant header file for the MCU used
+#include "stm32f4xx.h"  // CMSIS-compliant header file for the MCU used
 // add other drivers if necessary...
 
 //============================================================================
@@ -79,23 +79,23 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
     QS_ASSERTION(module, id, 10000U); // report assertion to QS
 
 #ifndef NDEBUG
-    for (;;) { // for debugging, hang on in an endless loop...
+    // for debugging, hang on in an endless loop...
+    for (;;) {
     }
-#else
+#endif
     NVIC_SystemReset();
     for (;;) { // explicitly "no-return"
     }
-#endif
 }
 //............................................................................
-// assertion failure handler for the startup code and libraries
+// assertion failure handler for the startup and library code
 void assert_failed(char const * const module, int_t const id); // prototype
 void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
 }
 
-// ISRs used in the application ==========================================
-
+//============================================================================
+// ISRs "hooks" used in the application...
 
 //............................................................................
 #ifdef Q_SPY
@@ -190,8 +190,8 @@ void vApplicationIdleHook(void) {
 }
 //............................................................................
 void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
-    (void)xTask;
-    (void)pcTaskName;
+    Q_UNUSED_PAR(xTask);
+    Q_UNUSED_PAR(pcTaskName);
     Q_ERROR();
 }
 //............................................................................
@@ -267,7 +267,7 @@ void init(void const * const arg) {
     GPIOC->MODER &= ~(3U << 2U*B1_PIN);
     GPIOC->PUPDR &= ~(3U << 2U*B1_PIN);
 
-    BSP::randomSeed(1234U);
+    randomSeed(1234U); // seed the random number generator
 
     // initialize QS software tracing...
     if (!QS_INIT(arg)) {
@@ -292,7 +292,26 @@ void init(void const * const arg) {
     static QP::QSubscrList subscrSto[APP::MAX_PUB_SIG];
     QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
 
-    randomSeed(1234U); // seed the random number generator
+    // start the active objects/threads...
+    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10];
+    static StackType_t philoStack[APP::N_PHILO][configMINIMAL_STACK_SIZE];
+    for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
+        APP::AO_Philo[n]->start(
+            Q_PRIO(n + 3U, 3U),      // QP prio., FreeRTOS prio.
+            philoQueueSto[n],        // event queue storage
+            Q_DIM(philoQueueSto[n]), // queue length [events]
+            philoStack[n],           // stack storage
+            sizeof(philoStack[n]));  // stack size [bytes]
+    }
+
+    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
+    static StackType_t tableStack[configMINIMAL_STACK_SIZE];
+    APP::AO_Table->start(
+        Q_PRIO(APP::N_PHILO + 7U, 7U), // QP prio., FreeRTOS prio.
+        tableQueueSto,               // event queue storage
+        Q_DIM(tableQueueSto),        // queue length [events]
+        tableStack,                  // stack storage
+        sizeof(tableStack));         // stack size [bytes]
 }
 //............................................................................
 void displayPhilStat(std::uint8_t n, char const *stat) {
@@ -339,11 +358,11 @@ std::uint32_t random() { // a very cheap pseudo-random-number generator
     vTaskSuspendAll(); // lock FreeRTOS scheduler
     // "Super-Duper" Linear Congruential Generator (LCG)
     // LCG(2^32, 3*7*11*13*23, 0, seed)
-    std::uint32_t rnd = l_rndSeed * (3U*7U*11U*13U*23U);
+    std::uint32_t const rnd = l_rndSeed * (3U*7U*11U*13U*23U);
     l_rndSeed = rnd; // set for the next time
     xTaskResumeAll(); // unlock the FreeRTOS scheduler
 
-    return (rnd >> 8U);
+    return rnd >> 8U;
 }
 //............................................................................
 void terminate(std::int16_t result) {
@@ -365,28 +384,8 @@ namespace QP {
 
 // QF callbacks...
 void QF::onStartup() {
-    // start AOs/threads...
-    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10];
-    static StackType_t philoStack[APP::N_PHILO][configMINIMAL_STACK_SIZE];
-    for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
-        APP::AO_Philo[n]->start(
-            Q_PRIO(n + 3U, 3U),      // QP prio., FreeRTOS prio.
-            philoQueueSto[n],        // event queue storage
-            Q_DIM(philoQueueSto[n]), // queue length [events]
-            philoStack[n],           // stack storage
-            sizeof(philoStack[n]));  // stack size [bytes]
-    }
-
-    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
-    static StackType_t tableStack[configMINIMAL_STACK_SIZE];
-    APP::AO_Table->start(
-        Q_PRIO(APP::N_PHILO + 7U, 7U), // QP prio., FreeRTOS prio.
-        tableQueueSto,               // event queue storage
-        Q_DIM(tableQueueSto),        // queue length [events]
-        tableStack,                  // stack storage
-        sizeof(tableStack));         // stack size [bytes]
-
     // set up the SysTick timer to fire at BSP::TICKS_PER_SEC rate
+    //SystemCoreClockUpdate();
     //SysTick_Config(SystemCoreClock / BSP::TICKS_PER_SEC); // done in FreeRTOS
 
     // assign all priority bits for preemption-prio. and none to sub-prio.
@@ -443,6 +442,7 @@ bool QS::onStartup(void const *arg) {
     GPIOA->MODER  &= ~(( 3U << 2U*USART2_RX_PIN) | ( 3U << 2U*USART2_TX_PIN));
     GPIOA->MODER  |=  (( 2U << 2U*USART2_RX_PIN) | ( 2U << 2U*USART2_TX_PIN));
 
+    SystemCoreClockUpdate();
     USART2->BRR  = __USART_BRR(SystemCoreClock, 115200U);  // baud rate
     USART2->CR3  = 0x0000U;         // no flow control
     USART2->CR2  = 0x0000U;         // 1 stop bit

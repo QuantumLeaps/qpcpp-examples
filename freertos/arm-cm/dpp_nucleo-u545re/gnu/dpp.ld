@@ -1,5 +1,5 @@
 /*****************************************************************************
-* Linker script for EK-TM4C123GXL, GNU-ARM linker
+* Linker script for for STM32U545RETxQ, GNU-ARM linker
 *
 * Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 *
@@ -30,9 +30,10 @@ OUTPUT_FORMAT("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
 OUTPUT_ARCH(arm)
 ENTRY(Reset_Handler) /* entry Point */
 
-MEMORY { /* memory map of Tiva TM4C123GH6PM */
-    ROM (rx)  : ORIGIN = 0x00000000, LENGTH = 256K
-    RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 32K
+MEMORY { /* memory map of STM32U545RETxQ */
+    ROM (rx)    : ORIGIN = 0x08000000, LENGTH = 512K
+    RAM (xrw)   : ORIGIN = 0x20000000, LENGTH = 256K
+    SRAM4 (xrw) : ORIGIN = 0x28000000, LENGTH = 16K
 }
 
 /* The size of the stack used by the application. NOTE: you need to adjust  */
@@ -118,15 +119,6 @@ SECTIONS {
     } >ROM
 
     /* RAM ------------------------------------------------------------*/
-    .stack : {
-        . = ALIGN(8);
-        __stack_start__ = .;
-        . = . + STACK_SIZE;
-        . = ALIGN(4);
-        __stack_end__ = .;
-        . = ALIGN(8);
-    } >RAM
-
     /* Used by the startup to initialize data */
     __data_load = LOADADDR(.data);
 
@@ -153,10 +145,20 @@ SECTIONS {
         *(.bss*)
         *(COMMON)
 
-       . = ALIGN(4);
-       __bss_end__ = .;    /* define a global symbol at bss end */
-       _ebss = __bss_end__;
+        . = ALIGN(4);
+        __bss_end__ = .;    /* define a global symbol at bss end */
+        _ebss = __bss_end__;
     } >RAM
+
+    /* SRAM4 ----------------------------------------------------------*/
+    .stack : {
+        . = ALIGN(8);
+        __stack_start__ = .;
+        . = . + STACK_SIZE;
+        . = ALIGN(4);
+        __stack_end__ = .;
+        . = ALIGN(8);
+    } >SRAM4
 
     .heap : {
         . = ALIGN(8);
@@ -167,7 +169,7 @@ SECTIONS {
         . = ALIGN(4);
         __heap_end__ = .;
         . = ALIGN(8);
-    } >RAM
+    } >SRAM4
 
     /* Remove information from the standard libraries */
     /DISCARD/ : {

@@ -1,5 +1,5 @@
 //============================================================================
-// Example, Zephyr RTOS kernel
+// QP/C++ Real-Time Event Framework (RTEF)
 //
 // Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 //
@@ -39,7 +39,7 @@
 #define LED0_NODE DT_ALIAS(led0)
 
 //============================================================================
-namespace { // unnamed namespace for local stuff with internal linkage
+namespace { // anonymous namespace for local stuff with internal linkage
 
 Q_DEFINE_THIS_FILE  // file name for assertions
 
@@ -57,7 +57,7 @@ static std::uint32_t l_rnd; // random seed
     static QP::QSpyId const timerID = { QP::QS_ID_AP };
 #endif // Q_SPY
 
-} // unnamed namespace
+} // anonymous namespace
 
 //============================================================================
 // Error handler
@@ -134,9 +134,32 @@ void init(void const * const arg) {
     QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
 
     randomSeed(1234U); // seed the random number generator
+
+    // start AOs/threads...
+    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10];
+    static K_THREAD_STACK_DEFINE(philoStack[APP::N_PHILO], 512);
+    for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
+        APP::AO_Philo[n]->start(
+            n + 3U,                  // QP prio. of the AO
+            philoQueueSto[n],        // event queue storage
+            Q_DIM(philoQueueSto[n]), // queue length [events]
+            philoStack[n],           // private stack for embOS
+            K_THREAD_STACK_SIZEOF(philoStack[n]), // stack size [Zephyr]
+            nullptr);                // no initialization param
+    }
+
+    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
+    static K_THREAD_STACK_DEFINE(tableStack, 512);
+    APP::AO_Table->start(
+        APP::N_PHILO + 7U,       // QP prio. of the AO
+        tableQueueSto,           // event queue storage
+        Q_DIM(tableQueueSto),    // queue length [events]
+        tableStack,              // private stack for embOS
+        K_THREAD_STACK_SIZEOF(tableStack), // stack size [Zephyr]
+        nullptr);              // no initialization param
 }
 //............................................................................
-void terminate(std::int16_t result) {
+void terminate(std::int16_t const result) {
     Q_UNUSED_PAR(result);
     QP::QF::stop();
 }
@@ -200,29 +223,6 @@ namespace QP {
 
 // QF callbacks...
 void QF::onStartup() {
-    // start AOs/threads...
-    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10];
-    static K_THREAD_STACK_DEFINE(philoStack[APP::N_PHILO], 512);
-    for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
-        APP::AO_Philo[n]->start(
-            n + 3U,                  // QP prio. of the AO
-            philoQueueSto[n],        // event queue storage
-            Q_DIM(philoQueueSto[n]), // queue length [events]
-            philoStack[n],           // private stack for embOS
-            K_THREAD_STACK_SIZEOF(philoStack[n]), // stack size [Zephyr]
-            nullptr);                // no initialization param
-    }
-
-    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
-    static K_THREAD_STACK_DEFINE(tableStack, 512);
-    APP::AO_Table->start(
-        APP::N_PHILO + 7U,       // QP prio. of the AO
-        tableQueueSto,           // event queue storage
-        Q_DIM(tableQueueSto),    // queue length [events]
-        tableStack,              // private stack for embOS
-        K_THREAD_STACK_SIZEOF(tableStack), // stack size [Zephyr]
-        nullptr);              // no initialization param
-
     k_timer_start(&zephyr_tick_timer, K_MSEC(1), K_MSEC(1));
     Q_PRINTK("QF::onStartup\n");
 }
@@ -310,7 +310,7 @@ void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
 }
 //............................................................................
 void QF::onIdle() {
-    QS::rxParse();  // parse all the received bytes
+    QS::rxParse(); // parse all the received bytes
 
     std::uint16_t len = 0xFFFFU; // big number to get all available bytes
 

@@ -286,6 +286,8 @@ void init(void const * const arg) {
     // configure the User Button in GPIO Mode
     BSP_PB_Init(BUTTON_KEY, BUTTON_MODE_GPIO);
 
+    randomSeed(1234U); // seed the random number generator
+
     // initialize QS software tracing...
     if (!QS_INIT(arg)) {
         Q_ERROR();
@@ -310,7 +312,26 @@ void init(void const * const arg) {
     static QP::QSubscrList subscrSto[APP::MAX_PUB_SIG];
     QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
 
-    randomSeed(1234U); // seed the random number generator
+    // start AOs/threads...
+    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10];
+    static StackType_t philoStack[APP::N_PHILO][configMINIMAL_STACK_SIZE];
+    for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
+        APP::AO_Philo[n]->start(
+            Q_PRIO(n + 3U, 3U),      // QP prio., FreeRTOS prio.
+            philoQueueSto[n],        // event queue storage
+            Q_DIM(philoQueueSto[n]), // queue length [events]
+            philoStack[n],           // stack storage
+            sizeof(philoStack[n]));  // stack size [bytes]
+    }
+
+    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
+    static StackType_t tableStack[configMINIMAL_STACK_SIZE];
+    APP::AO_Table->start(
+        Q_PRIO(APP::N_PHILO + 7U, 7U), // QP prio., FreeRTOS prio.
+        tableQueueSto,               // event queue storage
+        Q_DIM(tableQueueSto),        // queue length [events]
+        tableStack,                  // stack storage
+        sizeof(tableStack));         // stack size [bytes]
 }
 //............................................................................
 void displayPhilStat(std::uint8_t n, char const *stat) {
@@ -382,27 +403,6 @@ namespace QP {
 
 // QF callbacks...
 void QF::onStartup() {
-    // start AOs/threads...
-    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10];
-    static StackType_t philoStack[APP::N_PHILO][configMINIMAL_STACK_SIZE];
-    for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
-        APP::AO_Philo[n]->start(
-            Q_PRIO(n + 3U, 3U),      // QP prio., FreeRTOS prio.
-            philoQueueSto[n],        // event queue storage
-            Q_DIM(philoQueueSto[n]), // queue length [events]
-            philoStack[n],           // stack storage
-            sizeof(philoStack[n]));  // stack size [bytes]
-    }
-
-    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
-    static StackType_t tableStack[configMINIMAL_STACK_SIZE];
-    APP::AO_Table->start(
-        Q_PRIO(APP::N_PHILO + 7U, 7U), // QP prio., FreeRTOS prio.
-        tableQueueSto,               // event queue storage
-        Q_DIM(tableQueueSto),        // queue length [events]
-        tableStack,                  // stack storage
-        sizeof(tableStack));         // stack size [bytes]
-
     // set up the SysTick timer to fire at BSP::TICKS_PER_SEC rate
     //SysTick_Config(SystemCoreClock / BSP::TICKS_PER_SEC); // done in FreeRTOS
 

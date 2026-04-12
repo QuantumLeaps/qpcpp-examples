@@ -326,7 +326,6 @@ QP::QEvt const *getEvtPeriodic4(uint8_t num) {
 namespace QP {
 
 // QF callbacks...
-
 void QF::onStartup() {
     // set up the SysTick timer to fire at BSP::TICKS_PER_SEC rate
     //SysTick_Config(SystemCoreClock / BSP::TICKS_PER_SEC); // done in FreeRTOS

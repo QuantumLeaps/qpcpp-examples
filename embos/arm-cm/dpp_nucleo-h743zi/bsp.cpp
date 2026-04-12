@@ -151,7 +151,6 @@ static void tick_handler(void) { // signature of embOS tick hook routine
     QS_tickTime_ += QS_tickPeriod_; // account for the clock rollover
 #endif
 }
-
 //............................................................................
 // OS_Idle() function overridden from RTOSInit_STM32F4x_CMSIS.c
 //
@@ -176,7 +175,7 @@ void OS_Idle(void) {
 
         if ((l_uartHandle.Instance->ISR & UART_FLAG_TXE) != 0U) { // TXE empty?
             QF_INT_DISABLE();
-            uint16_t b = QP::QS::getByte();
+            std::uint16_t b = QP::QS::getByte();
             QF_INT_ENABLE();
 
             if (b != QP::QS_EOD) { // not End-Of-Data?

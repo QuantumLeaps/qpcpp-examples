@@ -1,5 +1,5 @@
 ##############################################################################
-# Product: Makefile for QP/C on NUCLEO-U545RE, FreeRTOS-Kernel, GNU-ARM
+# Makefile for QP/C++ on NUCLEO-U545RE, FreeRTOS-Kernel, GNU-ARM
 #
 # Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 #
@@ -9,7 +9,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 #
-# The QP/C software is dual-licensed under the terms of the open-source
+# The QP/C++ software is dual-licensed under the terms of the open-source
 # GNU General Public License (GPL) or under the terms of one of the
 # closed-source Quantum Leaps commercial licenses.
 #
@@ -21,7 +21,7 @@
 # incorporation of the QP software into proprietary programs. Please
 # contact Quantum Leaps for commercial licensing options, which expressly
 # supersede the GPL and are designed explicitly for licensees interested
-# in using QP/C in closed-source proprietary applications.
+# in using QP/C++ in closed-source proprietary applications.
 #
 # Quantum Leaps contact information:
 # <www.state-machine.com/licensing>
@@ -42,7 +42,6 @@
 # To use this Makefile on Windows, you will need the GNU make utility, which
 # is included in the QTools collection for Windows, see:
 #    https://github.com/QuantumLeaps/qtools
-#
 
 #-----------------------------------------------------------------------------
 # project name
@@ -170,7 +169,6 @@ AS    := $(GNU_ARM)/bin/arm-none-eabi-as
 LINK  := $(GNU_ARM)/bin/arm-none-eabi-g++
 BIN   := $(GNU_ARM)/bin/arm-none-eabi-objcopy
 
-
 ##############################################################################
 # Typically you should not need to change anything below this line
 
@@ -261,14 +259,8 @@ endif
 # rules
 #
 
-.PHONY : run norun flash
-
-ifeq ($(MAKECMDGOALS),norun)
-all : $(TARGET_BIN)
-norun : all
-else
-all : $(TARGET_BIN) run
-endif
+all: $(TARGET_BIN)
+#all: $(TARGET_ELF)
 
 $(TARGET_BIN): $(TARGET_ELF)
 	$(BIN) -O binary $< $@
@@ -292,8 +284,6 @@ $(BIN_DIR)/%.o : %.c
 $(BIN_DIR)/%.o : %.cpp
 	$(CPP) $(CPPFLAGS) $< -o $@
 
-.PHONY : clean show
-
 # include dependency files only if our goal depends on their existence
 ifneq ($(MAKECMDGOALS),clean)
   ifneq ($(MAKECMDGOALS),show)
@@ -302,13 +292,14 @@ ifneq ($(MAKECMDGOALS),clean)
 endif
 
 
+.PHONY : clean
 clean:
 	-$(RM) $(BIN_DIR)/*.o \
 	$(BIN_DIR)/*.d \
 	$(BIN_DIR)/*.bin \
 	$(BIN_DIR)/*.elf \
 	$(BIN_DIR)/*.map
-	
+
 show:
 	@echo PROJECT = $(PROJECT)
 	@echo CONF = $(CONF)

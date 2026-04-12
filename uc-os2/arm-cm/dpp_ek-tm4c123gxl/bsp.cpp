@@ -244,8 +244,6 @@ void init(void const * const arg) {
     *(uint32_t volatile *)&GPIOF_AHB->CR = 0x00U;
     GPIOF_AHB->LOCK = 0x0; // lock GPIOCR register for SW2
 
-    BSP::randomSeed(1234U);
-
     // initialize QS software tracing...
     if (!QS_INIT(arg)) {
         Q_ERROR();

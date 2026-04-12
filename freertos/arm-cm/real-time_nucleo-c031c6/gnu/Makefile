@@ -1,5 +1,5 @@
 ##############################################################################
-# Product: Makefile for QP/C++ on STM32 NUCLEO-C031C6, FreeRTOS, GNU-ARM
+# Makefile for QP/C++ on STM32 NUCLEO-C031C6, FreeRTOS, GNU-ARM
 #
 # Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
 #
@@ -9,7 +9,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 #
-# The QP/C software is dual-licensed under the terms of the open-source
+# The QP/C++ software is dual-licensed under the terms of the open-source
 # GNU General Public License (GPL) or under the terms of one of the
 # closed-source Quantum Leaps commercial licenses.
 #
@@ -21,7 +21,7 @@
 # incorporation of the QP software into proprietary programs. Please
 # contact Quantum Leaps for commercial licensing options, which expressly
 # supersede the GPL and are designed explicitly for licensees interested
-# in using QP/C in closed-source proprietary applications.
+# in using QP/C++ in closed-source proprietary applications.
 #
 # Quantum Leaps contact information:
 # <www.state-machine.com/licensing>
@@ -42,12 +42,11 @@
 # To use this Makefile on Windows, you will need the GNU make utility, which
 # is included in the QTools collection for Windows, see:
 #    https://github.com/QuantumLeaps/qtools
-#
 
 #-----------------------------------------------------------------------------
 # project name
 #
-PROJECT     := rt-freertos
+PROJECT := rt-freertos
 
 #-----------------------------------------------------------------------------
 # project directories

@@ -292,8 +292,6 @@ void init(void const * const arg) {
                GPIO_MODER_MODE0 << (B1_PIN * GPIO_MODER_MODE1_Pos),
                0U << (B1_PIN * GPIO_MODER_MODE1_Pos)); // MODE_0
 
-    BSP::randomSeed(1234U);
-
     // initialize QS software tracing...
     if (!QS_INIT(arg)) {
         Q_ERROR();
@@ -606,7 +604,7 @@ void QS::onReset() {
 }
 //............................................................................
 void QS::onCommand(std::uint8_t cmdId, std::uint32_t param1,
-               std::uint32_t param2, std::uint32_t param3)
+    std::uint32_t param2, std::uint32_t param3)
 {
     Q_UNUSED_PAR(cmdId);
     Q_UNUSED_PAR(param1);

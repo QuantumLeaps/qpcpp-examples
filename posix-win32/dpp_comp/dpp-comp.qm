@@ -471,7 +471,6 @@ namespace BSP {
 constexpr std::uint32_t TICKS_PER_SEC {100U};
 
 void init(void const * const arg);
-void start();
 void displayPaused(std::uint8_t const paused);
 void displayPhilStat(std::uint8_t const n, char const *stat);
 void terminate(std::int16_t const result);

@@ -94,14 +94,13 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
 #ifndef NDEBUG
     for (;;) { // for debugging, hang on in an endless loop...
     }
-#else
+#endif
     systemREG1->SYSECR = 0; // perform system reset
     for (;;) { // explicitly "no-return"
     }
-#endif
 }
 //............................................................................
-// assertion failure handler for the startup code and libraries
+// assertion failure handler for the STM32 library, including the startup code
 void assert_failed(char const * const module, int_t const id); // prototype
 void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
@@ -193,7 +192,9 @@ void init(void const * const arg) {
     // configure the Buttons
     SWB_PORT->DIR  &= (1U << SWB_PIN);    // set as input
 
-    // initialize QS software tracing...
+    randomSeed(1234U); // seed the random number generator
+
+    // initialize the QS software tracing...
     if (!QS_INIT(arg)) {
         Q_ERROR();
     }
@@ -209,9 +210,7 @@ void init(void const * const arg) {
     QS_GLB_FILTER(QP::QS_GRP_ALL);  // enable all QS trace records
     QS_GLB_FILTER(-QP::QS_QF_TICK); // exclude the tick record
     QS_LOC_FILTER(-(APP::N_PHILO + 3U)); // exclude prio. of AO_Ticker0
-}
-//............................................................................
-void start() {
+
     // initialize event pools
     static QF_MPOOL_EL(APP::TableEvt) smlPoolSto[2*APP::N_PHILO];
     QP::QF::poolInit(smlPoolSto,
@@ -220,6 +219,24 @@ void start() {
     // initialize publish-subscribe
     static QP::QSubscrList subscrSto[APP::MAX_PUB_SIG];
     QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
+
+    // start AOs/threads...
+    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][APP::N_PHILO];
+    for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
+        APP::AO_Philo[n]->start(
+            n + 3U,                  // QF-prio/pthre. see NOTE1
+            philoQueueSto[n],        // event queue storage
+            Q_DIM(philoQueueSto[n]), // queue length [events]
+            nullptr, 0U);            // no stack storage
+    }
+
+    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
+    APP::AO_Table->start(
+        APP::N_PHILO + 7U,           // QP prio. of the AO
+        tableQueueSto,               // event queue storage
+        Q_DIM(tableQueueSto),        // queue length [events]
+        nullptr, 0U);                // no stack storage
+
 }
 //............................................................................
 void displayPhilStat(std::uint8_t n, char const *stat) {
@@ -273,7 +290,7 @@ std::uint32_t random() { // a very cheap pseudo-random-number generator
     return rnd >> 8U;
 }
 //............................................................................
-void terminate(int16_t result) {
+void terminate(std::int16_t result) {
     Q_UNUSED_PAR(result);
 }
 
@@ -284,23 +301,6 @@ namespace QP {
 
 // QF callbacks...
 void QF::onStartup() {
-    // start AOs/threads...
-    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][APP::N_PHILO];
-    for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
-        APP::AO_Philo[n]->start(
-            n + 3U,                  // QF-prio/pthre. see NOTE1
-            philoQueueSto[n],        // event queue storage
-            Q_DIM(philoQueueSto[n]), // queue length [events]
-            nullptr, 0U);            // no stack storage
-    }
-
-    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
-    APP::AO_Table->start(
-        APP::N_PHILO + 7U,           // QP prio. of the AO
-        tableQueueSto,               // event queue storage
-        Q_DIM(tableQueueSto),        // queue length [events]
-        nullptr, 0U);                // no stack storage
-
     rtiInit(); // configure RTI with UC counter of 7
     rtiSetPeriod(rtiCOUNTER_BLOCK0,
         static_cast<std::uint32_t>((RTI_FREQ*1E6/(7+1))/BSP::TICKS_PER_SEC));

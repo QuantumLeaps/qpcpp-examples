@@ -152,18 +152,18 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>80</LineNumber>
+          <LineNumber>83</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134229748</Address>
+          <Address>134219792</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>C:\qp-dev\qpcpp\examples\freertos\arm-cm\dpp_nucleo-u545re\bsp.c</Filename>
+          <Filename>..\bsp.cpp</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\dpp\../bsp.c\80</Expression>
+          <Expression>\\dpp\../bsp.cpp\83</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -541,7 +541,7 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>ST-LINKIII-KEIL_SWO</Key>
-          <Name>-U -O206 -SF10000 -C0 -A0 -I0 -HNlocalhost -HP7184 -P1 -N00("ARM CoreSight SW-DP (ARM Core") -D00(0BE12477) -L00(0) -TO131090 -TC10000000 -TT10000000 -TP21 -TDS8007 -TDT0 -TDC1F -TIEFFFFFFFF -TIP8 -FO7 -FD20000000 -FC8000 -FN2 -FF0STM32U5xx_512K_0800.FLM -FS08000000 -FL080000 -FP0($$Device:STM32U545RETxQ$CMSIS\Flash\STM32U5xx_512K_0800.FLM) -FF1STM32U5xx_512K_0C00.FLM -FS1C000000 -FL180000 -FP1($$Device:STM32U545RETxQ$CMSIS\Flash\STM32U5xx_512K_0C00.FLM) -WA0 -WE0 -WVCE4 -WS2710 -WM0 -WP2 -WK0-R0</Name>
+          <Name>-U-O206 -O206 -SF10000 -C0 -A0 -I0 -HNlocalhost -HP7184 -P1 -N00("ARM CoreSight SW-DP (ARM Core") -D00(0BE12477) -L00(0) -TO131090 -TC10000000 -TT10000000 -TP21 -TDS8007 -TDT0 -TDC1F -TIEFFFFFFFF -TIP8 -FO7 -FD20000000 -FC8000 -FN2 -FF0STM32U5xx_512K_0800.FLM -FS08000000 -FL080000 -FP0($$Device:STM32U545RETxQ$CMSIS\Flash\STM32U5xx_512K_0800.FLM) -FF1STM32U5xx_512K_0C00.FLM -FS1C000000 -FL180000 -FP1($$Device:STM32U545RETxQ$CMSIS\Flash\STM32U5xx_512K_0C00.FLM) -WA0 -WE0 -WVCE4 -WS2710 -WM0 -WP2 -WK0-R0</Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -564,7 +564,24 @@
           <Name></Name>
         </SetRegEntry>
       </TargetDriverDllRegistry>
-      <Breakpoint/>
+      <Breakpoint>
+        <Bp>
+          <Number>0</Number>
+          <Type>0</Type>
+          <LineNumber>83</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134219792</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>..\bsp.cpp</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\dpp\../bsp.cpp\83</Expression>
+        </Bp>
+      </Breakpoint>
       <MemoryWindow1>
         <Mm>
           <WinNumber>1</WinNumber>

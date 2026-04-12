@@ -103,7 +103,6 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
 #ifndef NDEBUG
     // turn LED on
     LED_GPIO_PORT->BSRRL = LED4_PIN;
-    // for debugging, hang on in an endless loop...
     for (;;) { // for debugging, hang on in an endless loop...
     }
 #else
@@ -278,7 +277,6 @@ void init(void const * const arg) {
         APP::N_PHILO + 1U,
         tableQueueSto, Q_DIM(tableQueueSto),
         tableStk, sizeof(tableStk));
-
 }
 //............................................................................
 void displayPhilStat(std::uint8_t n, char const *stat) {
@@ -333,7 +331,7 @@ std::uint32_t random() { // a very cheap pseudo-random-number generator
     std::uint32_t const rnd = l_rndSeed * (3U*7U*11U*13U*23U);
     l_rndSeed = rnd; // set for the next time
 
-    return (rnd >> 8);
+    return rnd >> 8U;
 }
 //............................................................................
 void terminate(std::int16_t result) {

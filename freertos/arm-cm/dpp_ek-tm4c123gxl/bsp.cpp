@@ -103,8 +103,23 @@ void assert_failed(char const * const module, int_t const id) {
 }
 
 // ISRs used in the application ==============================================
-// NOTE: only the "FromISR" FreeRTOS API variants are allowed in the ISRs!
 
+// NOTE: this ISR is for testing of the various preemption scenarios
+// by triggering the GPIOPortA interrupt from the debugger. You achieve
+// this by writing 0 to the  SWTRIG register at 0xE000,EF00.
+//
+// Code Composer Studio: From the CCS debugger you need open the register
+// window and select NVIC registers from the drop-down list. You scroll to
+// the NVIC_SW_TRIG register, which denotes the Software Trigger Interrupt
+// Register in the NVIC. To trigger the GPIOA interrupt you need to write
+// 0x00 to the NVIC_SW_TRIG by clicking on this field, entering the value,
+// and pressing the Enter key.
+//
+// IAR EWARM: From the C-Spy debugger you need to open Registers view and
+// select the "Other Systems Register" group. From there, you need to write
+// 0 to the STIR write-only register and press enter.
+//
+// NOTE: only the "FromISR" FreeRTOS API variants are allowed in the ISRs!
 void GPIOPortA_IRQHandler(void); // prototype
 void GPIOPortA_IRQHandler(void) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
@@ -163,7 +178,7 @@ void vApplicationTickHook(void) {
     tmp ^= buttons.depressed;     // changed debounced depressed
     current = buttons.depressed;
 
-    if ((tmp & BTN_SW1) != 0U) {  // debounced SW1 state changed?
+    if ((tmp & BTN_SW1) != 0U) { // debounced SW1 state changed?
         if ((current & BTN_SW1) != 0U) { // is SW1 depressed?
             static QP::QEvt const pauseEvt(APP::PAUSE_SIG);
             QP::QActive::PUBLISH_FROM_ISR(&pauseEvt,
@@ -218,8 +233,8 @@ void vApplicationIdleHook(void) {
 }
 //............................................................................
 void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
-    (void)xTask;
-    (void)pcTaskName;
+    Q_UNUSED_PAR(xTask);
+    Q_UNUSED_PAR(pcTaskName);
     Q_ERROR();
 }
 //............................................................................
@@ -301,6 +316,8 @@ void init(void const * const arg) {
     *(uint32_t volatile *)&GPIOF_AHB->CR = 0x00U;
     GPIOF_AHB->LOCK = 0x0; // lock GPIOCR register for SW2
 
+    randomSeed(1234U); // seed the random number generator
+
     // initialize QS software tracing...
     if (!QS_INIT(arg)) {
         Q_ERROR();
@@ -325,7 +342,26 @@ void init(void const * const arg) {
     static QP::QSubscrList subscrSto[APP::MAX_PUB_SIG];
     QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
 
-    randomSeed(1234U); // seed the random number generator
+    // start the active objects/threads...
+    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10];
+    static StackType_t philoStack[APP::N_PHILO][configMINIMAL_STACK_SIZE];
+    for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
+        APP::AO_Philo[n]->start(
+            Q_PRIO(n + 3U, 3U),      // QP prio., FreeRTOS prio.
+            philoQueueSto[n],        // event queue storage
+            Q_DIM(philoQueueSto[n]), // queue length [events]
+            philoStack[n],           // stack storage
+            sizeof(philoStack[n]));  // stack size [bytes]
+    }
+
+    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
+    static StackType_t tableStack[configMINIMAL_STACK_SIZE];
+    APP::AO_Table->start(
+        Q_PRIO(APP::N_PHILO + 7U, 7U), // QP prio., FreeRTOS prio.
+        tableQueueSto,               // event queue storage
+        Q_DIM(tableQueueSto),        // queue length [events]
+        tableStack,                  // stack storage
+        sizeof(tableStack));         // stack size [bytes]
 }
 //............................................................................
 void displayPhilStat(std::uint8_t n, char const *stat) {
@@ -387,28 +423,8 @@ namespace QP {
 
 // QF callbacks...
 void QF::onStartup() {
-    // start AOs/threads...
-    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10];
-    static StackType_t philoStack[APP::N_PHILO][configMINIMAL_STACK_SIZE];
-    for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
-        APP::AO_Philo[n]->start(
-            Q_PRIO(n + 3U, 3U),      // QP prio., FreeRTOS prio.
-            philoQueueSto[n],        // event queue storage
-            Q_DIM(philoQueueSto[n]), // queue length [events]
-            philoStack[n],           // stack storage
-            sizeof(philoStack[n]));  // stack size [bytes]
-    }
-
-    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
-    static StackType_t tableStack[configMINIMAL_STACK_SIZE];
-    APP::AO_Table->start(
-        Q_PRIO(APP::N_PHILO + 7U, 7U), // QP prio., FreeRTOS prio.
-        tableQueueSto,               // event queue storage
-        Q_DIM(tableQueueSto),        // queue length [events]
-        tableStack,                  // stack storage
-        sizeof(tableStack));         // stack size [bytes]
-
     // set up the SysTick timer to fire at BSP::TICKS_PER_SEC rate
+    //SystemCoreClockUpdate();
     //SysTick_Config(SystemCoreClock / BSP::TICKS_PER_SEC); // done in FreeRTOS
 
     // assign all priority bits for preemption-prio. and none to sub-prio.
@@ -434,7 +450,6 @@ void QF::onCleanup() {
 //============================================================================
 // QS callbacks...
 #ifdef Q_SPY
-
 //............................................................................
 bool QS::onStartup(void const *arg) {
     Q_UNUSED_PAR(arg);
