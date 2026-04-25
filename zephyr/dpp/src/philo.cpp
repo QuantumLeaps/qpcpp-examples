@@ -62,7 +62,7 @@ static inline QP::QTimeEvtCtr eat_time() {
 namespace APP {
 
 //${AOs::Philo} ..............................................................
-class Philo : public QP::QActive {
+class Philo : public QP::QMActive {
 private:
     QP::QTimeEvt m_timeEvt;
     std::uint8_t m_id;
@@ -74,10 +74,15 @@ public:
     Philo();
 
 protected:
-    Q_STATE_DECL(initial);
-    Q_STATE_DECL(thinking);
-    Q_STATE_DECL(hungry);
-    Q_STATE_DECL(eating);
+    QM_STATE_DECL( initial);
+    QM_STATE_DECL( thinking);
+    QM_ACTION_DECL(thinking_e);
+    QM_ACTION_DECL(thinking_x);
+    QM_STATE_DECL( hungry);
+    QM_ACTION_DECL(hungry_e);
+    QM_STATE_DECL( eating);
+    QM_ACTION_DECL(eating_e);
+    QM_ACTION_DECL(eating_x);
 }; // class Philo
 
 } // namespace APP
@@ -111,13 +116,13 @@ Philo Philo::inst[N_PHILO];
 
 //${AOs::Philo::Philo} .......................................................
 Philo::Philo()
-  : QActive(Q_STATE_CAST(&initial)),
+  : QMActive(Q_STATE_CAST(&initial)),
     m_timeEvt(this, TIMEOUT_SIG, 0U),
     m_id(0xFFU)
 {}
 
 //${AOs::Philo::SM} ..........................................................
-Q_STATE_DEF(Philo, initial) {
+QM_STATE_DEF(Philo, initial) {
     //${AOs::Philo::SM::initial}
     Q_UNUSED_PAR(e);
 
@@ -133,28 +138,56 @@ Q_STATE_DEF(Philo, initial) {
     QS_FUN_DICTIONARY(&Philo::hungry);
     QS_FUN_DICTIONARY(&Philo::eating);
 
-    return tran(&thinking);
+    static constexpr struct {
+        QP::QMState const *target;
+        std::array<QP::QActionHandler, 2> act;
+    } tatbl_ = { // tran-action table
+        &thinking_s, // target state
+        {
+            &thinking_e, // entry
+            Q_ACTION_NULL // zero terminator
+        }
+    };
+    return qm_tran_init(&tatbl_);
 }
 
 //${AOs::Philo::SM::thinking} ................................................
-Q_STATE_DEF(Philo, thinking) {
+QP::QMState const Philo::thinking_s = {
+    QM_STATE_NULL, // superstate (top)
+    &Philo::thinking,
+    &Philo::thinking_e,
+    &Philo::thinking_x,
+    Q_ACTION_NULL  // no initial tran.
+};
+//${AOs::Philo::SM::thinking}
+QM_ACTION_DEF(Philo, thinking_e) {
+    m_timeEvt.armX(think_time(), 0U);
+    return qm_entry(&thinking_s);
+}
+//${AOs::Philo::SM::thinking}
+QM_ACTION_DEF(Philo, thinking_x) {
+    m_timeEvt.disarm();
+    return qm_exit(&thinking_s);
+}
+//${AOs::Philo::SM::thinking}
+QM_STATE_DEF(Philo, thinking) {
     QP::QState status_;
     switch (e->sig) {
-        //${AOs::Philo::SM::thinking}
-        case Q_ENTRY_SIG: {
-            m_timeEvt.armX(think_time(), 0U);
-            status_ = Q_RET_HANDLED;
-            break;
-        }
-        //${AOs::Philo::SM::thinking}
-        case Q_EXIT_SIG: {
-            m_timeEvt.disarm();
-            status_ = Q_RET_HANDLED;
-            break;
-        }
         //${AOs::Philo::SM::thinking::TIMEOUT}
         case TIMEOUT_SIG: {
-            status_ = tran(&hungry);
+
+            static constexpr struct {
+                QP::QMState const *target;
+                std::array<QP::QActionHandler, 3> act;
+            } tatbl_ = { // tran-action table
+                &hungry_s, // target state
+                {
+                    &thinking_x, // exit
+                    &hungry_e, // entry
+                    Q_ACTION_NULL // zero terminator
+                }
+            };
+            status_ = qm_tran(&tatbl_);
             break;
         }
         //${AOs::Philo::SM::thinking::EAT, DONE}
@@ -171,7 +204,7 @@ Q_STATE_DEF(Philo, thinking) {
             break;
         }
         default: {
-            status_ = super(&top);
+            status_ = Q_RET_SUPER;
             break;
         }
     }
@@ -179,26 +212,44 @@ Q_STATE_DEF(Philo, thinking) {
 }
 
 //${AOs::Philo::SM::hungry} ..................................................
-Q_STATE_DEF(Philo, hungry) {
+QP::QMState const Philo::hungry_s = {
+    QM_STATE_NULL, // superstate (top)
+    &Philo::hungry,
+    &Philo::hungry_e,
+    Q_ACTION_NULL, // no exit action
+    Q_ACTION_NULL  // no initial tran.
+};
+//${AOs::Philo::SM::hungry}
+QM_ACTION_DEF(Philo, hungry_e) {
+    #ifdef QEVT_PAR_INIT
+    TableEvt const *pe = QP::QF::q_new<TableEvt>(HUNGRY_SIG, m_id);
+    #else
+    TableEvt *pe = QP::QF::q_new<TableEvt>(HUNGRY_SIG);
+    pe->philoId = m_id;
+    #endif
+    AO_Table->POST(pe, this);
+    return qm_entry(&hungry_s);
+}
+//${AOs::Philo::SM::hungry}
+QM_STATE_DEF(Philo, hungry) {
     QP::QState status_;
     switch (e->sig) {
-        //${AOs::Philo::SM::hungry}
-        case Q_ENTRY_SIG: {
-            #ifdef QEVT_PAR_INIT
-            TableEvt const *pe = QP::QF::q_new<TableEvt>(HUNGRY_SIG, m_id);
-            #else
-            TableEvt *pe = QP::QF::q_new<TableEvt>(HUNGRY_SIG);
-            pe->philoId = m_id;
-            #endif
-            AO_Table->POST(pe, this);
-            status_ = Q_RET_HANDLED;
-            break;
-        }
         //${AOs::Philo::SM::hungry::EAT}
         case EAT_SIG: {
             //${AOs::Philo::SM::hungry::EAT::[e->philoId==m_id]}
             if (Q_EVT_CAST(TableEvt)->philoId == m_id) {
-                status_ = tran(&eating);
+
+                static constexpr struct {
+                    QP::QMState const *target;
+                    std::array<QP::QActionHandler, 2> act;
+                } tatbl_ = { // tran-action table
+                    &eating_s, // target state
+                    {
+                        &eating_e, // entry
+                        Q_ACTION_NULL // zero terminator
+                    }
+                };
+                status_ = qm_tran(&tatbl_);
             }
             else {
                 status_ = Q_RET_UNHANDLED;
@@ -213,7 +264,7 @@ Q_STATE_DEF(Philo, hungry) {
             break;
         }
         default: {
-            status_ = super(&top);
+            status_ = Q_RET_SUPER;
             break;
         }
     }
@@ -221,32 +272,50 @@ Q_STATE_DEF(Philo, hungry) {
 }
 
 //${AOs::Philo::SM::eating} ..................................................
-Q_STATE_DEF(Philo, eating) {
+QP::QMState const Philo::eating_s = {
+    QM_STATE_NULL, // superstate (top)
+    &Philo::eating,
+    &Philo::eating_e,
+    &Philo::eating_x,
+    Q_ACTION_NULL  // no initial tran.
+};
+//${AOs::Philo::SM::eating}
+QM_ACTION_DEF(Philo, eating_e) {
+    m_timeEvt.armX(eat_time(), 0U);
+    return qm_entry(&eating_s);
+}
+//${AOs::Philo::SM::eating}
+QM_ACTION_DEF(Philo, eating_x) {
+    m_timeEvt.disarm();
+
+    #ifdef QEVT_PAR_INIT
+    TableEvt const *pe = QP::QF::q_new<TableEvt>(DONE_SIG, m_id);
+    #else
+    TableEvt *pe = QP::QF::q_new<TableEvt>(DONE_SIG);
+    pe->philoId = m_id;
+    #endif
+    QP::QActive::PUBLISH(pe, this);
+    return qm_exit(&eating_s);
+}
+//${AOs::Philo::SM::eating}
+QM_STATE_DEF(Philo, eating) {
     QP::QState status_;
     switch (e->sig) {
-        //${AOs::Philo::SM::eating}
-        case Q_ENTRY_SIG: {
-            m_timeEvt.armX(eat_time(), 0U);
-            status_ = Q_RET_HANDLED;
-            break;
-        }
-        //${AOs::Philo::SM::eating}
-        case Q_EXIT_SIG: {
-            m_timeEvt.disarm();
-
-            #ifdef QEVT_PAR_INIT
-            TableEvt const *pe = QP::QF::q_new<TableEvt>(DONE_SIG, m_id);
-            #else
-            TableEvt *pe = QP::QF::q_new<TableEvt>(DONE_SIG);
-            pe->philoId = m_id;
-            #endif
-            QP::QActive::PUBLISH(pe, this);
-            status_ = Q_RET_HANDLED;
-            break;
-        }
         //${AOs::Philo::SM::eating::TIMEOUT}
         case TIMEOUT_SIG: {
-            status_ = tran(&thinking);
+
+            static constexpr struct {
+                QP::QMState const *target;
+                std::array<QP::QActionHandler, 3> act;
+            } tatbl_ = { // tran-action table
+                &thinking_s, // target state
+                {
+                    &eating_x, // exit
+                    &thinking_e, // entry
+                    Q_ACTION_NULL // zero terminator
+                }
+            };
+            status_ = qm_tran(&tatbl_);
             break;
         }
         //${AOs::Philo::SM::eating::EAT, DONE}
@@ -258,7 +327,7 @@ Q_STATE_DEF(Philo, eating) {
             break;
         }
         default: {
-            status_ = super(&top);
+            status_ = Q_RET_SUPER;
             break;
         }
     }

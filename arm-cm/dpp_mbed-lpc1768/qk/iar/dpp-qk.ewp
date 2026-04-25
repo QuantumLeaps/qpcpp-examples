@@ -3247,7 +3247,7 @@
             <name>$PROJ_DIR$\..\..\bsp.hpp</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\..\dpp.hpp</name>
+            <name>$PROJ_DIR$\..\..\app.hpp</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\main.cpp</name>

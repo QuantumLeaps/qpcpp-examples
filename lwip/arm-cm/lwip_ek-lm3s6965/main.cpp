@@ -33,7 +33,7 @@
 //............................................................................
 int main(void) {
     QF::init();  // initialize the framework and the underlying RT kernel
-    BSP_init();  // initialize the BSP and start the AOs
+    BSP_init(nullptr);  // initialize the BSP and start the AOs
 
     // initialize event pools...
     static QF_MPOOL_EL(TableEvt) smlPoolSto[20]; // storage for small pool

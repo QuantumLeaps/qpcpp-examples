@@ -248,9 +248,9 @@ Q_STATE_DEF(LwIPMgr, running) {
             }
 #endif
 #if LWIP_AUTOIP
-            auto_ip_tmr += LWIP_SLOW_TICK_MS;
-            if (auto_ip_tmr >= AUTOIP_TMR_INTERVAL) {
-                auto_ip_tmr = 0;
+            m_auto_ip_tmr += LWIP_SLOW_TICK_MS;
+            if (m_auto_ip_tmr >= AUTOIP_TMR_INTERVAL) {
+                m_auto_ip_tmr = 0;
                 autoip_tmr();
             }
 #endif

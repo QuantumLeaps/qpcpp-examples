@@ -385,6 +385,11 @@
           <GroupName>Source Code</GroupName>
           <Files>
             <File>
+              <FileName>app.hpp</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\app.hpp</FilePath>
+            </File>
+            <File>
               <FileName>bsp.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>..\bsp.cpp</FilePath>
@@ -1016,6 +1021,11 @@
           <GroupName>Source Code</GroupName>
           <Files>
             <File>
+              <FileName>app.hpp</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\app.hpp</FilePath>
+            </File>
+            <File>
               <FileName>bsp.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>..\bsp.cpp</FilePath>
@@ -1646,6 +1656,11 @@
         <Group>
           <GroupName>Source Code</GroupName>
           <Files>
+            <File>
+              <FileName>app.hpp</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\app.hpp</FilePath>
+            </File>
             <File>
               <FileName>bsp.cpp</FileName>
               <FileType>8</FileType>
