@@ -31,7 +31,7 @@
 
 #define BSP_TICKS_PER_SEC    100U
 
-void BSP_init(void);
+void BSP_init(void const * const arg);
 
 // RITEK 128x96x4 OLED used in Rev C-D boards
 #define RITEK_OLED
