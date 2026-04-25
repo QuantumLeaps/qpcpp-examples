@@ -92,7 +92,7 @@ QS_SIG_DICTIONARY(HUNGRY_SIG,  nullptr);</code>
  <!--${AOs}-->
  <package name="AOs" stereotype="0x02" namespace="APP::">
   <!--${AOs::Philo}-->
-  <class name="Philo" superclass="qpcpp::QActive">
+  <class name="Philo" superclass="qpcpp::QMActive">
    <documentation>The Philo AO and the N_PHILO instances</documentation>
    <!--${AOs::Philo::m_timeEvt}-->
    <attribute name="m_timeEvt" type="QP::QTimeEvt" visibility="0x02" properties="0x00"/>
@@ -102,7 +102,7 @@ QS_SIG_DICTIONARY(HUNGRY_SIG,  nullptr);</code>
    <attribute name="inst[N_PHILO]" type="Philo" visibility="0x00" properties="0x01"/>
    <!--${AOs::Philo::Philo}-->
    <operation name="Philo" type="" visibility="0x00" properties="0x00">
-    <code>  : QActive(Q_STATE_CAST(&amp;initial)),
+    <code>  : QMActive(Q_STATE_CAST(&amp;initial)),
     m_timeEvt(this, TIMEOUT_SIG, 0U),
     m_id(0xFFU)</code>
    </operation>
@@ -221,7 +221,7 @@ Q_ASSERT(Q_EVT_CAST(TableEvt)-&gt;philoId != m_id);</action>
    </statechart>
   </class>
   <!--${AOs::Table}-->
-  <class name="Table" superclass="qpcpp::QMActive">
+  <class name="Table" superclass="qpcpp::QActive">
    <!--${AOs::Table::m_fork}-->
    <attribute name="m_fork" type="std::array&lt;std::uint8_t, N_PHILO&gt;" visibility="0x02" properties="0x00"/>
    <!--${AOs::Table::m_isHungry}-->
@@ -230,7 +230,7 @@ Q_ASSERT(Q_EVT_CAST(TableEvt)-&gt;philoId != m_id);</action>
    <attribute name="inst" type="Table" visibility="0x00" properties="0x01"/>
    <!--${AOs::Table::Table}-->
    <operation name="Table" type="" visibility="0x00" properties="0x00">
-    <code>  : QMActive(Q_STATE_CAST(&amp;initial))
+    <code>  : QActive(Q_STATE_CAST(&amp;initial))
 
 for (std::uint8_t n = 0U; n &lt; N_PHILO; ++n) {
     m_fork[n] = FREE;

@@ -395,9 +395,9 @@
               <FilePath>..\..\bsp.hpp</FilePath>
             </File>
             <File>
-              <FileName>blinky.hpp</FileName>
+              <FileName>app.hpp</FileName>
               <FileType>5</FileType>
-              <FilePath>..\..\blinky.hpp</FilePath>
+              <FilePath>..\..\app.hpp</FilePath>
             </File>
             <File>
               <FileName>blinky.cpp</FileName>
@@ -1026,9 +1026,9 @@
               <FilePath>..\..\bsp.hpp</FilePath>
             </File>
             <File>
-              <FileName>blinky.hpp</FileName>
+              <FileName>app.hpp</FileName>
               <FileType>5</FileType>
-              <FilePath>..\..\blinky.hpp</FilePath>
+              <FilePath>..\..\app.hpp</FilePath>
             </File>
             <File>
               <FileName>blinky.cpp</FileName>
@@ -1657,9 +1657,9 @@
               <FilePath>..\..\bsp.hpp</FilePath>
             </File>
             <File>
-              <FileName>blinky.hpp</FileName>
+              <FileName>app.hpp</FileName>
               <FileType>5</FileType>
-              <FilePath>..\..\blinky.hpp</FilePath>
+              <FilePath>..\..\app.hpp</FilePath>
             </File>
             <File>
               <FileName>blinky.cpp</FileName>

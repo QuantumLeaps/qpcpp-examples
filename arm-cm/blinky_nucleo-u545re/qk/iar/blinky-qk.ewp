@@ -3246,7 +3246,7 @@
             <name>$PROJ_DIR$\..\..\blinky.cpp</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\..\blinky.hpp</name>
+            <name>$PROJ_DIR$\..\..\app.hpp</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\bsp.cpp</name>
