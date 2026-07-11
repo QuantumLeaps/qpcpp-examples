@@ -137,10 +137,6 @@ QM_STATE_DEF(Sporadic2, active) {
             m_total = Q_EVT_CAST(SporadicSpecEvt)->toggles;
             m_done = 0U;
 
-            #ifdef USE_SCHED_DISABLE
-            QP::QV::schedDisable(2U); // <== disable scheduler up to given prio.
-            #endif
-
             BSP::d5off();
 
             static constexpr struct {
@@ -195,10 +191,6 @@ QM_STATE_DEF(Sporadic2, busy) {
                 BSP::d5on();
                 BSP::d5off();
             }
-
-            #ifdef USE_SCHED_DISABLE
-            QP::QV::schedDisable(2U); // <== disable scheduler up to given prio.
-            #endif
             //${AOs::Sporadic2::SM::active::busy::REMINDER::[m_done<m_total]}
             if (m_done < m_total) {
 

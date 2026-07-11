@@ -35,7 +35,7 @@
 Q_DEFINE_THIS_FILE
 
 // local objects -----------------------------------------------------------
-static FILE *l_outFile = (FILE *)0;
+static FILE *l_outFile = nullptr;
 static void dispatch(QP::QSignal sig);
 
 //............................................................................
@@ -45,7 +45,7 @@ int main(int argc, char *argv[ ]) {
         FOPEN_S(l_outFile, argv[1], "w");
     }
 
-    if (l_outFile == (FILE *)0) { // interactive version?
+    if (l_outFile == nullptr) { // interactive version?
         l_outFile = stdout; // use the stdout as the output file
 
         PRINTF_S("QHsmTst example, built on %s at %s\n"
@@ -61,10 +61,10 @@ int main(int argc, char *argv[ ]) {
 
             QP::QSignal sig = 0U;
             if ('a' <= inp[0] && inp[0] <= 'i') { // in range?
-                sig = (QP::QSignal)(inp[0] - 'a' + APP::A_SIG);
+                sig = static_cast<QP::QSignal>(inp[0] - 'a' + APP::A_SIG);
             }
             else if ('A' <= inp[0] && inp[0] <= 'I') { // in range?
-                sig = (QP::QSignal)(inp[0] - 'A' + APP::A_SIG);
+                sig = static_cast<QP::QSignal>(inp[0] - 'A' + APP::A_SIG);
             }
             else if ((inp[0] == 'x') || (inp[0] == 'X')) { // x or X?
                 sig = APP::TERMINATE_SIG; // terminate the interactive test

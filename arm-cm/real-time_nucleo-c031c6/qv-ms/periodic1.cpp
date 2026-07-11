@@ -129,10 +129,6 @@ QM_STATE_DEF(Periodic1, active) {
                 BSP::d6on();
                 BSP::d6off();
             }
-
-            #ifdef USE_SCHED_DISABLE
-            QP::QV::schedDisable(1U); // <== disable scheduler up to given prio.
-            #endif
             status_ = Q_RET_HANDLED;
             break;
         }

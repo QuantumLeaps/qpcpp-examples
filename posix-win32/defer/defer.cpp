@@ -195,7 +195,7 @@ Q_STATE_DEF(TServer, busy) {
                 QP::QEvt const *old_evt = m_requestQueue.get(0U);
                 Q_ASSERT(old_evt != nullptr);
                 BSP::showMsg("DISCARDED previous request #",
-                    ((RequestEvt*)old_evt)->ref_num);
+                    (static_cast<RequestEvt const *>(old_evt))->ref_num);
                 QP::QF::gc(old_evt); // explicitly recycle old
 
                 // repeat the defer request after making room in the queue

@@ -62,12 +62,12 @@ void clear() {
 //............................................................................
 void insert(int keyId) {
     if (l_len == 0) {
-        l_display[DISP_WIDTH - 1] = (char)keyId;
+        l_display[DISP_WIDTH - 1] = static_cast<char>(keyId);
         ++l_len;
     }
     else if (l_len < (DISP_WIDTH - 1)) {
         MEMMOVE_S(&l_display[0], DISP_WIDTH, &l_display[1], DISP_WIDTH - 1);
-        l_display[DISP_WIDTH - 1] = (char)keyId;
+        l_display[DISP_WIDTH - 1] = static_cast<char>(keyId);
         ++l_len;
     }
 }
@@ -98,7 +98,7 @@ void stop() {
 }
 //............................................................................
 double get_value() {
-    return strtod(l_display, (char **)0);
+    return strtod(l_display, nullptr);
 }
 //............................................................................
 void message(char const *msg) {

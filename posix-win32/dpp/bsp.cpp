@@ -118,6 +118,23 @@ void init(void const * const arg) {
     QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
 
     randomSeed(1234U); // seed the random number generator
+
+    // start AOs...
+    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10];
+    for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
+        APP::AO_Philo[n]->start(
+            n + 3U,                  // QP prio. of the AO
+            philoQueueSto[n],        // event queue storage
+            Q_DIM(philoQueueSto[n]), // queue length [events]
+            nullptr, 0U);            // no stack storage
+    }
+
+    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
+    APP::AO_Table->start(
+        APP::N_PHILO + 7U,       // QP prio. of the AO
+        tableQueueSto,           // event queue storage
+        Q_DIM(tableQueueSto),    // queue length [events]
+        nullptr, 0U);            // no stack storage
 }
 //............................................................................
 void terminate(std::int16_t result) {
@@ -162,23 +179,6 @@ namespace QP {
 
 // QF callbacks...
 void QF::onStartup() {
-    // start AOs...
-    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10];
-    for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
-        APP::AO_Philo[n]->start(
-            n + 3U,                  // QP prio. of the AO
-            philoQueueSto[n],        // event queue storage
-            Q_DIM(philoQueueSto[n]), // queue length [events]
-            nullptr, 0U);            // no stack storage
-    }
-
-    static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
-    APP::AO_Table->start(
-        APP::N_PHILO + 7U,       // QP prio. of the AO
-        tableQueueSto,           // event queue storage
-        Q_DIM(tableQueueSto),    // queue length [events]
-        nullptr, 0U);            // no stack storage
-
     setTickRate(BSP::TICKS_PER_SEC, 50U); // desired tick rate/prio
 }
 //............................................................................
@@ -200,12 +200,12 @@ void QF::onClockTick() {
             break;
         }
         case 'p': {
-            static QEvt const pauseEvt(APP::PAUSE_SIG);
+            static QEvt const pauseEvt { APP::PAUSE_SIG };
             QActive::PUBLISH(&pauseEvt, &l_clock_tick);
             break;
         }
         case 's': {
-            static QEvt const serveEvt(APP::SERVE_SIG);
+            static QEvt const serveEvt { APP::SERVE_SIG };
             QActive::PUBLISH(&serveEvt, &l_clock_tick);
             break;
         }
