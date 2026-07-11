@@ -242,8 +242,8 @@ BSP::insert(Q_EVT_CAST(CalcEvt)-&gt;key_code);</action>
       <!--${SMs::Calc::SM::on::ready::POINT}-->
       <tran trig="POINT" target="../../5/8">
        <action>BSP::clear();
-BSP::insert((int)'0');
-BSP::insert((int)'.');</action>
+BSP::insert(static_cast&lt;int&gt;('0'));
+BSP::insert(static_cast&lt;int&gt;('.'));</action>
        <tran_glyph conn="54,36,2,0,10">
         <action box="0,0,6,2"/>
        </tran_glyph>
@@ -400,7 +400,7 @@ m_oper1 = Q_EVT_CAST(CalcEvt)-&gt;key_code;</action>
        <exit>BSP::message(&quot;intg-EXIT;&quot;);</exit>
        <!--${SMs::Calc::SM::on::operand::intg::POINT}-->
        <tran trig="POINT" target="../../8">
-        <action>BSP::insert((int)'.');</action>
+        <action>BSP::insert(static_cast&lt;int&gt;('.'));</action>
         <tran_glyph conn="32,55,3,3,16,-6,2">
          <action box="0,-2,6,2"/>
         </tran_glyph>
@@ -498,8 +498,8 @@ BSP::insert(Q_EVT_CAST(CalcEvt)-&gt;key_code);</action>
       <!--${SMs::Calc::SM::on::opEntered::POINT}-->
       <tran trig="POINT" target="../../5/8">
        <action>BSP::clear();
-BSP::insert((int)'0');
-BSP::insert((int)'.');</action>
+BSP::insert(static_cast&lt;int&gt;('0'));
+BSP::insert(static_cast&lt;int&gt;('.'));</action>
        <tran_glyph conn="56,70,0,2,-10">
         <action box="0,-2,9,2"/>
        </tran_glyph>

@@ -45,6 +45,13 @@ project(
     LANGUAGES CXX
 )
 
+# -- Project settings ---------------------------------------------------------
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+set(CMAKE_LINK_GROUP_USING_RESCAN_SUPPORTED True)
+set(CMAKE_LINK_GROUP_USING_RESCAN "LINKER:--start-group" "LINKER:--end-group")
+
 # add support for SPY configuration if not set via CMAKE_TOOLCHAIN_FILE
 if(NOT CMAKE_C_FLAGS_SPY)
     foreach(LANG IN ITEMS C CXX ASM)
@@ -77,26 +84,27 @@ target_compile_definitions(dpp PRIVATE
 )
 
 target_compile_options(dpp PRIVATE
-    $<$<C_COMPILER_ID:GNU>:-mconsole>
+    $<$<AND:$<C_COMPILER_ID:GNU>,$<BOOL:${WIN32}>>:-mconsole>
     $<$<BOOL:${QPCPP_CFG_VERBOSE}>:-v>
 )
 
 target_link_options(dpp PRIVATE
-    $<$<C_COMPILER_ID:GNU>:-mconsole>
+    $<$<AND:$<C_COMPILER_ID:GNU>,$<BOOL:${WIN32}>>:-mconsole>
     $<$<BOOL:${QPCPP_CFG_VERBOSE}>:-v>
 )
 
 # link the library with the application
-target_link_libraries(dpp PRIVATE
-    qpcpp
-    $<$<CONFIG:Spy>:ws2_32>
-)
+if(CMAKE_LINK_GROUP_USING_RESCAN_SUPPORTED)
+    target_link_libraries(dpp PRIVATE $<LINK_GROUP:RESCAN,qpcpp,$<$<AND:$<CONFIG:Spy>,$<BOOL:${WIN32}>>:ws2_32>>)
+else()
+    target_link_libraries(dpp PRIVATE qpcpp $<$<AND:$<CONFIG:Spy>,$<BOOL:${WIN32}>>:ws2_32>)
+endif()
 
 # show configuration results
 message(STATUS
 "Configured project ${PROJECT_NAME} for ${PORT}
  Configuration options set:
-    PROJECT_NAME                = ${QPCPP_PROJECT}
+    PROJECT_NAME                = ${PROJECT_NAME}
     SW_VERSION                  = ${SW_VERSION}
 
     CONFIG_GUI                  = ${QPCPP_CFG_GUI}
@@ -105,7 +113,7 @@ message(STATUS
     CONFIG_DEBUG                = ${CONFIG_DEBUG}
 
     QPCPP_CFG_KERNEL            = ${QPCPP_CFG_KERNEL}
-    QPCPP_DIR                   = ${QPCPP_DIR}"
+    QPCPP_DIR                   = ${QPCPP_SDK_PATH}"
 )
 
 if(QPCPP_CFG_VERBOSE)

@@ -42,6 +42,11 @@ project(
     LANGUAGES CXX C
 )
 
+# -- Project settings ---------------------------------------------------------
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# -- Prepare Spy config -------------------------------------------------------
 # add support for SPY configuration if not set via CMAKE_TOOLCHAIN_FILE
 if(NOT CMAKE_CXX_FLAGS_SPY)
     foreach(LANG IN ITEMS C CXX ASM)
@@ -56,6 +61,8 @@ include(CheckLibraryExists)
 # the project main target
 set(TGT ${PROJECT_NAME})
 add_executable(${TGT})
+set_property(TARGET ${TGT} PROPERTY OUTPUT_NAME ${TGT})
+set_property(TARGET ${TGT} PROPERTY SUFFIX ".elf")
 
 # set position independent code compile/link parameters
 if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.14")
@@ -66,11 +73,22 @@ endif()
 
 # set the qpcpp include path to find our local `qp_config.hpp`
 set(QPCPP_CFG_QPCONFIG_H_INCLUDE_PATH ${CMAKE_CURRENT_LIST_DIR})
+set(QPCPP_CFG_LIB_TYPE static)
+
 # add the qpcpp library to the project
 qpcpp_sdk_init()
 
+# check for lib type and enable RESCAN for static lib linking
+string(TOUPPER ${QPCPP_CFG_LIB_TYPE} LIB_TYPE)
+if(NOT ${LIB_TYPE} STREQUAL OBJECT)
+    set(CMAKE_LINK_GROUP_USING_RESCAN_SUPPORTED True)
+    set(CMAKE_LINK_GROUP_USING_RESCAN "LINKER:--start-group" "LINKER:--end-group")
+else()
+    set(CMAKE_LINK_GROUP_USING_RESCAN_SUPPORTED FALSE)
+endif()
+
 # check for plausible settings
-string(TOLOWER ${CMAKE_C_COMPILER_ID} _compiler_)
+string(TOLOWER ${CMAKE_CXX_COMPILER_ID} _compiler_)
 string(TOLOWER ${QPCPP_CFG_PORT} PORT)
 if(NOT (PORT STREQUAL arm-cm AND _compiler_ STREQUAL gnu))
     message(FATAL_ERROR "'${QPCPP_CFG_PORT}'/'${CMAKE_C_COMPILER_ID}' not supported! Only 'arm-cm' port with GNU compiler is currently supported!")
@@ -95,16 +113,16 @@ target_sources(${TGT} PRIVATE
 )
 
 add_subdirectory(${QPCPP_SDK_PATH}/3rd_party/nucleo-l053r8 nucleo-l053r8)
-target_include_directories(dpp PRIVATE
+target_include_directories(${TGT} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_compile_definitions(dpp PRIVATE
+target_compile_definitions(${TGT} PRIVATE
     STM32L053xx
     $<$<CONFIG:Spy>:Q_SPY>
 )
 
-target_link_options(dpp PRIVATE
+target_link_options(${TGT} PRIVATE
     $<$<BOOL:${QPCPP_CFG_VERBOSE}>:-v>
     -T${CMAKE_CURRENT_SOURCE_DIR}/$<LOWER_CASE:${QPCPP_CFG_KERNEL}>/${_compiler_}/dpp-$<LOWER_CASE:${QPCPP_CFG_KERNEL}>.ld
     -Wl,-Map=${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${TGT}.map
@@ -112,15 +130,17 @@ target_link_options(dpp PRIVATE
 )
 
 # link the library with the application
-target_link_libraries(dpp PRIVATE
-    qpcpp
-)
+if(CMAKE_LINK_GROUP_USING_RESCAN_SUPPORTED)
+    target_link_libraries(${TGT} PRIVATE $<LINK_GROUP:RESCAN,qpcpp>)
+else()
+    target_link_libraries(${TGT} PRIVATE qpcpp)
+endif()
 
 # show configuration results
 message(STATUS
 "Configured project ${PROJECT_NAME} for ${PORT}
  Configuration options set:
-    PROJECT_NAME                = ${QPCPP_PROJECT}
+    PROJECT_NAME                = ${PROJECT_NAME}
     SW_VERSION                  = ${SW_VERSION}
 
     CONFIG_GUI                  = ${QPCPP_CFG_GUI}
@@ -129,7 +149,7 @@ message(STATUS
     CONFIG_DEBUG                = ${CONFIG_DEBUG}
 
     QPCPP_CFG_KERNEL            = ${QPCPP_CFG_KERNEL}
-    QPCPP_DIR                   = ${QPCPP_DIR}"
+    QPCPP_DIR                   = ${QPCPP_SDK_PATH}"
 )
 
 if(QPCPP_CFG_VERBOSE)

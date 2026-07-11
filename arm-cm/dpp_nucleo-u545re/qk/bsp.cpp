@@ -88,11 +88,10 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
     GPIOA->BSRR = (1U << LD2_PIN);  // turn LED on
     for (;;) { // for debugging, hang on in an endless loop...
     }
-#else
+#endif
     NVIC_SystemReset();
     for (;;) { // explicitly "no-return"
     }
-#endif
 }
 //............................................................................
 // assertion failure handler for the startup code and libraries
@@ -101,7 +100,7 @@ void assert_failed(char const * const module, int_t const id) {
     Q_onError(module, id);
 }
 
-// ISRs used in the application ==============================================
+// ISRs ======================================================================
 void SysTick_Handler(void); // prototype
 void SysTick_Handler(void) {
     QK_ISR_ENTRY();   // inform QK about entering an ISR
@@ -138,13 +137,13 @@ void SysTick_Handler(void) {
     QK_ISR_EXIT();  // inform QK about exiting an ISR
 }
 //............................................................................
-// interrupt handler for testing preemptions in QK
+// interrupt handler for testing preemptions
 void EXTI0_IRQHandler(void); // prototype
 void EXTI0_IRQHandler(void) {
     QK_ISR_ENTRY();   // inform QK about entering an ISR
 
     // for testing..
-    static QP::QEvt const testEvt(APP::TEST_SIG);
+    static QP::QEvt const testEvt { APP::TEST_SIG };
     APP::AO_Table->POST(&testEvt, &l_EXTI0_1_IRQHandler);
 
     QK_ISR_EXIT();    // inform QK about exiting an ISR
@@ -292,7 +291,7 @@ void init(void const * const arg) {
     randomSeed(1234U); // seed the random number generator
 
     // start AOs...
-    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][10];
+    static QP::QEvtPtr philoQueueSto[APP::N_PHILO][5];
     for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
         APP::AO_Philo[n]->start(
 

@@ -144,7 +144,7 @@ void QF::onClockTick(void) {
             case '8':
             case '9': {
                 SetEvt * const e = QF::q_new<SetEvt>(ALARM_SET_SIG);
-                e->digit = (uint8_t)(key - '0');
+                e->digit = static_cast<std::uint8_t>(key - '0');
                 APP_alarmClock->POST(e, nullptr);
                 break;
             }

@@ -75,11 +75,7 @@ m_toggles = Q_EVT_CAST(PeriodicSpecEvt)-&gt;toggles;</action>
       <action brief="long-RTC">for (std::uint16_t i = m_toggles; i &gt; 0U; --i) {
     BSP::d6on();
     BSP::d6off();
-}
-
-#ifdef USE_SCHED_DISABLE
-QP::QV::schedDisable(1U); // &lt;== disable scheduler up to given prio.
-#endif</action>
+}</action>
       <tran_glyph conn="2,20,3,-1,40">
        <action box="0,-2,19,2"/>
       </tran_glyph>
@@ -177,10 +173,6 @@ m_per_rtc = Q_EVT_CAST(SporadicSpecEvt)-&gt;rtc_toggles;
 m_total = Q_EVT_CAST(SporadicSpecEvt)-&gt;toggles;
 m_done = 0U;
 
-#ifdef USE_SCHED_DISABLE
-QP::QV::schedDisable(2U); // &lt;== disable scheduler up to given prio.
-#endif
-
 BSP::d5off();</action>
       <tran_glyph conn="2,16,3,1,40,6,-2">
        <action box="0,-2,34,2"/>
@@ -200,11 +192,7 @@ m_done += toggles;
 for (; toggles &gt; 0U; --toggles) {
     BSP::d5on();
     BSP::d5off();
-}
-
-#ifdef USE_SCHED_DISABLE
-QP::QV::schedDisable(2U); // &lt;== disable scheduler up to given prio.
-#endif</action>
+}</action>
        <choice target="../..">
         <guard>m_done &lt; m_total</guard>
         <choice_glyph conn="18,28,5,0,22">
@@ -254,10 +242,6 @@ m_per_rtc = Q_EVT_CAST(SporadicSpecEvt)-&gt;rtc_toggles;
 m_total = Q_EVT_CAST(SporadicSpecEvt)-&gt;toggles;
 m_done = 0U;
 
-#ifdef USE_SCHED_DISABLE
-QP::QV::schedDisable(3U); // &lt;== disable scheduler up to given prio.
-#endif
-
 BSP::d4off();</action>
       <tran_glyph conn="2,12,3,1,40,10,-2">
        <action box="0,-2,37,2"/>
@@ -277,11 +261,7 @@ m_done += toggles;
 for (; toggles &gt; 0U; --toggles) {
     BSP::d4on();
     BSP::d4off();
-}
-
-#ifdef USE_SCHED_DISABLE
-QP::QV::schedDisable(3U); // &lt;== disable scheduler up to given prio.
-#endif</action>
+}</action>
        <choice target="../..">
         <guard>m_done &lt; m_total</guard>
         <choice_glyph conn="18,28,5,0,22">

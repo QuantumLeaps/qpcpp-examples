@@ -65,6 +65,7 @@ static std::uint32_t l_rndSeed;
 
 extern "C" {
 
+__attribute__((used)) // prevent removal with link-time optimization
 Q_NORETURN Q_onError(char const * const module, int_t const id) {
     // NOTE: this implementation of the error handler is intended only
     // for debugging and MUST be changed for deployment of the application.
@@ -77,11 +78,10 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
     GPIOA->BSRR = (1U << LD4_PIN);  // turn LED on
     for (;;) { // for debugging, hang on in an endless loop...
     }
-#else
+#endif
     NVIC_SystemReset();
     for (;;) { // explicitly "no-return"
     }
-#endif
 }
 //............................................................................
 // assertion failure handler for the startup code and libraries

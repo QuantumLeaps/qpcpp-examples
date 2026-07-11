@@ -26,6 +26,7 @@
 # <www.state-machine.com/licensing>
 # <info@state-machine.com>
 ##############################################################################
+#
 # examples of invoking this Makefile:
 # building configurations: Debug (default), Release, and Spy
 # make
@@ -45,38 +46,38 @@
 #-----------------------------------------------------------------------------
 # project name
 #
-PROJECT     := dpp-qxk
+PROJECT := dpp-qxk
 
 #-----------------------------------------------------------------------------
 # project directories
 #
 
 # location of the QP/C++ framework (if not provided in an environment var.)
-ifeq ($(QP),)
-QP := ../../../../..
+ifeq ($(QPCPP),)
+QPCPP := ../../../../..
 endif
 
 # QP port used in this project
-QP_PORT_DIR := $(QP)/ports/arm-cm/qxk/gnu
+QP_PORT_DIR := $(QPCPP)/ports/arm-cm/qxk/gnu
 
 # list of all source directories used by this project
 VPATH = \
 	.. \
 	../.. \
-	$(QP)/src/qf \
-	$(QP)/src/qxk \
-	$(QP)/src/qs \
+	$(QPCPP)/src/qf \
+	$(QPCPP)/src/qxk \
+	$(QPCPP)/src/qs \
 	$(QP_PORT_DIR) \
-	$(QP)/3rd_party/nucleo-c031c6 \
-	$(QP)/3rd_party/nucleo-c031c6/gnu
+	$(QPCPP)/3rd_party/nucleo-c031c6 \
+	$(QPCPP)/3rd_party/nucleo-c031c6/gnu
 
 # list of all include directories needed by this project
 INCLUDES  = \
 	-I../.. \
-	-I$(QP)/include \
+	-I$(QPCPP)/include \
 	-I$(QP_PORT_DIR) \
-	-I$(QP)/3rd_party/CMSIS/Include \
-	-I$(QP)/3rd_party/nucleo-c031c6
+	-I$(QPCPP)/3rd_party/CMSIS/Include \
+	-I$(QPCPP)/3rd_party/nucleo-c031c6
 
 #-----------------------------------------------------------------------------
 # files
@@ -172,14 +173,14 @@ BIN   := $(GNU_ARM)/bin/arm-none-eabi-objcopy
 MKDIR := mkdir
 RM    := rm
 
-#-----------------------------------------------------------------------------
-# build options for various configurations for ARM Cortex-M
-#
-
 # combine all the sources...
 CPP_SRCS += $(QP_SRCS)
 C_SRCS   += syscalls.c
 ASM_SRCS += $(QP_ASMS)
+
+LINKFLAGS :=
+#-----------------------------------------------------------------------------
+# build configurations...
 
 ifeq (rel, $(CONF)) # Release configuration ..................................
 
@@ -187,13 +188,17 @@ BIN_DIR := rel
 
 ASFLAGS = $(ARM_CPU) $(ARM_FPU) $(ASM_CPU) $(ASM_FPU)
 
-CFLAGS = -c $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb -Wall \
-	-ffunction-sections -fdata-sections \
-	-O2 $(INCLUDES) $(DEFINES) -DNDEBUG
+CFLAGS = -c $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb -std=c11 -pedantic \
+	-Wall -Wextra -Wpedantic -Wsign-conversion \
+	-flto -ffunction-sections -fdata-sections \
+	-O0 $(INCLUDES) $(DEFINES) -DNDEBUG
 
-CPPFLAGS = -c $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb -Wall \
-	-ffunction-sections -fdata-sections -fno-rtti -fno-exceptions \
-	-O2 $(INCLUDES) $(DEFINES) -DNDEBUG
+CPPFLAGS = -c $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb -std=c++17 -pedantic \
+	-Wall -Wextra -Wpedantic -Wsign-conversion \
+	-flto -ffunction-sections -fdata-sections -fno-rtti -fno-exceptions \
+	-O0 $(INCLUDES) $(DEFINES) -DNDEBUG
+
+LINKFLAGS += -flto
 
 else ifeq (spy, $(CONF))  # Spy configuration ................................
 
@@ -203,11 +208,13 @@ CPP_SRCS += $(QS_SRCS)
 
 ASFLAGS = -g $(ARM_CPU) $(ARM_FPU) $(ASM_CPU) $(ASM_FPU)
 
-CFLAGS = -c -g $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb -Wall \
+CFLAGS = -c -g $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb -std=c11 -pedantic \
+	-Wall -Wextra -Wpedantic -Wsign-conversion \
 	-ffunction-sections -fdata-sections \
 	-O $(INCLUDES) $(DEFINES) -DQ_SPY
 
-CPPFLAGS = -c -g $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb -Wall \
+CPPFLAGS = -c -g $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb -std=c++17 -pedantic \
+	-Wall -Wextra -Wpedantic -Wsign-conversion \
 	-ffunction-sections -fdata-sections -fno-rtti -fno-exceptions \
 	-O $(INCLUDES) $(DEFINES) -DQ_SPY
 
@@ -217,18 +224,19 @@ BIN_DIR := dbg
 
 ASFLAGS = -g $(ARM_CPU) $(ARM_FPU) $(ASM_CPU) $(ASM_FPU)
 
-CFLAGS = -c -g $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb -Wall \
+CFLAGS = -c -g $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb -std=c11 -pedantic \
+	-Wall -Wextra -Wpedantic -Wsign-conversion \
 	-ffunction-sections -fdata-sections \
 	-O $(INCLUDES) $(DEFINES)
 
-CPPFLAGS = -c -g $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb -Wall \
+CPPFLAGS = -c -g $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb -std=c++17 -pedantic \
+	-Wall -Wextra -Wpedantic -Wsign-conversion \
 	-ffunction-sections -fdata-sections -fno-rtti -fno-exceptions \
 	-O $(INCLUDES) $(DEFINES)
 
 endif # ......................................................................
 
-
-LINKFLAGS = -T$(LD_SCRIPT) $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb \
+LINKFLAGS += -T$(LD_SCRIPT) $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb \
 	-specs=nosys.specs -specs=nano.specs \
 	-Wl,-Map,$(BIN_DIR)/$(OUTPUT).map,--cref,--gc-sections $(LIB_DIRS)
 
@@ -266,7 +274,7 @@ $(TARGET_BIN): $(TARGET_ELF)
 	$(BIN) -O binary $< $@
 
 $(TARGET_ELF) : $(ASM_OBJS_EXT) $(C_OBJS_EXT) $(CPP_OBJS_EXT)
-	$(CPP) $(CPPFLAGS) $(QP)/src/qs/qstamp.cpp -o $(BIN_DIR)/qstamp.o
+	$(CPP) $(CPPFLAGS) $(QPCPP)/src/qs/qstamp.cpp -o $(BIN_DIR)/qstamp.o
 	$(LINK) $(LINKFLAGS) -o $@ $^ $(BIN_DIR)/qstamp.o $(LIBS)
 
 $(BIN_DIR)/%.d : %.c
@@ -300,7 +308,7 @@ clean:
 	$(BIN_DIR)/*.bin \
 	$(BIN_DIR)/*.elf \
 	$(BIN_DIR)/*.map
-	
+
 show:
 	@echo PROJECT = $(PROJECT)
 	@echo CONF = $(CONF)

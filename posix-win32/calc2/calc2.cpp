@@ -320,8 +320,8 @@ Q_STATE_DEF(Calc, ready) {
         //${SMs::Calc::SM::on::ready::POINT}
         case POINT_SIG: {
             BSP::clear();
-            BSP::insert((int)'0');
-            BSP::insert((int)'.');
+            BSP::insert(static_cast<int>('0'));
+            BSP::insert(static_cast<int>('.'));
             status_ = tran(&frac);
             break;
         }
@@ -526,7 +526,7 @@ Q_STATE_DEF(Calc, intg) {
         }
         //${SMs::Calc::SM::on::operand::intg::POINT}
         case POINT_SIG: {
-            BSP::insert((int)'.');
+            BSP::insert(static_cast<int>('.'));
             status_ = tran(&frac);
             break;
         }
@@ -652,8 +652,8 @@ Q_STATE_DEF(Calc, opEntered) {
         //${SMs::Calc::SM::on::opEntered::POINT}
         case POINT_SIG: {
             BSP::clear();
-            BSP::insert((int)'0');
-            BSP::insert((int)'.');
+            BSP::insert(static_cast<int>('0'));
+            BSP::insert(static_cast<int>('.'));
             status_ = tran(&frac);
             break;
         }

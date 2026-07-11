@@ -90,9 +90,6 @@ void SysTick_Handler(void) {
     BSP::d1on();
 
     QP::QTimeEvt::TICK_X(0U, nullptr); // time events at rate 0
-#ifdef USE_SCHED_DISABLE
-    QP::QV::schedEnable(); // <== enable the scheduler to process next clock tick
-#endif
 
     // Perform the debouncing of buttons. The algorithm for debouncing
     // adapted from the book "Embedded Systems Dictionary" by Jack Ganssle

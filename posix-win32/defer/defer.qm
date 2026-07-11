@@ -135,7 +135,7 @@ else { // deferred queue full
     QP::QEvt const *old_evt = m_requestQueue.get(0U);
     Q_ASSERT(old_evt != nullptr);
     BSP::showMsg(&quot;DISCARDED previous request #&quot;,
-        ((RequestEvt*)old_evt)-&gt;ref_num);
+        (static_cast&lt;RequestEvt const *&gt;(old_evt))-&gt;ref_num);
     QP::QF::gc(old_evt); // explicitly recycle old
 
     // repeat the defer request after making room in the queue

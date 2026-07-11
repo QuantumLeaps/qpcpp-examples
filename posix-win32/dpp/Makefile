@@ -31,6 +31,7 @@
 # examples of invoking this Makefile:
 # building configurations: Debug (default), Release, and Spy
 # make
+# make QV=1     # use the single-threaded (QV) port
 # make CONF=rel
 # make CONF=spy
 # make clean   # cleanup the build
@@ -42,9 +43,9 @@
 #    https://github.com/QuantumLeaps/qtools
 
 #-----------------------------------------------------------------------------
-# project name
+# project:
 #
-PROJECT := dpp
+PROJECT := project
 
 VPATH := .
 
@@ -53,8 +54,8 @@ INCLUDES := -I.
 C_SRCS :=
 
 CPP_SRCS := \
-	main.cpp \
 	bsp.cpp \
+	main.cpp \
 	philo.cpp \
 	table.cpp
 
@@ -62,16 +63,6 @@ DEFINES  :=
 
 LIB_DIRS :=
 LIBS     :=
-OUTPUT   := $(PROJECT)
-
-#-----------------------------------------------------------------------------
-# target
-#
-TARGET   := host
-
-DEFINES +=
-
-BIN_DIR := build_$(TARGET)
 
 #-----------------------------------------------------------------------------
 # QP framework
@@ -197,7 +188,7 @@ endif
 
 ifeq (rel, $(CONF)) # Release configuration ..................................
 
-BIN_DIR := build_rel
+BIN_DIR := rel
 # gcc options:
 CFLAGS := -c -fno-pie -std=c11 -pedantic \
 	-Wall -Wextra -Wpedantic -Wsign-conversion \
@@ -210,7 +201,7 @@ CPPFLAGS := -c -fno-pie -std=c++17 -pedantic \
 
 else ifeq (spy, $(CONF))  # Spy configuration ................................
 
-BIN_DIR := build_spy
+BIN_DIR := spy
 
 # gcc options:
 CFLAGS := -c -g -fno-pie -std=c11 -pedantic \
@@ -224,7 +215,7 @@ CPPFLAGS := -c -g -fno-pie -std=c++17 -pedantic \
 
 else # default Debug configuration .........................................
 
-BIN_DIR := build
+BIN_DIR := dbg
 
 # gcc options:
 CFLAGS := -c -g -fno-pie -std=c11 -pedantic \
@@ -298,12 +289,12 @@ $(BIN_DIR)/%.o : %.cpp
 # create BIN_DIR and include dependencies only if needed
 ifneq ($(MAKECMDGOALS),clean)
   ifneq ($(MAKECMDGOALS),show)
-   ifneq ($(MAKECMDGOALS),debug)
+    ifneq ($(MAKECMDGOALS),debug)
 ifeq ("$(wildcard $(BIN_DIR))","")
 $(shell $(MKDIR) $(BIN_DIR))
 endif
 -include $(C_DEPS_EXT) $(CPP_DEPS_EXT)
-   endif
+    endif
   endif
 endif
 

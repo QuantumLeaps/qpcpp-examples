@@ -225,8 +225,8 @@ BSP::insert(Q_EVT_CAST(CalcEvt)-&gt;key_code);</action>
       <!--${SMs::Calc::SM::on::ready::POINT}-->
       <tran trig="POINT" target="../../4/5">
        <action>BSP::clear();
-BSP::insert((int)'0');
-BSP::insert((int)'.');</action>
+BSP::insert(static_cast&lt;int&gt;('0'));
+BSP::insert(static_cast&lt;int&gt;('.'));</action>
        <tran_glyph conn="52,34,2,0,11">
         <action box="0,0,6,2"/>
        </tran_glyph>
@@ -327,8 +327,8 @@ m_oper1 = Q_EVT_CAST(CalcEvt)-&gt;key_code;</action>
        </tran>
        <!--${SMs::Calc::SM::on::operand1::zero1::POINT}-->
        <tran trig="POINT" target="../../5">
-        <action>BSP::insert((int)'0');
-BSP::insert((int)'.');</action>
+        <action>BSP::insert(static_cast&lt;int&gt;('0'));
+BSP::insert(static_cast&lt;int&gt;('.'));</action>
         <tran_glyph conn="14,58,2,2,2,40,-2">
          <action box="1,0,6,2"/>
         </tran_glyph>
@@ -344,7 +344,7 @@ BSP::insert((int)'.');</action>
        <exit>BSP::message(&quot;int1-EXIT;&quot;);</exit>
        <!--${SMs::Calc::SM::on::operand1::int1::POINT}-->
        <tran trig="POINT" target="../../5">
-        <action>BSP::insert((int)'.');</action>
+        <action>BSP::insert(static_cast&lt;int&gt;('.'));</action>
         <tran_glyph conn="30,53,3,3,16,-6,2">
          <action box="0,-2,6,2"/>
         </tran_glyph>
@@ -463,8 +463,8 @@ BSP::insert(Q_EVT_CAST(CalcEvt)-&gt;key_code);</action>
       <!--${SMs::Calc::SM::on::opEntered::POINT}-->
       <tran trig="POINT" target="../../6/5">
        <action>BSP::clear();
-BSP::insert((int)'0');
-BSP::insert((int)'.');</action>
+BSP::insert(static_cast&lt;int&gt;('0'));
+BSP::insert(static_cast&lt;int&gt;('.'));</action>
        <tran_glyph conn="52,82,2,0,11">
         <action box="0,0,6,2"/>
        </tran_glyph>
@@ -565,8 +565,8 @@ BSP::insert((int)'.');</action>
        </tran>
        <!--${SMs::Calc::SM::on::operand2::zero2::POINT}-->
        <tran trig="POINT" target="../../5">
-        <action>BSP::insert((int)'0');
-BSP::insert((int)'.');</action>
+        <action>BSP::insert(static_cast&lt;int&gt;('0'));
+BSP::insert(static_cast&lt;int&gt;('.'));</action>
         <tran_glyph conn="14,106,2,2,2,40,-2">
          <action box="1,0,6,2"/>
         </tran_glyph>
@@ -582,7 +582,7 @@ BSP::insert((int)'.');</action>
        <exit>BSP::message(&quot;int2-EXIT;&quot;);</exit>
        <!--${SMs::Calc::SM::on::operand2::int2::POINT}-->
        <tran trig="POINT" target="../../5">
-        <action>BSP::insert((int)'.');</action>
+        <action>BSP::insert(static_cast&lt;int&gt;('.'));</action>
         <tran_glyph conn="30,101,3,3,16,-6,2">
          <action box="0,-2,6,2"/>
         </tran_glyph>
