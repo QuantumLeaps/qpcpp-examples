@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<model version="7.0.3" links="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm7.xsd">
+<model version="7.0.4" links="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm7.xsd">
  <documentation>Deferred Event state pattern</documentation>
  <!--${qpcpp}-->
  <framework name="qpcpp"/>
@@ -199,8 +199,7 @@ m_authorizedEvt.armX(2U*BSP::TICKS_PER_SEC, 0U);</entry>
     </state>
     <!--${AOs::TServer::SM::final}-->
     <state name="final">
-     <entry brief="stop">BSP::showMsg(&quot;final-ENTRY;&quot;, 0U);
-QP::QF::stop(); // terminate the application</entry>
+     <entry brief="stop">BSP::showMsg(&quot;final-ENTRY;&quot;, 0U);</entry>
      <state_glyph color="3" node="2,88,30,10">
       <entry box="0,3,6,2"/>
      </state_glyph>

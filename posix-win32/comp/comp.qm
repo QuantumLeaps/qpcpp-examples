@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<model version="7.0.3" links="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm7.xsd">
+<model version="7.0.4" links="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm7.xsd">
  <documentation>Dining Philosopher Problem example</documentation>
  <!--${qpcpp}-->
  <framework name="qpcpp"/>
@@ -280,8 +280,7 @@ m_alarm.dispatch(&amp;pe, getPrio());</action>
     </state>
     <!--${Components::AlarmClock::SM::final}-->
     <state name="final">
-     <entry brief="terminate">BSP::showMsg(&quot;Bye! Bye!&quot;);
-QP::QF::stop(); // terminate the application</entry>
+     <entry brief="terminate">BSP::showMsg(&quot;Bye! Bye!&quot;);</entry>
      <state_glyph color="3" node="2,70,31,8">
       <entry box="0,3,11,2"/>
      </state_glyph>
