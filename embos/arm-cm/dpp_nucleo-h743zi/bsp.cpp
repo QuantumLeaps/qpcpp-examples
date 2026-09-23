@@ -1,7 +1,7 @@
 //============================================================================
 // Product: DPP example, NUCLEO-H743ZI board, embOS RTOS kernel
 //
-// Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
+// Copyright (C) 2005-2026 Quantum Leaps, LLC. All rights reserved.
 //
 //                    Q u a n t u m  L e a P s
 //                    ------------------------
@@ -10,17 +10,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 //
 // This software is dual-licensed under the terms of the open-source GNU
-// General Public License (GPL) or under the terms of one of the closed-
-// source Quantum Leaps commercial licenses.
+// General Public License, version 3 or later (GPL-3.0-or-later), or,
+// alternatively, under the terms of one of the closed-source Quantum Leaps
+// commercial licenses.
 //
 // Redistributions in source code must retain this top-level comment block.
-// Plagiarizing this software to sidestep the license obligations is illegal.
 //
 // NOTE:
-// The GPL does NOT permit the incorporation of this code into proprietary
-// programs. Please contact Quantum Leaps for commercial licensing options,
-// which expressly supersede the GPL and are designed explicitly for
-// closed-source distribution.
+// The GPL does NOT permit distributing this code as part of proprietary
+// (closed-source) programs. For such use, please contact Quantum Leaps for
+// a commercial license, which is an alternative to the GPL designed
+// explicitly for closed-source distribution.
 //
 // Quantum Leaps contact information:
 // <www.state-machine.com/licensing>
@@ -265,7 +265,7 @@ void init(void const * const arg) {
     static OS_STACKPTR int philoStack[APP::N_PHILO][128];
     for (std::uint8_t n = 0U; n < APP::N_PHILO; ++n) {
         APP::AO_Philo[n]->start(
-            Q_PRIO(n + 3U, 3U),      // QP-prio., embOS prio.
+            QP::QF::prioSpec(n + 3U, 3U), // QP-prio., embOS prio.
             philoQueueSto[n],        // event queue storage
             Q_DIM(philoQueueSto[n]), // queue length [events]
             philoStack[n],           // stack storage
@@ -275,7 +275,7 @@ void init(void const * const arg) {
     static QP::QEvtPtr tableQueueSto[APP::N_PHILO];
     static OS_STACKPTR int tableStack[128];
     APP::AO_Table->start(
-        Q_PRIO(APP::N_PHILO + 7U, 7U),// QP-prio., embOS prio.
+        QP::QF::prioSpec(APP::N_PHILO + 7U, 7U),// QP-prio., embOS prio.
         tableQueueSto,           // event queue storage
         Q_DIM(tableQueueSto),    // queue length [events]
         tableStack,              // stack storage
