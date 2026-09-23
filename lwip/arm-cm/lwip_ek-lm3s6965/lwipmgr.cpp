@@ -1,7 +1,7 @@
 //============================================================================
 // Product: lwIP-Manager Active Object
 //
-// Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
+// Copyright (C) 2005-2026 Quantum Leaps, LLC. All rights reserved.
 //
 //                    Q u a n t u m  L e a P s
 //                    ------------------------
@@ -10,17 +10,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 //
 // This software is dual-licensed under the terms of the open-source GNU
-// General Public License (GPL) or under the terms of one of the closed-
-// source Quantum Leaps commercial licenses.
+// General Public License, version 3 or later (GPL-3.0-or-later), or,
+// alternatively, under the terms of one of the closed-source Quantum Leaps
+// commercial licenses.
 //
 // Redistributions in source code must retain this top-level comment block.
-// Plagiarizing this software to sidestep the license obligations is illegal.
 //
 // NOTE:
-// The GPL does NOT permit the incorporation of this code into proprietary
-// programs. Please contact Quantum Leaps for commercial licensing options,
-// which expressly supersede the GPL and are designed explicitly for
-// closed-source distribution.
+// The GPL does NOT permit distributing this code as part of proprietary
+// (closed-source) programs. For such use, please contact Quantum Leaps for
+// a commercial license, which is an alternative to the GPL designed
+// explicitly for closed-source distribution.
 //
 // Quantum Leaps contact information:
 // <www.state-machine.com/licensing>
@@ -212,7 +212,7 @@ Q_STATE_DEF(LwIPMgr, running) {
                 m_ip_addr = m_netif->ip_addr.addr; // save the IP addr
                 uint32_t ip_net  = ntohl(m_ip_addr);// IP in network order
                        // publish the text event to display the new IP address
-                TextEvt *te = Q_NEW(TextEvt, DISPLAY_IPADDR_SIG);
+                TextEvt *te = QP::QF::q_new<TextEvt>(DISPLAY_IPADDR_SIG);
                 snprintf(te->text, Q_DIM(te->text), "%d.%d.%d.%d",
                          static_cast<int>(((ip_net) >> 24U) & 0xFFU),
                          static_cast<int>(((ip_net) >> 16U) & 0xFFU),
@@ -317,7 +317,7 @@ static char const *cgi_display(int index, int numParams,
 {
     for (int i = 0; i < numParams; ++i) {
         if (strstr(param[i], "text") != (char *)0) { // param text found?
-            TextEvt *te = Q_NEW(TextEvt, DISPLAY_CGI_SIG);
+            TextEvt *te = QP::QF::q_new<TextEvt>(DISPLAY_CGI_SIG);
             strncpy(te->text, value[i], Q_DIM(te->text));
             QF::PUBLISH(te, AO_LwIPMgr);
             return "/thank_you.htm";
@@ -330,7 +330,7 @@ static char const *cgi_display(int index, int numParams,
 static void udp_rx_handler(void *arg, struct udp_pcb *upcb,
                            struct pbuf *p, struct ip_addr *addr, u16_t port)
 {
-    TextEvt *te = Q_NEW(TextEvt, DISPLAY_UDP_SIG);
+    TextEvt *te = QP::QF::q_new<TextEvt>(DISPLAY_UDP_SIG);
     strncpy(te->text, (char *)p->payload, Q_DIM(te->text));
     QF::PUBLISH(te, AO_LwIPMgr);
 

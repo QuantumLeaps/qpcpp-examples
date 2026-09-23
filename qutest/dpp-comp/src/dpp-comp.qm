@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<model version="7.0.3" links="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm7.xsd">
+<model version="7.0.4" links="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm7.xsd">
  <documentation>Dining Philosopher Problem example with the &quot;Orthogonal Component&quot; state pattern (see https://www.state-machine.com/doc/Pattern_Orthogonal.pdf)
 
 The model demonstrates the following features:
@@ -412,7 +412,7 @@ AO_Table-&gt;postLIFO(pe);</entry>
     <!--${Comp::Philo::SM::eating}-->
     <state name="eating">
      <entry>m_timeEvt.armX(eat_time(), 0U);</entry>
-     <exit>m_timeEvt.disarm();
+     <exit>(void)m_timeEvt.disarm();
 
 // asynchronously post event to the Container
 #ifdef QEVT_PAR_INIT
@@ -501,13 +501,13 @@ namespace { // unnamed namespace for local definitions with internal linkage
 //Q_DEFINE_THIS_FILE
 
 // helper function to provide a randomized think time for Philos
-static inline QP::QTimeEvtCtr think_time() {
+inline QP::QTimeEvtCtr think_time() {
     return static_cast&lt;QP::QTimeEvtCtr&gt;((BSP::random() % BSP::TICKS_PER_SEC)
                                         + (BSP::TICKS_PER_SEC/2U));
 }
 
 // helper function to provide a randomized eat time for Philos
-static inline QP::QTimeEvtCtr eat_time() {
+inline QP::QTimeEvtCtr eat_time() {
     return static_cast&lt;QP::QTimeEvtCtr&gt;((BSP::random() % BSP::TICKS_PER_SEC)
                                         + BSP::TICKS_PER_SEC);
 }

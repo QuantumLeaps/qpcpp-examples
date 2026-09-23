@@ -1,7 +1,7 @@
 //============================================================================
 // Product: DPP example with emWin/uC/GUI, NO Window Manager
 //
-// Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
+// Copyright (C) 2005-2026 Quantum Leaps, LLC. All rights reserved.
 //
 //                    Q u a n t u m  L e a P s
 //                    ------------------------
@@ -10,17 +10,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
 //
 // This software is dual-licensed under the terms of the open-source GNU
-// General Public License (GPL) or under the terms of one of the closed-
-// source Quantum Leaps commercial licenses.
+// General Public License, version 3 or later (GPL-3.0-or-later), or,
+// alternatively, under the terms of one of the closed-source Quantum Leaps
+// commercial licenses.
 //
 // Redistributions in source code must retain this top-level comment block.
-// Plagiarizing this software to sidestep the license obligations is illegal.
 //
 // NOTE:
-// The GPL does NOT permit the incorporation of this code into proprietary
-// programs. Please contact Quantum Leaps for commercial licensing options,
-// which expressly supersede the GPL and are designed explicitly for
-// closed-source distribution.
+// The GPL does NOT permit distributing this code as part of proprietary
+// (closed-source) programs. For such use, please contact Quantum Leaps for
+// a commercial license, which is an alternative to the GPL designed
+// explicitly for closed-source distribution.
 //
 // Quantum Leaps contact information:
 // <www.state-machine.com/licensing>
@@ -216,7 +216,7 @@ Q_STATE_DEF(Table, serving) {
                         && (m_fork[n] == FREE))
                 {
                     m_fork[LEFT(n)] = m_fork[n] = USED;
-                    pe = Q_NEW(TableEvt, EAT_SIG);
+                    pe = QP::QF::q_new<TableEvt>(EAT_SIG);
                     pe->philoNum = n;
                     QF::PUBLISH(pe, me);
                     m_isHungry[n] = 0;
@@ -232,7 +232,7 @@ Q_STATE_DEF(Table, serving) {
             m = LEFT(n);
             if (m_fork[m] == FREE && m_fork[n] == FREE) {
                 m_fork[m] = m_fork[n] = USED;
-                pe = Q_NEW(TableEvt, EAT_SIG);
+                pe = QP::QF::q_new<TableEvt>(EAT_SIG);
                 pe->philoNum = n;
                 QF::PUBLISH(pe, me);
                 displyPhilStat(n, "eating  ");
@@ -251,7 +251,7 @@ Q_STATE_DEF(Table, serving) {
             if (m_isHungry[m] && m_fork[m] == FREE) {
                 m_fork[n] = m_fork[m] = USED;
                 m_isHungry[m] = 0;
-                pe = Q_NEW(TableEvt, EAT_SIG);
+                pe = QP::QF::q_new<TableEvt>(EAT_SIG);
                 pe->philoNum = m;
                 QF::PUBLISH(pe, me);
                 displyPhilStat(m, "eating  ");
@@ -261,7 +261,7 @@ Q_STATE_DEF(Table, serving) {
             if (m_isHungry[m] && m_fork[n] == FREE) {
                 m_fork[m] = m_fork[n] = USED;
                 m_isHungry[m] = 0;
-                pe = Q_NEW(TableEvt, EAT_SIG);
+                pe = QP::QF::q_new<TableEvt>(EAT_SIG);
                 pe->philoNum = m;
                 QF::PUBLISH(pe, me);
                 displyPhilStat(m, "eating  ");
