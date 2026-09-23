@@ -270,20 +270,6 @@ void QK::onIdle(void) {
 #endif
 }
 
-// QS callbacks ==============================================================
-//............................................................................
-void QTimeEvt::tick1_(
-    uint_fast8_t const tickRate,
-    void const * const sender)
-{
-    QF_INT_DISABLE();
-    // TODO pend the SysTick
-    *Q_UINT2PTR_CAST(uint32_t, 0xE000ED04U) = (1U << 26U);
-    QF_INT_ENABLE();
-}
-
-//----------------------------------------------------------------------------
-
 } // namespace QP
 
 extern "C" {

@@ -68,17 +68,17 @@ make -j8 -f %MAKEFILE% LOG=. OPT=c USB=%1 flash
 if %ERRORLEVEL% neq 0 goto err
 copy /b/y *.log %LOGDIR%\TUN_%TEST%-%TRG%.%LOGEXT%
 
+set TEST=start_seq
+cd %TESTDIR%\%TEST%\test
+make -j8 -f %MAKEFILE% LOG=. OPT=c USB=%1 flash
+if %ERRORLEVEL% neq 0 goto err
+copy /b/y *.log %LOGDIR%\TUN_%TEST%-%TRG%.%LOGEXT%
+
 set TEST=self_test
 cd %TESTDIR%\%TEST%\test
 make -j8 -f %MAKEFILE% LOG=. OPT=c USB=%1 flash
 @echo: 2 errors expected!
 ::if %ERRORLEVEL% neq 2 goto err
-copy /b/y *.log %LOGDIR%\TUN_%TEST%-%TRG%.%LOGEXT%
-
-set TEST=start_seq
-cd %TESTDIR%\%TEST%\test
-make -j8 -f %MAKEFILE% LOG=. OPT=c USB=%1 flash
-if %ERRORLEVEL% neq 0 goto err
 copy /b/y *.log %LOGDIR%\TUN_%TEST%-%TRG%.%LOGEXT%
 
 :: integration tests =========================================================

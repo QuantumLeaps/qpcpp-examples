@@ -79,7 +79,7 @@ BIN_DIR := build_$(TARGET)
 # QP framework
 #
 
-# location of the QP/C++ framework (if not provided in an env. variable)
+# location of the QP framework (if not provided in an env. variable)
 ifeq ($(QP),)
 QP := ../../../..
 endif
@@ -126,6 +126,7 @@ QP_SRCS := \
 	qs_rx.cpp \
 	qs_fp.cpp \
 	qutest.cpp \
+	qf_stub.cpp \
 	qutest_port.cpp
 
 VPATH += \

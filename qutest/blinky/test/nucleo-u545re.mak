@@ -144,6 +144,7 @@ QP_SRCS := \
 	qs_rx.cpp \
 	qs_fp.cpp \
 	qutest.cpp \
+	qf_stub.cpp \
 	qutest_cpp.cpp
 
 VPATH += \
@@ -156,6 +157,7 @@ INCLUDES += \
 
 # add the QP sources to the build
 CPP_SRCS += $(QP_SRCS)
+C_SRCS   += syscalls.c
 
 #-----------------------------------------------------------------------------
 # GNU toolset:

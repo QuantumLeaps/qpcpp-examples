@@ -126,6 +126,7 @@ QP_SRCS := \
 	qs_rx.cpp \
 	qs_fp.cpp \
 	qutest.cpp \
+	qf_stub.cpp \
 	qutest_port.cpp
 
 VPATH += \
