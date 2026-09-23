@@ -1,152 +1,56 @@
-# dpp
+# DPP example for QP/C++ on the host: Windows (win32 port) or POSIX (posix port)
+cmake_minimum_required(VERSION 3.25)
 
-# use a recent CMake version
-cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
-cmake_policy(VERSION 3.13)
-if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.14")
-    cmake_policy(SET CMP0083 NEW)
+# check the setup before project(): one clear error, no follow-ups ........
+if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/qpcpp.hpp)
+    message(FATAL_ERROR "QP/C++ not found. Keep this example inside qpcpp/examples.")
+endif()
+if(CMAKE_GENERATOR MATCHES "Ninja")
+    find_program(CMAKE_MAKE_PROGRAM ninja)
+    if(NOT CMAKE_MAKE_PROGRAM)
+        message(FATAL_ERROR "Ninja not found on the PATH (https://ninja-build.org)")
+    endif()
+endif()
+if(NOT CMAKE_CXX_COMPILER)           # without the preset: also use g++
+    set(CMAKE_CXX_COMPILER g++)
+endif()
+find_program(HOST_CXX NAMES ${CMAKE_CXX_COMPILER})
+if(NOT HOST_CXX)
+    message(FATAL_ERROR "C++ compiler '${CMAKE_CXX_COMPILER}' not found on the PATH.\n"
+        "Windows (QP-bundle): set PATH=%QTOOLS%\\mingw32\\bin;%PATH%\n"
+        "Linux (Debian/Ubuntu): sudo apt install build-essential")
 endif()
 
-# first of all protect against in-source builds
-file(REAL_PATH "${CMAKE_SOURCE_DIR}" _srcdir)
-file(REAL_PATH "${CMAKE_BINARY_DIR}" _bindir)
+project(dpp LANGUAGES CXX)     # the name of the program
 
-if(${_srcdir} STREQUAL ${_bindir})
-    message(FATAL_ERROR "  FATAL: In-source builds are not allowed!
-        You should create a separate directory for build files.")
-endif()
-unset(_srcdir)
-unset(_bindir)
-
-# set up configurable options
-set(PROJECT_NAME dpp CACHE STRING "set to the project name of the qpc library project (default: QPC)")
-set(QPCPP_CFG_KERNEL QV CACHE STRING "set to the kernel to use (QV, QK, QXK) (default: QV)")
-set(QPCPP_SDK_PATH "${CMAKE_SOURCE_DIR}/../../.." CACHE STRING "set to the source path of QPC (default: ../../..)")
-
-option(QPCPP_CFG_UNIT_TEST  "set to ON, if Q_UTEST shall be enabled (default: OFF)" OFF)
-option(QPCPP_CFG_GUI        "set to ON, if a Windows (TM) GUI shall be compiled in (default: ON)" OFF)
-option(QPCPP_CFG_VERBOSE   "set to ON, to enable more verbosity. (default: OFF)" OFF)
-option(QPCPP_CFG_DEBUG     "set to ON, to enable debug settings. (default: ON)" ON)
-
-# update CMAKE_MODULE_PATH
-list(PREPEND CMAKE_MODULE_PATH ${QPCPP_SDK_PATH}/3rd_party/cmake ${CMAKE_SOURCE_DIR}/Source/cmake ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_SOURCE_DIR} ${HOME_PATH}/cmake)
-
-# import QPCPP SDK; download from git, if necessary
-include(qpcpp_sdk_import)
-
-if(NOT SW_VERSION)
-    set(SW_VERSION "1.0.0" CACHE STRING "Software Version")
-endif()
-
-project(
-    ${PROJECT_NAME}
-    VERSION ${SW_VERSION}
-    DESCRIPTION "Dining Philosophers Problem (dpp) using qpcpp@win32"
-    LANGUAGES CXX
-)
-
-# -- Project settings ---------------------------------------------------------
+# compiler settings (the same as in the Makefile) ...........................
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-set(CMAKE_LINK_GROUP_USING_RESCAN_SUPPORTED True)
-set(CMAKE_LINK_GROUP_USING_RESCAN "LINKER:--start-group" "LINKER:--end-group")
-
-# add support for SPY configuration if not set via CMAKE_TOOLCHAIN_FILE
-if(NOT CMAKE_C_FLAGS_SPY)
-    foreach(LANG IN ITEMS C CXX ASM)
-        set(CMAKE_${LANG}_FLAGS_SPY "${CMAKE_${LANG}_FLAGS_DEBUG} -DQ_SPY")
-    endforeach()
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)        # -std=c++17, not -std=gnu++17
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    add_compile_options(-Wall -Wextra -Wpedantic -Wsign-conversion
+        -Wold-style-cast -fno-rtti -fno-exceptions)
+    set(CMAKE_CXX_FLAGS_DEBUG   "-g -O")
+    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+    set(CMAKE_CXX_FLAGS_SPY     "-g -O")
 endif()
 
-include(CTest)
-include(CheckIncludeFile)
-include(CheckLibraryExists)
+# QP/C++ framework ..........................................................
+add_library(qpcpp_config INTERFACE)  # qp_config.hpp is in this directory
+target_include_directories(qpcpp_config INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
-# the project target
-add_executable(dpp bsp.cpp main.cpp philo.cpp table.cpp)
-
-# set position independent code compile/link parameters
-if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.14")
-    include(CheckPIESupported)
-    check_pie_supported()
-    set_property(TARGET dpp PROPERTY POSITION_INDEPENDENT_CODE FALSE)
-endif()
-
-# set the qpcpp include path to find our local `qp_config.h`
-set(QPCPP_CFG_QPCONFIG_H_INCLUDE_PATH ${CMAKE_CURRENT_LIST_DIR})
-# add the qpc library to the project
-qpcpp_sdk_init()
-
-# set general defines and options
-target_compile_definitions(dpp PRIVATE
-    $<$<BOOL:${QPCPP_CFG_GUI}>:QWIN_GUI>
-)
-
-target_compile_options(dpp PRIVATE
-    $<$<AND:$<C_COMPILER_ID:GNU>,$<BOOL:${WIN32}>>:-mconsole>
-    $<$<BOOL:${QPCPP_CFG_VERBOSE}>:-v>
-)
-
-target_link_options(dpp PRIVATE
-    $<$<AND:$<C_COMPILER_ID:GNU>,$<BOOL:${WIN32}>>:-mconsole>
-    $<$<BOOL:${QPCPP_CFG_VERBOSE}>:-v>
-)
-
-# link the library with the application
-if(CMAKE_LINK_GROUP_USING_RESCAN_SUPPORTED)
-    target_link_libraries(dpp PRIVATE $<LINK_GROUP:RESCAN,qpcpp,$<$<AND:$<CONFIG:Spy>,$<BOOL:${WIN32}>>:ws2_32>>)
+if(WIN32)
+    set(QPCPP_PORT win32)
 else()
-    target_link_libraries(dpp PRIVATE qpcpp $<$<AND:$<CONFIG:Spy>,$<BOOL:${WIN32}>>:ws2_32>)
+    set(QPCPP_PORT posix)
 endif()
+add_subdirectory(../../.. qpcpp)
 
-# show configuration results
-message(STATUS
-"Configured project ${PROJECT_NAME} for ${PORT}
- Configuration options set:
-    PROJECT_NAME                = ${PROJECT_NAME}
-    SW_VERSION                  = ${SW_VERSION}
-
-    CONFIG_GUI                  = ${QPCPP_CFG_GUI}
-    CONFIG_QSPY                 = ${QPCPP_CFG_QSPY}
-    CONFIG_UNIT_TEST            = ${QPCPP_CFG_UNIT_TEST}
-    CONFIG_DEBUG                = ${CONFIG_DEBUG}
-
-    QPCPP_CFG_KERNEL            = ${QPCPP_CFG_KERNEL}
-    QPCPP_DIR                   = ${QPCPP_SDK_PATH}"
+# the application ...........................................................
+add_executable(${PROJECT_NAME}
+    main.cpp
+    philo.cpp
+    table.cpp
+    bsp.cpp
 )
-
-if(QPCPP_CFG_VERBOSE)
-message(STATUS
-" System information:
-    CMAKE_VERSION               = ${CMAKE_VERSION}
-    CMAKE_CROSSCOMPILING        = ${CMAKE_CROSSCOMPILING}
-    CMAKE_HOST_SYSTEM           = ${CMAKE_HOST_SYSTEM}
-    CMAKE_HOST_SYSTEM_NAME      = ${CMAKE_HOST_SYSTEM_NAME}
-    CMAKE_HOST_LINUX            = ${CMAKE_HOST_LINUX}
-    CMAKE_HOST_UNIX             = ${CMAKE_HOST_UNIX}
-    CMAKE_HOST_WIN32            = ${CMAKE_HOST_WIN32}
-    CMAKE_SYSTEM                = ${CMAKE_SYSTEM}
-    CMAKE_SYSTEM_NAME           = ${CMAKE_SYSTEM_NAME}
-    CMAKE_SYSTEM_PROCESSOR      = ${CMAKE_SYSTEM_PROCESSOR}
-    WIN32                       = ${WIN32}
-    MSYS                        = ${MSYS}
-    MINGW                       = ${MINGW}
-    UNIX                        = ${UNIX}
-    LINUX                       = ${LINUX}
-
-    CMAKE_BUILD_TYPE            = ${CMAKE_BUILD_TYPE}
-    CMAKE_CONFIGURATION_TYPES   = ${CMAKE_CONFIGURATION_TYPES}
-
-    CMAKE_C_COMPILER            = ${CMAKE_C_COMPILER}
-    CMAKE_C_COMPILER_ID         = ${CMAKE_C_COMPILER_ID}
-    CMAKE_C_COMPILER_VERSION    = ${CMAKE_C_COMPILER_VERSION}
-    CMAKE_C_FLAGS               = ${CMAKE_C_FLAGS}
-
-    CMAKE_CXX_COMPILER          = ${CMAKE_CXX_COMPILER}
-    CMAKE_CXX_FLAGS             = ${CMAKE_CXX_FLAGS}
-
-    CMAKE_ASM_COMPILER          = ${CMAKE_ASM_COMPILER}
-    CMAKE_ASM_FLAGS             = ${CMAKE_ASM_FLAGS}"
-)
-endif()
+target_link_libraries(${PROJECT_NAME} PRIVATE qpcpp::qpcpp)

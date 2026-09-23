@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="bsp_qube.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="..\src\qhsmtst.cpp" />
+    <ClCompile Include="..\..\..\src\qf\qep_hsm.cpp">
+      <Filter>qp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\qf\qep_msm.cpp">
+      <Filter>qp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\qf\qf_act.cpp">
+      <Filter>qp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\qf\qf_actq.cpp">
+      <Filter>qp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\qf\qf_defer.cpp">
+      <Filter>qp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\qf\qf_dyn.cpp">
+      <Filter>qp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\qf\qf_mem.cpp">
+      <Filter>qp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\qf\qf_ps.cpp">
+      <Filter>qp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\qf\qf_qact.cpp">
+      <Filter>qp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\qf\qf_qeq.cpp">
+      <Filter>qp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\qf\qf_qmact.cpp">
+      <Filter>qp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\qf\qf_time.cpp">
+      <Filter>qp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\qs\qs.cpp">
+      <Filter>qp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\qs\qs_64bit.cpp">
+      <Filter>qp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\qs\qs_fp.cpp">
+      <Filter>qp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\qs\qstamp.cpp">
+      <Filter>qp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ports\qube\qube.cpp">
+      <Filter>qube</Filter>
+    </ClCompile>
+    <ClCompile Include="$(QTOOLS)\qspy\source\qspy.c">
+      <Filter>qube</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\ports\qube\qp_port.hpp">
+      <Filter>qube</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ports\qube\qs_port.hpp">
+      <Filter>qube</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\bsp.hpp" />
+    <ClInclude Include="..\src\qhsmtst.hpp" />
+    <ClInclude Include="qp_config.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="qp">
+      <UniqueIdentifier>{8a14cc5f-5520-4870-80c8-16a728dd5b06}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="qube">
+      <UniqueIdentifier>{b3b54046-9fb7-4796-b157-31c169faf065}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
