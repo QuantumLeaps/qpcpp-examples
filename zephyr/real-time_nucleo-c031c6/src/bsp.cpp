@@ -72,12 +72,11 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
     Q_UNUSED_PAR(module);
     Q_UNUSED_PAR(id);
     QS_ASSERTION(module, id, 10000U); // report assertion to QS
-    Q_PRINTK("\nERROR in %s:%d\n", module, id);
 
 #ifndef NDEBUG
+    Q_PRINTK("\nERROR in %s:%d\n", module, id);
     k_panic(); // debug build: halt the system for error search...
 #endif
-
     sys_reboot(SYS_REBOOT_COLD); // release build: reboot the system
     for (;;) { // explicitly "no-return"
     }

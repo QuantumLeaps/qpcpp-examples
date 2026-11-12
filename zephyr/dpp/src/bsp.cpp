@@ -74,9 +74,8 @@ Q_NORETURN Q_onError(char const * const module, int_t const id) {
 #ifndef NDEBUG
     Q_PRINTK("\nERROR in %s:%d\n", module, id);
     k_panic(); // debug build: halt the system for error search...
-#else
-    sys_reboot(SYS_REBOOT_COLD); // release build: reboot the system
 #endif
+    sys_reboot(SYS_REBOOT_COLD); // release build: reboot the system
     for (;;) { // explicitly "no-return"
     }
 }
@@ -119,6 +118,7 @@ void init(void const * const arg) {
     QS_OBJ_DICTIONARY(&timerID);
     QS_USR_DICTIONARY(PHILO_STAT);
     QS_USR_DICTIONARY(PAUSED_STAT);
+
     QS_ONLY(APP::produce_sig_dict());
 
     // setup QS filters...
@@ -243,9 +243,7 @@ static struct device const *uart_dev =
 
 //............................................................................
 static void uart_cb(const struct device *dev, void *user_data) {
-    if (!uart_irq_update(uart_dev)) {
-        return;
-    }
+    uart_irq_update(uart_dev); // returns void since Zephyr 4.5
 
     if (uart_irq_rx_ready(uart_dev)) {
         std::uint8_t buf[32];
